@@ -20,7 +20,9 @@ import QuizReview from './pages/QuizReview';
 import Chat from './pages/Chat';
 import Roadmap from './pages/Roadmap';
 import StudyPlan from './pages/StudyPlan';
+import Career from './pages/Career';
 import Profile from './pages/Profile';
+import Admin from './pages/Admin';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -101,7 +103,9 @@ function App() {
         <Route path="chat" element={<Chat />} />
         <Route path="roadmap" element={<Roadmap />} />
         <Route path="study-plan" element={<StudyPlan />} />
+        <Route path="career" element={<Career />} />
         <Route path="profile" element={<Profile />} />
+        <Route path="admin" element={<Admin />} />
       </Route>
       
       {/* 404 */}

@@ -11,3 +11,4 @@ export { default as QuizResult } from './QuizResult';
 export { default as Chat } from './Chat';
 export { default as Roadmap } from './Roadmap';
 export { default as Profile } from './Profile';
+export { default as Admin } from './Admin';

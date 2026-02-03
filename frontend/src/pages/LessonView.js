@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from 'react-query';
 import ReactMarkdown from 'react-markdown';
 import { motion } from 'framer-motion';
 import { lessonAPI, ttsAPI, quizAPI } from '../services/api';
+import StructuredLesson from '../components/StructuredLesson';
 import {
   BookOpenIcon,
   CheckCircleIcon,
@@ -12,7 +13,9 @@ import {
   PlayIcon,
   ArrowLeftIcon,
   SparklesIcon,
-  ArrowPathIcon
+  ArrowPathIcon,
+  DocumentTextIcon,
+  CodeBracketIcon
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 
@@ -24,7 +27,9 @@ const LessonView = () => {
   const [audioUrl, setAudioUrl] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioLoading, setAudioLoading] = useState(false);
+  const [viewMode, setViewMode] = useState('structured'); // 'structured' | 'markdown' | 'latex'
   const audioRef = React.useRef(null);
+  const baseUrl = process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5000';
 
   // Fetch lesson
   const { data: lesson, isLoading, error } = useQuery(
@@ -32,6 +37,14 @@ const LessonView = () => {
     () => lessonAPI.getById(lessonId).then(res => res.data.lesson),
     { enabled: !!lessonId }
   );
+
+  // Set audio URL from existing lesson audio
+  React.useEffect(() => {
+    if (lesson?.hasAudio && lesson?.audioIds?.length > 0) {
+      // Use the first audio file for the main player
+      setAudioUrl(`${baseUrl}/api/tts/${lesson.audioIds[0]}`);
+    }
+  }, [lesson, baseUrl]);
 
   // Mark complete mutation
   const completeMutation = useMutation(
@@ -73,11 +86,17 @@ const LessonView = () => {
       // Get first 4000 characters for TTS
       const text = lesson.content.replace(/[#*_\[\]]/g, '').slice(0, 4000);
       
-      const response = await ttsAPI.generate({ text, voice: 'nova' });
+      const response = await ttsAPI.generate({ 
+        text, 
+        voice: 'nova',
+        lessonId: lesson._id || lesson.id
+      });
       
       if (response.data.audio?.url) {
-        const fullUrl = `${process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5000'}${response.data.audio.url}`;
+        const fullUrl = `${baseUrl}${response.data.audio.url}`;
         setAudioUrl(fullUrl);
+        // Invalidate lesson query to refresh audioIds
+        queryClient.invalidateQueries(['lesson', lessonId]);
         toast.success('Tạo audio thành công!');
       }
     } catch (error) {
@@ -230,9 +249,72 @@ const LessonView = () => {
         transition={{ delay: 0.1 }}
         className="card"
       >
-        <div className="markdown-content">
-          <ReactMarkdown>{lesson.content}</ReactMarkdown>
-        </div>
+        {/* View Mode Tabs */}
+        {(lesson.structuredContent || lesson.latexContent) && (
+          <div className="flex border-b border-gray-200 mb-4">
+            {lesson.structuredContent && (
+              <button
+                onClick={() => setViewMode('structured')}
+                className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
+                  viewMode === 'structured'
+                    ? 'border-primary-500 text-primary-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <DocumentTextIcon className="w-4 h-4 inline mr-1" />
+                Bài giảng
+              </button>
+            )}
+            <button
+              onClick={() => setViewMode('markdown')}
+              className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
+                viewMode === 'markdown'
+                  ? 'border-primary-500 text-primary-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <BookOpenIcon className="w-4 h-4 inline mr-1" />
+              Markdown
+            </button>
+            {lesson.latexContent && (
+              <button
+                onClick={() => setViewMode('latex')}
+                className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
+                  viewMode === 'latex'
+                    ? 'border-primary-500 text-primary-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <CodeBracketIcon className="w-4 h-4 inline mr-1" />
+                LaTeX
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Content based on view mode */}
+        {viewMode === 'structured' && lesson.structuredContent ? (
+          <StructuredLesson lesson={lesson} />
+        ) : viewMode === 'latex' && lesson.latexContent ? (
+          <div className="latex-content">
+            <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm font-mono whitespace-pre-wrap">
+              {lesson.latexContent}
+            </pre>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(lesson.latexContent);
+                toast.success('Đã copy LaTeX!');
+              }}
+              className="mt-2 btn-ghost text-sm"
+            >
+              📋 Copy LaTeX
+            </button>
+          </div>
+        ) : (
+          <div className="markdown-content">
+            <ReactMarkdown>{lesson.content}</ReactMarkdown>
+          </div>
+        )}
       </motion.div>
 
       {/* Bottom Actions */}

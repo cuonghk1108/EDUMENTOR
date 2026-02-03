@@ -23,6 +23,13 @@ const db = {
   chatHistory: Datastore.create({ filename: path.join(dataDir, 'chat_history.db'), autoload: true }),
   learningStats: Datastore.create({ filename: path.join(dataDir, 'learning_stats.db'), autoload: true }),
   roadmaps: Datastore.create({ filename: path.join(dataDir, 'roadmaps.db'), autoload: true }),
+  // New databases for complete data tracking
+  userSettings: Datastore.create({ filename: path.join(dataDir, 'user_settings.db'), autoload: true }),
+  bookmarks: Datastore.create({ filename: path.join(dataDir, 'bookmarks.db'), autoload: true }),
+  notes: Datastore.create({ filename: path.join(dataDir, 'notes.db'), autoload: true }),
+  studySessions: Datastore.create({ filename: path.join(dataDir, 'study_sessions.db'), autoload: true }),
+  audioHistory: Datastore.create({ filename: path.join(dataDir, 'audio_history.db'), autoload: true }),
+  activityLog: Datastore.create({ filename: path.join(dataDir, 'activity_log.db'), autoload: true }),
 };
 
 // Create indexes
@@ -32,6 +39,12 @@ db.quizzes.ensureIndex({ fieldName: 'userId' });
 db.chatHistory.ensureIndex({ fieldName: 'userId' });
 db.learningStats.ensureIndex({ fieldName: 'userId', unique: true });
 db.roadmaps.ensureIndex({ fieldName: 'userId', unique: true });
+db.userSettings.ensureIndex({ fieldName: 'userId', unique: true });
+db.bookmarks.ensureIndex({ fieldName: 'userId' });
+db.notes.ensureIndex({ fieldName: 'userId' });
+db.studySessions.ensureIndex({ fieldName: 'userId' });
+db.audioHistory.ensureIndex({ fieldName: 'userId' });
+db.activityLog.ensureIndex({ fieldName: 'userId' });
 
 console.log('💾 Database initialized - Data stored in:', dataDir);
 
@@ -59,6 +72,16 @@ const userService = {
   async update(userId, data) {
     await db.users.update({ _id: userId }, { $set: { ...data, updatedAt: new Date() } });
     return this.getById(userId);
+  },
+
+  async getAll() {
+    const docs = await db.users.find({});
+    return docs.map(doc => ({ id: doc._id, ...doc }));
+  },
+
+  async delete(userId) {
+    await db.users.remove({ _id: userId });
+    return { deleted: true };
   }
 };
 
@@ -99,6 +122,11 @@ const lessonService = {
   async delete(lessonId) {
     await db.lessons.remove({ _id: lessonId });
     return { deleted: true };
+  },
+
+  async getAll() {
+    const docs = await db.lessons.find({});
+    return docs.map(doc => ({ id: doc._id, ...doc }));
   }
 };
 
@@ -143,6 +171,16 @@ const quizService = {
   async getQuizForReview(quizId) {
     const doc = await db.quizzes.findOne({ _id: quizId });
     return doc ? { id: doc._id, ...doc } : null;
+  },
+
+  async getAll() {
+    const docs = await db.quizzes.find({});
+    return docs.map(doc => ({ id: doc._id, ...doc }));
+  },
+
+  async delete(quizId) {
+    await db.quizzes.remove({ _id: quizId });
+    return { deleted: true };
   }
 };
 
@@ -161,6 +199,11 @@ const chatService = {
   async clearHistory(userId) {
     const count = await db.chatHistory.remove({ userId }, { multi: true });
     return { deleted: count };
+  },
+
+  async getAll() {
+    const docs = await db.chatHistory.find({});
+    return docs.map(doc => ({ id: doc._id, ...doc }));
   }
 };
 
@@ -242,6 +285,43 @@ const learningStatsService = {
     if (completed) updateData.completedLessons = (stats.completedLessons || 0) + 1;
     await db.learningStats.update({ userId }, { $set: updateData });
     return this.getByUserId(userId);
+  },
+
+  async addStudyTime(userId, minutes) {
+    const stats = await this.getByUserId(userId);
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Update daily study time
+    const dailyStudy = stats.dailyStudy || {};
+    dailyStudy[today] = (dailyStudy[today] || 0) + minutes;
+    
+    // Calculate streak
+    let streakDays = stats.streakDays || 0;
+    const lastDate = stats.lastActiveDate ? new Date(stats.lastActiveDate).toISOString().split('T')[0] : null;
+    
+    if (lastDate !== today) {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split('T')[0];
+      
+      if (lastDate === yesterdayStr) {
+        streakDays += 1;
+      } else if (lastDate !== today) {
+        streakDays = 1; // Reset streak
+      }
+    }
+    
+    await db.learningStats.update({ userId }, { 
+      $set: { 
+        totalStudyMinutes: (stats.totalStudyMinutes || 0) + minutes,
+        dailyStudy,
+        streakDays,
+        lastActiveDate: new Date(),
+        updatedAt: new Date()
+      } 
+    });
+    
+    return this.getByUserId(userId);
   }
 };
 
@@ -322,12 +402,273 @@ const roadmapService = {
   }
 };
 
+// ==================== USER SETTINGS SERVICE ====================
+const userSettingsService = {
+  getDefaultSettings() {
+    return {
+      theme: 'light',
+      fontSize: 'medium',
+      voiceId: 'en-US-natalie',
+      autoPlayAudio: false,
+      notificationsEnabled: true,
+      dailyGoal: 30, // minutes
+      preferredSubjects: [],
+      language: 'vi'
+    };
+  },
+
+  async getByUserId(userId) {
+    let doc = await db.userSettings.findOne({ userId });
+    if (!doc) {
+      doc = await db.userSettings.insert({
+        userId,
+        ...this.getDefaultSettings(),
+        createdAt: new Date()
+      });
+    }
+    return { id: doc._id, ...doc };
+  },
+
+  async update(userId, settings) {
+    const existing = await this.getByUserId(userId);
+    await db.userSettings.update({ userId }, { 
+      $set: { ...settings, updatedAt: new Date() } 
+    });
+    return this.getByUserId(userId);
+  }
+};
+
+// ==================== BOOKMARK SERVICE ====================
+const bookmarkService = {
+  async create(userId, bookmark) {
+    const doc = await db.bookmarks.insert({
+      userId,
+      type: bookmark.type, // 'lesson', 'quiz', 'topic'
+      targetId: bookmark.targetId,
+      title: bookmark.title,
+      notes: bookmark.notes || '',
+      createdAt: new Date()
+    });
+    return { id: doc._id, ...doc };
+  },
+
+  async getByUserId(userId) {
+    const docs = await db.bookmarks.find({ userId }).sort({ createdAt: -1 });
+    return docs.map(doc => ({ id: doc._id, ...doc }));
+  },
+
+  async delete(bookmarkId) {
+    await db.bookmarks.remove({ _id: bookmarkId });
+    return { deleted: true };
+  },
+
+  async exists(userId, targetId, type) {
+    const doc = await db.bookmarks.findOne({ userId, targetId, type });
+    return !!doc;
+  }
+};
+
+// ==================== NOTES SERVICE ====================
+const notesService = {
+  async create(userId, note) {
+    const doc = await db.notes.insert({
+      userId,
+      lessonId: note.lessonId,
+      content: note.content,
+      position: note.position || null, // { section, paragraph }
+      highlightedText: note.highlightedText || '',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+    return { id: doc._id, ...doc };
+  },
+
+  async getByUserId(userId) {
+    const docs = await db.notes.find({ userId }).sort({ createdAt: -1 });
+    return docs.map(doc => ({ id: doc._id, ...doc }));
+  },
+
+  async getByLessonId(userId, lessonId) {
+    const docs = await db.notes.find({ userId, lessonId }).sort({ createdAt: 1 });
+    return docs.map(doc => ({ id: doc._id, ...doc }));
+  },
+
+  async update(noteId, content) {
+    await db.notes.update({ _id: noteId }, { 
+      $set: { content, updatedAt: new Date() } 
+    });
+    const doc = await db.notes.findOne({ _id: noteId });
+    return { id: doc._id, ...doc };
+  },
+
+  async delete(noteId) {
+    await db.notes.remove({ _id: noteId });
+    return { deleted: true };
+  }
+};
+
+// ==================== STUDY SESSION SERVICE ====================
+const studySessionService = {
+  async start(userId, sessionData) {
+    const doc = await db.studySessions.insert({
+      userId,
+      lessonId: sessionData.lessonId,
+      quizId: sessionData.quizId,
+      type: sessionData.type, // 'lesson', 'quiz', 'review', 'practice'
+      subject: sessionData.subject,
+      startTime: new Date(),
+      endTime: null,
+      duration: 0,
+      progress: 0,
+      completed: false
+    });
+    return { id: doc._id, ...doc };
+  },
+
+  async end(sessionId, data = {}) {
+    const session = await db.studySessions.findOne({ _id: sessionId });
+    if (!session) return null;
+    
+    const endTime = new Date();
+    const duration = Math.round((endTime - new Date(session.startTime)) / 1000 / 60); // minutes
+    
+    await db.studySessions.update({ _id: sessionId }, { 
+      $set: { 
+        endTime,
+        duration,
+        progress: data.progress || 100,
+        completed: data.completed !== false,
+        ...data
+      } 
+    });
+    
+    // Update daily stats
+    await learningStatsService.addStudyTime(session.userId, duration);
+    
+    const doc = await db.studySessions.findOne({ _id: sessionId });
+    return { id: doc._id, ...doc };
+  },
+
+  async getByUserId(userId, limit = 50) {
+    const docs = await db.studySessions.find({ userId })
+      .sort({ startTime: -1 })
+      .limit(limit);
+    return docs.map(doc => ({ id: doc._id, ...doc }));
+  },
+
+  async getTodaySessions(userId) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const docs = await db.studySessions.find({ 
+      userId, 
+      startTime: { $gte: today } 
+    });
+    return docs.map(doc => ({ id: doc._id, ...doc }));
+  },
+
+  async getWeeklyStats(userId) {
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    const docs = await db.studySessions.find({ 
+      userId, 
+      startTime: { $gte: weekAgo } 
+    });
+    
+    // Group by date
+    const dailyStats = {};
+    docs.forEach(doc => {
+      const date = new Date(doc.startTime).toISOString().split('T')[0];
+      if (!dailyStats[date]) {
+        dailyStats[date] = { totalMinutes: 0, sessions: 0 };
+      }
+      dailyStats[date].totalMinutes += doc.duration || 0;
+      dailyStats[date].sessions += 1;
+    });
+    
+    return dailyStats;
+  }
+};
+
+// ==================== AUDIO HISTORY SERVICE ====================
+const audioHistoryService = {
+  async log(userId, audioData) {
+    const doc = await db.audioHistory.insert({
+      userId,
+      lessonId: audioData.lessonId,
+      sectionId: audioData.sectionId,
+      text: audioData.text?.substring(0, 200), // First 200 chars
+      cacheKey: audioData.cacheKey,
+      duration: audioData.duration,
+      playedAt: new Date()
+    });
+    return { id: doc._id, ...doc };
+  },
+
+  async getByUserId(userId, limit = 100) {
+    const docs = await db.audioHistory.find({ userId })
+      .sort({ playedAt: -1 })
+      .limit(limit);
+    return docs.map(doc => ({ id: doc._id, ...doc }));
+  },
+
+  async getStats(userId) {
+    const docs = await db.audioHistory.find({ userId });
+    const totalPlays = docs.length;
+    const totalDuration = docs.reduce((sum, d) => sum + (d.duration || 0), 0);
+    return { totalPlays, totalDuration };
+  }
+};
+
+// ==================== ACTIVITY LOG SERVICE ====================
+const activityLogService = {
+  async log(userId, activity) {
+    const doc = await db.activityLog.insert({
+      userId,
+      action: activity.action, // 'lesson_view', 'quiz_submit', 'bookmark_add', etc.
+      targetType: activity.targetType, // 'lesson', 'quiz', 'note', etc.
+      targetId: activity.targetId,
+      details: activity.details || {},
+      timestamp: new Date()
+    });
+    return { id: doc._id, ...doc };
+  },
+
+  async getByUserId(userId, limit = 100) {
+    const docs = await db.activityLog.find({ userId })
+      .sort({ timestamp: -1 })
+      .limit(limit);
+    return docs.map(doc => ({ id: doc._id, ...doc }));
+  },
+
+  async getRecentActivity(userId, days = 7) {
+    const since = new Date();
+    since.setDate(since.getDate() - days);
+    const docs = await db.activityLog.find({ 
+      userId, 
+      timestamp: { $gte: since } 
+    }).sort({ timestamp: -1 });
+    return docs.map(doc => ({ id: doc._id, ...doc }));
+  },
+
+  async getAll() {
+    const docs = await db.activityLog.find({});
+    return docs.map(doc => ({ id: doc._id, ...doc }));
+  }
+};
+
 module.exports = {
   db,
   userService,
   lessonService,
   quizService,
   chatService,
+  chatHistoryService: chatService, // Alias for admin controller
   learningStatsService,
-  roadmapService
+  roadmapService,
+  userSettingsService,
+  bookmarkService,
+  notesService,
+  studySessionService,
+  audioHistoryService,
+  activityLogService
 };

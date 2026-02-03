@@ -29,7 +29,8 @@ const Upload = () => {
   const [formData, setFormData] = useState({
     title: '',
     subject: 'Toán học',
-    chapter: ''
+    chapter: '',
+    format: 'complete' // 'standard' | 'latex' | 'json' | 'complete'
   });
 
   // Handle file drop
@@ -97,8 +98,16 @@ const Upload = () => {
       sgkFormData.append('title', formData.title);
       sgkFormData.append('subject', formData.subject);
       sgkFormData.append('chapter', formData.chapter);
+      sgkFormData.append('format', formData.format);
       
-      toast.loading('Đang xử lý SGK...', { id: 'process' });
+      const formatLabel = {
+        standard: 'bài giảng',
+        latex: 'bài giảng LaTeX',
+        json: 'bài giảng có cấu trúc',
+        complete: 'bài giảng đầy đủ'
+      }[formData.format] || 'bài giảng';
+      
+      toast.loading(`Đang xử lý ${formatLabel}...`, { id: 'process' });
       
       const result = await uploadAPI.processSGK(sgkFormData);
       
@@ -283,6 +292,38 @@ const Upload = () => {
                   className="input"
                   placeholder="VD: Chương 1"
                 />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="label">Định dạng bài giảng</label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {[
+                    { value: 'standard', label: 'Chuẩn', desc: 'Markdown đơn giản' },
+                    { value: 'latex', label: 'LaTeX', desc: 'Công thức đẹp' },
+                    { value: 'json', label: 'Cấu trúc', desc: 'Render tương tác' },
+                    { value: 'complete', label: 'Đầy đủ', desc: 'Tất cả định dạng' }
+                  ].map(opt => (
+                    <label
+                      key={opt.value}
+                      className={`cursor-pointer p-3 rounded-xl border-2 transition-all ${
+                        formData.format === opt.value
+                          ? 'border-primary-500 bg-primary-50'
+                          : 'border-gray-200 hover:border-primary-300'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="format"
+                        value={opt.value}
+                        checked={formData.format === opt.value}
+                        onChange={handleChange}
+                        className="sr-only"
+                      />
+                      <span className="block font-medium text-gray-900">{opt.label}</span>
+                      <span className="text-xs text-gray-500">{opt.desc}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

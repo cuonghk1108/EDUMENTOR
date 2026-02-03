@@ -75,7 +75,13 @@ export const ocrAPI = {
 
 // Lessons
 export const lessonAPI = {
-  generate: (data) => api.post('/lesson', data),
+  generate: (data) => api.post('/lesson', data, { timeout: 120000 }),
+  // Tạo bài giảng LaTeX format
+  generateLatex: (data) => api.post('/lesson/latex', data, { timeout: 120000 }),
+  // Tạo bài giảng JSON structured format
+  generateJson: (data) => api.post('/lesson/json', data, { timeout: 120000 }),
+  // Tạo bài giảng đầy đủ (LaTeX + JSON)
+  generateComplete: (data) => api.post('/lesson/complete', data, { timeout: 180000 }),
   getAll: (userId) => api.get(`/lessons/${userId}`),
   getById: (lessonId) => api.get(`/lesson/${lessonId}`),
   markComplete: (lessonId) => api.put(`/lesson/${lessonId}/complete`),
@@ -98,10 +104,27 @@ export const chatAPI = {
   clearHistory: (userId) => api.delete(`/chat-history/${userId}`),
 };
 
-// TTS
+// TTS - Text-to-Speech using Murf.ai
 export const ttsAPI = {
-  generate: (data) => api.post('/tts', data),
+  // Get available Vietnamese voices
+  getVoices: () => api.get('/tts/voices'),
+  // Check API status
+  checkStatus: () => api.get('/tts/status'),
+  // Generate audio from text
+  generate: (data) => api.post('/tts', data, { timeout: 60000 }),
+  // Stream audio (real-time)
+  stream: (data) => api.post('/tts/stream', data, { responseType: 'arraybuffer' }),
+  // Quick read aloud (returns audio directly)
+  readAloud: (text) => api.post('/tts/read-aloud', { text }, { 
+    responseType: 'blob',
+    timeout: 60000 
+  }),
+  // Convert lesson to speech
+  convertLesson: (data) => api.post('/tts/lesson', data, { timeout: 180000 }),
+  // Get audio file by ID
   getAudio: (audioId) => api.get(`/tts/${audioId}`, { responseType: 'blob' }),
+  // Get audio URL
+  getAudioUrl: (audioId) => `${api.defaults.baseURL}/tts/${audioId}`,
 };
 
 // Dashboard
@@ -133,6 +156,102 @@ export const studyPlanAPI = {
   adjustPlan: (data) => api.post('/study-plan/adjust', data, { timeout: 120000 }),
   // Xóa lộ trình
   delete: () => api.delete('/study-plan'),
+};
+
+// Career - Hướng nghiệp
+export const careerAPI = {
+  // Lấy danh sách khối thi
+  getKhoiThi: () => api.get('/career/khoi-thi'),
+  // Lấy điểm chuẩn các trường (có filter)
+  getDiemChuan: (params) => api.get('/career/diem-chuan', { params }),
+  // Lấy thông tin ngành nghề
+  getNganhNghe: (params) => api.get('/career/nganh-nghe', { params }),
+  // Lấy xu hướng thị trường
+  getXuHuong: () => api.get('/career/xu-huong'),
+  // Lấy bài test Holland
+  getHollandTest: () => api.get('/career/holland-test'),
+  // Phân tích kết quả test Holland
+  analyzeHolland: (data) => api.post('/career/holland-result', data),
+  // Tư vấn hướng nghiệp bằng AI
+  getAdvice: (data) => api.post('/career/advice', data, { timeout: 120000 }),
+  // Tìm trường phù hợp theo điểm
+  findSchools: (params) => api.get('/career/find-schools', { params }),
+};
+
+// ============================================
+// USER DATA MANAGEMENT APIs
+// ============================================
+
+// User Settings - Cài đặt người dùng
+export const settingsAPI = {
+  get: () => api.get('/settings'),
+  update: (data) => api.put('/settings', data),
+};
+
+// Bookmarks - Đánh dấu bài học/quiz
+export const bookmarkAPI = {
+  getAll: () => api.get('/bookmarks'),
+  add: (data) => api.post('/bookmarks', data),
+  remove: (bookmarkId) => api.delete(`/bookmarks/${bookmarkId}`),
+};
+
+// Notes - Ghi chú
+export const notesAPI = {
+  getAll: () => api.get('/notes'),
+  getByLesson: (lessonId) => api.get(`/notes/lesson/${lessonId}`),
+  create: (data) => api.post('/notes', data),
+  update: (noteId, content) => api.put(`/notes/${noteId}`, { content }),
+  delete: (noteId) => api.delete(`/notes/${noteId}`),
+};
+
+// Study Sessions - Phiên học tập
+export const studySessionAPI = {
+  start: (data) => api.post('/study-session/start', data),
+  end: (sessionId, data) => api.post(`/study-session/${sessionId}/end`, data),
+  getAll: () => api.get('/study-sessions'),
+  getToday: () => api.get('/study-sessions/today'),
+  getWeekly: () => api.get('/study-sessions/weekly'),
+};
+
+// Audio History - Lịch sử nghe audio
+export const audioHistoryAPI = {
+  log: (data) => api.post('/audio-history', data),
+  get: () => api.get('/audio-history'),
+};
+
+// Activity Log - Nhật ký hoạt động
+export const activityAPI = {
+  getRecent: (days = 7) => api.get(`/activity?days=${days}`),
+  log: (data) => api.post('/activity', data),
+};
+
+// ============================================
+// ADMIN APIs
+// ============================================
+
+export const adminAPI = {
+  // Dashboard
+  getDashboardStats: () => api.get('/admin/dashboard'),
+  getActivityTimeline: (days = 7) => api.get(`/admin/activity-timeline?days=${days}`),
+  
+  // Users
+  getUsers: (params) => api.get('/admin/users', { params }),
+  getUserDetails: (userId) => api.get(`/admin/users/${userId}`),
+  updateUser: (userId, data) => api.put(`/admin/users/${userId}`, data),
+  deleteUser: (userId) => api.delete(`/admin/users/${userId}`),
+  
+  // Lessons
+  getLessons: (params) => api.get('/admin/lessons', { params }),
+  deleteLesson: (lessonId) => api.delete(`/admin/lessons/${lessonId}`),
+  
+  // Quizzes
+  getQuizzes: (params) => api.get('/admin/quizzes', { params }),
+  deleteQuiz: (quizId) => api.delete(`/admin/quizzes/${quizId}`),
+  
+  // Settings & Logs
+  getSettings: () => api.get('/admin/settings'),
+  getLogs: (params) => api.get('/admin/logs', { params }),
+  getSubjects: () => api.get('/admin/subjects'),
 };
 
 export default api;

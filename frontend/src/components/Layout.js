@@ -9,9 +9,11 @@ import {
   ChatBubbleLeftRightIcon,
   MapIcon,
   CalendarDaysIcon,
+  BriefcaseIcon,
   UserCircleIcon,
   ArrowRightOnRectangleIcon,
-  AcademicCapIcon
+  AcademicCapIcon,
+  Cog6ToothIcon
 } from '@heroicons/react/24/outline';
 
 const Layout = () => {
@@ -31,7 +33,13 @@ const Layout = () => {
     { name: 'Hỏi đáp', href: '/chat', icon: ChatBubbleLeftRightIcon },
     { name: 'Lộ trình', href: '/roadmap', icon: MapIcon },
     { name: 'Ôn thi TN THPT', href: '/study-plan', icon: CalendarDaysIcon },
+    { name: 'Hướng nghiệp', href: '/career', icon: BriefcaseIcon },
   ];
+
+  // Add admin link if user is admin
+  if (user?.role === 'admin') {
+    navigation.push({ name: 'Quản trị', href: '/admin', icon: Cog6ToothIcon, isAdmin: true });
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -57,13 +65,22 @@ const Layout = () => {
               className={({ isActive }) =>
                 `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
                   isActive
-                    ? 'bg-primary-50 text-primary-700 font-medium'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    ? item.isAdmin 
+                      ? 'bg-orange-50 text-orange-700 font-medium'
+                      : 'bg-primary-50 text-primary-700 font-medium'
+                    : item.isAdmin
+                      ? 'text-orange-600 hover:bg-orange-50 hover:text-orange-700'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                 }`
               }
             >
               <item.icon className="w-5 h-5" />
               {item.name}
+              {item.isAdmin && (
+                <span className="ml-auto px-2 py-0.5 bg-orange-100 text-orange-600 text-xs rounded-full">
+                  Admin
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>

@@ -50,6 +50,174 @@ NỘI DUNG CẦN CHUYỂN ĐỔI:
 
 {text}`,
 
+  // ============================================
+  // BÀI GIẢNG ĐỊNH DẠNG LaTeX
+  // ============================================
+  lessonLatex: `Bạn là giáo viên THPT Việt Nam + chuyên gia LaTeX.
+
+Từ nội dung tôi cung cấp, hãy:
+
+1. Chuyển toàn bộ bài giảng sang định dạng LaTeX.
+2. Mọi công thức toán phải viết bằng LaTeX chuẩn.
+3. Không viết công thức dạng text thường.
+4. Phân chia rõ:
+   - Tiêu đề
+   - Lý thuyết
+   - Ví dụ
+   - Bài tập
+   - Đáp án (nếu có)
+
+========================
+
+QUY ƯỚC BẮT BUỘC:
+
+- Công thức inline: $...$
+- Công thức riêng dòng: $$...$$
+- Dùng \\frac{}{}, \\sqrt{}, \\sum, \\int, \\lim đầy đủ
+- Vector: \\vec{}
+- Hệ phương trình:
+
+\\[
+\\begin{cases}
+...
+\\end{cases}
+\\]
+
+- Ma trận:
+
+\\[
+\\begin{bmatrix}
+...
+\\end{bmatrix}
+\\]
+
+- Không dùng ký hiệu Unicode toán học (≤ ≥ ≠ → v.v.)
+
+========================
+
+CẤU TRÚC OUTPUT:
+
+\\documentclass{article}
+\\usepackage[utf8]{inputenc}
+\\usepackage[vietnamese]{babel}
+\\usepackage{amsmath}
+\\usepackage{amssymb}
+\\usepackage{geometry}
+\\geometry{margin=2cm}
+
+\\begin{document}
+
+\\section*{Tên bài}
+
+\\subsection*{Lý thuyết}
+...
+
+\\subsection*{Ví dụ}
+...
+
+\\subsection*{Bài tập}
+...
+
+\\end{document}
+
+========================
+
+YÊU CẦU:
+
+- Viết bằng tiếng Việt.
+- Diễn giải phù hợp học sinh THPT.
+- Công thức phải biên dịch được.
+- Không thiếu dấu ngoặc.
+- Không sinh lỗi LaTeX.
+
+========================
+
+NỘI DUNG CẦN XỬ LÝ:
+
+{text}
+
+BẮT ĐẦU XUẤT LaTeX NGAY.`,
+
+  // ============================================
+  // BÀI GIẢNG ĐỊNH DẠNG JSON CẤU TRÚC
+  // ============================================
+  lessonStructured: `Bạn là giáo viên THPT Việt Nam + chuyên gia LaTeX.
+
+Từ nội dung tôi cung cấp, hãy tạo bài giảng dạng JSON có cấu trúc.
+
+========================
+
+QUY ƯỚC CÔNG THỨC:
+- Tất cả công thức toán phải viết bằng LaTeX
+- Công thức inline: $...$
+- Công thức block: $$...$$
+- Dùng \\frac{}{}, \\sqrt{}, \\sum, \\int, \\lim đầy đủ
+- Vector: \\vec{}
+- Không dùng ký hiệu Unicode (≤ → \\leq, ≥ → \\geq, ≠ → \\neq)
+
+========================
+
+OUTPUT FORMAT (JSON):
+{
+  "title": "[Tiêu đề bài học]",
+  "subject": "[Môn học: Toán/Lý/Hóa/...]",
+  "grade": "[Lớp: 10/11/12]",
+  "chapter": "[Chương]",
+  "theory": "[Phần lý thuyết - giải thích dễ hiểu cho học sinh THPT, công thức dùng LaTeX]",
+  "keyPoints": [
+    "[Điểm quan trọng 1]",
+    "[Điểm quan trọng 2]"
+  ],
+  "formulas": [
+    {
+      "name": "[Tên công thức]",
+      "formula": "[Công thức LaTeX, ví dụ: $x = \\\\frac{-b \\\\pm \\\\sqrt{b^2-4ac}}{2a}$]",
+      "description": "[Giải thích ý nghĩa]",
+      "conditions": "[Điều kiện áp dụng]"
+    }
+  ],
+  "examples": [
+    {
+      "id": 1,
+      "problem": "[Đề bài - dùng LaTeX cho công thức]",
+      "solution": "[Lời giải chi tiết từng bước - dùng LaTeX]",
+      "answer": "[Đáp số]",
+      "difficulty": "[easy/medium/hard]",
+      "tips": "[Mẹo giải nhanh nếu có]"
+    }
+  ],
+  "exercises": [
+    {
+      "id": 1,
+      "problem": "[Đề bài tập - dùng LaTeX]",
+      "hints": ["[Gợi ý 1]", "[Gợi ý 2]"],
+      "answer": "[Đáp số]",
+      "difficulty": "[easy/medium/hard]"
+    }
+  ],
+  "summary": "[Tóm tắt ngắn gọn nội dung bài học]",
+  "commonMistakes": [
+    "[Lỗi thường gặp 1]",
+    "[Lỗi thường gặp 2]"
+  ],
+  "relatedTopics": ["[Chủ đề liên quan 1]", "[Chủ đề liên quan 2]"]
+}
+
+========================
+
+YÊU CẦU:
+- Viết bằng tiếng Việt
+- Giải thích phù hợp học sinh THPT
+- Công thức LaTeX phải escape đúng trong JSON (dùng \\\\ thay vì \\)
+- Ít nhất 2 công thức, 2 ví dụ, 3 bài tập
+- CHỈ TRẢ VỀ JSON, KHÔNG CÓ TEXT KHÁC
+
+========================
+
+NỘI DUNG CẦN XỬ LÝ:
+
+{text}`,
+
   quiz: `Bạn là giáo viên THPT Việt Nam có kinh nghiệm ra đề thi.
 Từ nội dung sau, hãy tạo {count} câu hỏi trắc nghiệm chất lượng cao.
 
@@ -449,7 +617,89 @@ OUTPUT FORMAT (JSON):
   "encouragement": "[Lời động viên dựa trên tiến độ]"
 }
 
-CHỈ TRẢ VỀ JSON.`
+CHỈ TRẢ VỀ JSON.`,
+
+  // ============================================
+  // TƯ VẤN HƯỚNG NGHIỆP
+  // ============================================
+  careerAdvice: `Bạn là chuyên gia tư vấn hướng nghiệp cho học sinh THPT Việt Nam với kiến thức sâu rộng về:
+- Hệ thống giáo dục đại học Việt Nam
+- Các ngành nghề và xu hướng thị trường lao động
+- Tâm lý học nghề nghiệp
+
+THÔNG TIN HỌC SINH:
+{studentProfile}
+
+KHỐI THI PHÙ HỢP (dựa trên điểm):
+{recommendedKhoi}
+
+NGÀNH NGHỀ CÓ SẴN:
+{availableCareers}
+
+XU HƯỚNG THỊ TRƯỜNG:
+{marketTrends}
+
+NHIỆM VỤ:
+1. Phân tích điểm mạnh/yếu của học sinh từ điểm các môn
+2. Đề xuất 3-5 ngành nghề phù hợp nhất với lý do chi tiết
+3. Gợi ý các trường đại học phù hợp với mức điểm
+4. Đưa ra lộ trình chuẩn bị cho từng ngành gợi ý
+5. Phân tích cơ hội nghề nghiệp và thu nhập tương lai
+
+OUTPUT FORMAT (JSON):
+{
+  "profileAnalysis": {
+    "academicStrengths": ["[Điểm mạnh học thuật]"],
+    "academicWeaknesses": ["[Điểm yếu cần cải thiện]"],
+    "personalityTraits": ["[Đặc điểm tính cách phù hợp]"],
+    "overallAssessment": "[Đánh giá tổng quan]"
+  },
+  "careerRecommendations": [
+    {
+      "rank": 1,
+      "career": "[Tên ngành nghề]",
+      "matchScore": 95,
+      "reasons": ["[Lý do 1]", "[Lý do 2]"],
+      "requiredSkills": ["[Kỹ năng cần có]"],
+      "relatedMajors": ["[Ngành học đại học]"],
+      "recommendedSchools": [
+        {
+          "name": "[Tên trường]",
+          "major": "[Ngành cụ thể]",
+          "estimatedScore": "[Điểm dự kiến]",
+          "chance": "[Cao/TB/Thấp]"
+        }
+      ],
+      "careerPath": {
+        "entry": "[Vị trí khởi đầu]",
+        "midLevel": "[Vị trí 3-5 năm]",
+        "senior": "[Vị trí 5-10 năm]",
+        "salary": {
+          "entry": "[Mức lương khởi điểm]",
+          "mid": "[Mức lương 3-5 năm]",
+          "senior": "[Mức lương cao cấp]"
+        }
+      },
+      "marketOutlook": "[Triển vọng thị trường]"
+    }
+  ],
+  "preparationPlan": {
+    "immediate": ["[Việc cần làm ngay]"],
+    "beforeExam": ["[Chuẩn bị trước kỳ thi]"],
+    "skills": ["[Kỹ năng cần rèn luyện]"]
+  },
+  "alternativePaths": [
+    {
+      "option": "[Lựa chọn thay thế]",
+      "description": "[Mô tả]",
+      "suitableFor": "[Phù hợp nếu...]"
+    }
+  ],
+  "motivationalMessage": "[Lời động viên và khích lệ]",
+  "importantNotes": ["[Lưu ý quan trọng]"]
+}
+
+CHỈ TRẢ VỀ JSON, KHÔNG CÓ TEXT KHÁC.`
 };
 
 // ============================================
@@ -487,6 +737,166 @@ const aiService = {
       };
     } catch (error) {
       console.error('Generate lesson error:', error);
+      throw new Error(`Lỗi tạo bài giảng: ${error.message}`);
+    }
+  },
+
+  /**
+   * Generate lesson in LaTeX format
+   * Chuyển đổi nội dung sang định dạng LaTeX chuẩn cho Toán/Lý/Hóa
+   */
+  async generateLessonLatex(text, options = {}) {
+    try {
+      const prompt = PROMPTS.lessonLatex.replace('{text}', text);
+      
+      const response = await openai.chat.completions.create({
+        model: MODEL,
+        messages: [
+          {
+            role: 'system',
+            content: 'Bạn là giáo viên THPT + chuyên gia LaTeX. Luôn viết công thức toán học bằng LaTeX chuẩn. Không dùng ký hiệu Unicode toán học.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        max_tokens: options.maxTokens || 6000,
+        temperature: options.temperature || 0.3 // Lower temperature for more consistent LaTeX
+      });
+
+      const latexContent = response.choices[0].message.content;
+      
+      // Validate LaTeX basic structure
+      const hasDocumentClass = latexContent.includes('\\documentclass');
+      const hasBeginDocument = latexContent.includes('\\begin{document}');
+      const hasEndDocument = latexContent.includes('\\end{document}');
+      
+      return {
+        success: true,
+        content: latexContent,
+        format: 'latex',
+        isComplete: hasDocumentClass && hasBeginDocument && hasEndDocument,
+        usage: response.usage
+      };
+    } catch (error) {
+      console.error('Generate LaTeX lesson error:', error);
+      throw new Error(`Lỗi tạo bài giảng LaTeX: ${error.message}`);
+    }
+  },
+
+  /**
+   * Convert existing lesson content to LaTeX
+   */
+  async convertToLatex(lessonContent, options = {}) {
+    try {
+      const prompt = `Chuyển đổi bài giảng sau sang định dạng LaTeX chuẩn.
+
+QUY TẮC:
+- Công thức inline: $...$
+- Công thức block: $$...$$ hoặc \\[...\\]
+- Sử dụng \\frac{}{}, \\sqrt{}, \\sum, \\int đầy đủ
+- Hệ phương trình: \\begin{cases}...\\end{cases}
+- Không dùng ký hiệu Unicode (≤ → \\leq, ≥ → \\geq, ≠ → \\neq, v.v.)
+
+BÀI GIẢNG CẦN CHUYỂN:
+
+${lessonContent}
+
+CHỈ OUTPUT PHẦN LATEX (không cần documentclass nếu là đoạn nhỏ).`;
+      
+      const response = await openai.chat.completions.create({
+        model: MODEL,
+        messages: [
+          {
+            role: 'system',
+            content: 'Bạn là chuyên gia LaTeX. Chuyển đổi nội dung sang LaTeX chuẩn, đảm bảo compile được.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        max_tokens: options.maxTokens || 4000,
+        temperature: 0.2
+      });
+
+      return {
+        success: true,
+        content: response.choices[0].message.content,
+        format: 'latex',
+        usage: response.usage
+      };
+    } catch (error) {
+      console.error('Convert to LaTeX error:', error);
+      throw new Error(`Lỗi chuyển đổi LaTeX: ${error.message}`);
+    }
+  },
+
+  /**
+   * Generate lesson in structured JSON format with LaTeX formulas
+   */
+  async generateLessonStructured(text, options = {}) {
+    try {
+      const prompt = PROMPTS.lessonStructured.replace('{text}', text);
+      
+      const response = await openai.chat.completions.create({
+        model: MODEL,
+        messages: [
+          {
+            role: 'system',
+            content: 'Bạn là giáo viên THPT + chuyên gia LaTeX. Trả về JSON hợp lệ với công thức LaTeX được escape đúng.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        max_tokens: options.maxTokens || 6000,
+        temperature: options.temperature || 0.3,
+        response_format: { type: "json_object" }
+      });
+
+      const content = response.choices[0].message.content;
+      const structured = JSON.parse(content);
+      
+      return {
+        success: true,
+        lesson: structured,
+        format: 'json',
+        usage: response.usage
+      };
+    } catch (error) {
+      console.error('Generate structured lesson error:', error);
+      throw new Error(`Lỗi tạo bài giảng JSON: ${error.message}`);
+    }
+  },
+
+  /**
+   * Generate both LaTeX and JSON versions of lesson
+   */
+  async generateLessonComplete(text, options = {}) {
+    try {
+      // Generate both formats in parallel
+      const [latexResult, jsonResult, markdownResult] = await Promise.all([
+        this.generateLessonLatex(text, options),
+        this.generateLessonStructured(text, options),
+        this.generateLesson(text, options)
+      ]);
+
+      return {
+        success: true,
+        content: markdownResult.content, // Markdown content
+        latexContent: latexResult.content, // LaTeX content
+        structuredContent: jsonResult.lesson, // JSON structured
+        usage: {
+          markdown: markdownResult.usage,
+          latex: latexResult.usage,
+          json: jsonResult.usage
+        }
+      };
+    } catch (error) {
+      console.error('Generate complete lesson error:', error);
       throw new Error(`Lỗi tạo bài giảng: ${error.message}`);
     }
   },
@@ -842,6 +1252,48 @@ const aiService = {
     } catch (error) {
       console.error('Update study plan error:', error);
       throw new Error(`Lỗi cập nhật lộ trình: ${error.message}`);
+    }
+  },
+
+  /**
+   * Tư vấn hướng nghiệp bằng AI
+   */
+  async getCareerAdvice(studentProfile, contextData, options = {}) {
+    try {
+      const prompt = PROMPTS.careerAdvice
+        .replace('{studentProfile}', JSON.stringify(studentProfile, null, 2))
+        .replace('{recommendedKhoi}', JSON.stringify(contextData.recommendedKhoi, null, 2))
+        .replace('{availableCareers}', contextData.availableCareers?.join(', ') || '')
+        .replace('{marketTrends}', JSON.stringify(contextData.marketTrends, null, 2));
+
+      const response = await openai.chat.completions.create({
+        model: MODEL,
+        messages: [
+          {
+            role: 'system',
+            content: 'Bạn là chuyên gia tư vấn hướng nghiệp hàng đầu Việt Nam. Luôn trả về JSON hợp lệ với tư vấn chi tiết và thực tế.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        max_tokens: options.maxTokens || 6000,
+        temperature: 0.7,
+        response_format: { type: "json_object" }
+      });
+
+      const content = response.choices[0].message.content;
+      const advice = JSON.parse(content);
+
+      return {
+        success: true,
+        advice,
+        usage: response.usage
+      };
+    } catch (error) {
+      console.error('Get career advice error:', error);
+      throw new Error(`Lỗi tư vấn hướng nghiệp: ${error.message}`);
     }
   }
 };
