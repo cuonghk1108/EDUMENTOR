@@ -2,15 +2,6 @@
 
 <div align="center">
 
-```
-   ██████╗ ██╗ █████╗     ███████╗██╗   ██╗     █████╗ ██╗
-  ██╔════╝ ██║██╔══██╗    ██╔════╝██║   ██║    ██╔══██╗██║
-  ██║  ███╗██║███████║    ███████╗██║   ██║    ███████║██║
-  ██║   ██║██║██╔══██║    ╚════██║██║   ██║    ██╔══██║██║
-  ╚██████╔╝██║██║  ██║    ███████║╚██████╔╝    ██║  ██║██║
-   ╚═════╝ ╚═╝╚═╝  ╚═╝    ╚══════╝ ╚═════╝     ╚═╝  ╚═╝╚═╝
-```
-
 **Gia sư cá nhân thông minh dành cho học sinh THPT Việt Nam**
 
 [![React](https://img.shields.io/badge/React-18.x-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://reactjs.org/)
