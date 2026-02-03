@@ -1,0 +1,13 @@
+export { default as Landing } from './Landing';
+export { default as Login } from './Login';
+export { default as Register } from './Register';
+export { default as Dashboard } from './Dashboard';
+export { default as Upload } from './Upload';
+export { default as Lessons } from './Lessons';
+export { default as LessonView } from './LessonView';
+export { default as Quiz } from './Quiz';
+export { default as QuizTake } from './QuizTake';
+export { default as QuizResult } from './QuizResult';
+export { default as Chat } from './Chat';
+export { default as Roadmap } from './Roadmap';
+export { default as Profile } from './Profile';
