@@ -2,17 +2,20 @@
 
 <div align="center">
 
-**Gia sư cá nhân thông minh dành cho học sinh THPT Việt Nam**
+**Gia sư AI cá nhân hóa dành cho học sinh THPT Việt Nam**
 
 [![React](https://img.shields.io/badge/React-18.x-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://reactjs.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-18.x-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.x-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![Grok AI](https://img.shields.io/badge/Grok_AI-xAI-000000?style=for-the-badge&logo=x&logoColor=white)](https://x.ai/)
 [![Murf.ai](https://img.shields.io/badge/Murf.ai-TTS-FF6B6B?style=for-the-badge)](https://murf.ai/)
+[![Cloudflare](https://img.shields.io/badge/Cloudflare-Tunnel-F38020?style=for-the-badge&logo=cloudflare&logoColor=white)](https://www.cloudflare.com/)
 
-**🚀 Version 1.0.0 | 📅 2026 | 👨‍💻 cuongdev1108**
+**🚀 Version 1.0.0 | 📅 2026 | 👨‍💻 cuonghk1108**
 
-[Demo](#-demo) • [Tính năng](#-tính-năng-chính) • [Cài đặt](#-cài-đặt) • [API](#-api-documentation) • [Đóng góp](#-đóng-góp)
+🔗 **Live Demo:** [https://edumentor.io.vn](https://edumentor.io.vn)
+
+[Tính năng](#-tính-năng-chính) • [Cài đặt](#-cài-đặt) • [Cloudflare Tunnel](#-cloudflare-tunnel-setup) • [API](#-api-documentation) • [Đóng góp](#-đóng-góp)
 
 </div>
 
@@ -23,14 +26,18 @@
 - [Giới thiệu](#-giới-thiệu)
 - [Tính năng chính](#-tính-năng-chính)
 - [Demo](#-demo)
-- [Kiến trúc hệ thống](#-kiến-trúc-hệ-thống)
-- [Công nghệ sử dụng](#-công-nghệ-sử-dụng)
-- [Cài đặt](#-cài-đặt)
+**cuonghk1108**
+
+[![GitHub](https://img.shields.io/badge/GitHub-cuonghk1108-181717?style=for-the-badge&logo=github)](https://github.com/cuonghk1108)
+[![Repository](https://img.shields.io/badge/Repo-AI--Tutor-blue?style=for-the-badge&logo=github)](https://github.com/cuonghk1108/AI-Tutor)
+  - [Local Development](#local-development)
+  - [Cloudflare Tunnel Setup](#-cloudflare-tunnel-setup)
 - [Cấu trúc thư mục](#-cấu-trúc-thư-mục)
 - [Hướng dẫn sử dụng](#-hướng-dẫn-sử-dụng)
 - [API Documentation](#-api-documentation)
-- [Biến môi trường](#-biến-môi-trường)
+- [Biến môi trường](#️-biến-môi-trường)
 - [Scripts](#-scripts)
+- [Admin Setup](#-admin-setup)
 - [Đóng góp](#-đóng-góp)
 - [Bản quyền](#-bản-quyền)
 
@@ -224,20 +231,23 @@
 - Node.js 18.x trở lên
 - npm 9.x trở lên
 - Git
+- (Tùy chọn) Cloudflared CLI để chạy Cloudflare Tunnel
 
-### Bước 1: Clone repository
+### Local Development
+
+#### Bước 1: Clone repository
 ```bash
-git clone https://github.com/cuongdev1108/edumentor.git
-cd edumentor
+git clone https://github.com/cuonghk1108/AI-Tutor.git
+cd AI-Tutor
 ```
 
-### Bước 2: Cài đặt Backend
+#### Bước 2: Cài đặt Backend
 ```bash
 cd backend
 npm install
 ```
 
-### Bước 3: Cấu hình môi trường Backend
+#### Bước 3: Cấu hình môi trường Backend
 ```bash
 cp .env.example .env
 ```
@@ -247,23 +257,28 @@ Chỉnh sửa file `.env`:
 PORT=5000
 NODE_ENV=development
 
+# JWT Authentication
+JWT_SECRET=your_super_secret_jwt_key_here
+
 # Grok AI (xAI)
 XAI_API_KEY=your_xai_api_key_here
+XAI_MODEL=grok-beta
 
 # Murf.ai TTS
 MURF_API_KEY=your_murf_api_key_here
 
-# JWT Secret
-JWT_SECRET=your_super_secret_jwt_key_here
+# CORS Settings (cho Cloudflare Tunnel)
+FRONTEND_URL=http://localhost:3000
+PRODUCTION_URL=https://edumentor.io.vn
 ```
 
-### Bước 4: Cài đặt Frontend
+#### Bước 4: Cài đặt Frontend
 ```bash
 cd ../frontend
 npm install
 ```
 
-### Bước 5: Khởi động ứng dụng
+#### Bước 5: Khởi động ứng dụng
 
 **Cách 1: Sử dụng script (Windows)**
 ```bash
@@ -282,10 +297,108 @@ cd frontend
 npm start
 ```
 
-### Bước 6: Truy cập ứng dụng
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:5000
-- Admin Panel: http://localhost:3000/admin
+#### Bước 6: Truy cập ứng dụng
+- 🌐 Frontend: http://localhost:3000
+- 🔌 Backend API: http://localhost:5000
+- 👨‍💼 Admin Panel: http://localhost:3000/admin
+
+---
+
+## 🌐 Cloudflare Tunnel Setup
+
+Để expose ứng dụng ra internet với domain `edumentor.io.vn`:
+
+### 1️⃣ Cài đặt Cloudflared
+
+**Windows:**
+```powershell
+# Download từ: https://github.com/cloudflare/cloudflared/releases
+# Hoặc dùng winget
+winget install --id Cloudflare.cloudflared
+```
+
+**macOS:**
+```bash
+brew install cloudflare/cloudflare/cloudflared
+```
+
+**Linux:**
+```bash
+wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+sudo dpkg -i cloudflared-linux-amd64.deb
+```
+
+### 2️⃣ Đăng nhập Cloudflare
+```bash
+cloudflared tunnel login
+```
+
+### 3️⃣ Tạo Tunnel (đã tạo sẵn)
+```bash
+cloudflared tunnel create edumentor
+```
+
+### 4️⃣ Cấu hình DNS
+Thêm DNS record cho domain:
+```bash
+cloudflared tunnel route dns edumentor edumentor.io.vn
+cloudflared tunnel route dns edumentor api.edumentor.io.vn
+```
+
+### 5️⃣ Chạy Tunnel
+
+**Cách 1: Sử dụng script (Windows)**
+```bash
+cd cloudflare
+.\start-all.bat
+```
+
+**Cách 2: Khởi động riêng lẻ**
+```bash
+# Terminal 1 - Backend
+cd backend && npm start
+
+# Terminal 2 - Frontend  
+cd frontend && npm start
+
+# Terminal 3 - Cloudflare Tunnel
+cloudflared tunnel --config D:\AII\cloudflare\config.yml run
+```
+
+### 6️⃣ Truy cập qua domain
+- 🌍 Public URL: https://edumentor.io.vn
+- 🔌 API: https://api.edumentor.io.vn
+
+### Cấu hình Tunnel (cloudflare/config.yml)
+```yaml
+tunnel: 4f14b42d-2572-4678-91e9-f370e686f49e
+credentials-file: C:\Users\XC\.cloudflared\4f14b42d-2572-4678-91e9-f370e686f49e.json
+
+ingress:
+  - hostname: edumentor.io.vn
+    service: http://localhost:3000
+  
+  - hostname: api.edumentor.io.vn
+    service: http://localhost:5000
+  
+  - service: http_status:404
+```
+
+### Production Mode (Path-based routing)
+File `cloudflare/config-production.yml`:
+```yaml
+ingress:
+  # API routes
+  - hostname: edumentor.io.vn
+    path: /api/*
+    service: http://localhost:5000
+  
+  # Frontend
+  - hostname: edumentor.io.vn
+    service: http://localhost:3000
+  
+  - service: http_status:404
+```
 
 ---
 
@@ -299,6 +412,7 @@ edumentor/
 │   │   ├── authController.js    # Authentication
 │   │   ├── careerController.js  # Career guidance
 │   │   ├── chatController.js    # AI Chatbot
+│   │   ├── dashboardController.js # User dashboard stats
 │   │   ├── lessonController.js  # Lesson CRUD
 │   │   ├── ocrController.js     # OCR processing
 │   │   ├── quizController.js    # Quiz generation
@@ -328,7 +442,7 @@ edumentor/
 │   ├── 📂 services/
 │   │   ├── aiService.js         # Grok AI integration
 │   │   ├── audioCacheService.js # Audio caching
-│   │   ├── firebaseService.js   # Database services
+│   │   ├── firebaseService.js   # Database services (NeDB)
 │   │   ├── murfService.js       # Murf.ai TTS
 │   │   └── ocrService.js        # Tesseract OCR
 │   │
@@ -336,9 +450,20 @@ edumentor/
 │   │   └── 📂 audio/            # Generated audio files
 │   │
 │   ├── .env                     # Environment variables
+│   ├── .env.example             # Environment template
+│   ├── create-admin.js          # Admin account creator
 │   ├── package.json
 │   ├── server.js                # Entry point
-│   └── set-admin.js             # Admin setup script
+│   └── set-admin.js             # Set user as admin
+│
+├── 📂 cloudflare/               # Cloudflare Tunnel configs
+│   ├── config.yml               # Tunnel config (dev)
+│   ├── config-production.yml    # Production config
+│   ├── setup-tunnel.bat         # Setup script
+│   ├── start-all.bat            # Start all services
+│   ├── start-production.bat     # Start with production config
+│   ├── stop-all.bat             # Stop all services
+│   └── README.md                # Tunnel documentation
 │
 ├── 📂 frontend/
 │   ├── 📂 public/
@@ -376,6 +501,8 @@ edumentor/
 │
 ├── start.bat                    # Windows startup script
 ├── stop.bat                     # Windows stop script
+├── run.bat                      # Quick start (all services)
+├── LICENSE                      # MIT License
 └── README.md                    # This file
 ```
 
@@ -421,11 +548,50 @@ edumentor/
 2. Click "Quản trị" trong sidebar
 3. Quản lý users, lessons, quizzes
 
-**Tạo admin:**
+**Tạo admin mới:**
 ```bash
 cd backend
+node create-admin.js
+```
+
+Hoặc set user hiện có thành admin:
+```bash
 node set-admin.js your-email@example.com
 ```
+
+---
+
+## 👨‍💼 Admin Setup
+
+### Tạo tài khoản Admin đầu tiên
+
+**Cách 1: Tự động tạo admin mới**
+```bash
+cd backend
+node create-admin.js
+```
+
+Thông tin mặc định:
+- Email: `admin@edumentor.io.vn`
+- Password: `Admin@123456`
+
+**Cách 2: Set user hiện có thành admin**
+```bash
+cd backend
+node set-admin.js user@example.com
+```
+
+### Đăng nhập Admin
+1. Truy cập: http://localhost:3000/login
+2. Đăng nhập với tài khoản admin
+3. Vào Admin Panel: http://localhost:3000/admin
+
+### Tính năng Admin Panel
+- 📊 Dashboard thống kê tổng quan
+- 👥 Quản lý người dùng (xem, xóa, cấp quyền)
+- 📚 Quản lý bài học và nội dung
+- 📝 Quản lý quiz
+- 📈 Thống kê chi tiết và báo cáo
 
 ---
 
@@ -506,26 +672,48 @@ Authorization: Bearer <token>
 
 ### Backend (.env)
 ```env
-# Server
+# Server Configuration
 PORT=5000
 NODE_ENV=development
 
-# AI Services
-XAI_API_KEY=           # Grok AI API key
-MURF_API_KEY=          # Murf.ai API key
+# JWT Authentication
+JWT_SECRET=your_super_secret_jwt_key_here
+JWT_EXPIRES_IN=7d
 
-# Security
-JWT_SECRET=            # JWT signing secret
-JWT_EXPIRES_IN=7d      # Token expiration
+# Grok AI (xAI) - https://console.x.ai/
+XAI_API_KEY=your_xai_api_key_here
+XAI_MODEL=grok-beta
 
-# Optional
-TESSERACT_LANG=vie     # OCR language
+# OpenAI (Backup) - https://platform.openai.com/
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Murf.ai TTS - https://murf.ai/api/dashboard
+MURF_API_KEY=your_murf_api_key_here
+
+# CORS Configuration
+FRONTEND_URL=http://localhost:3000
+PRODUCTION_URL=https://edumentor.io.vn
+
+# File Upload
+MAX_FILE_SIZE=10485760
+UPLOAD_DIR=./uploads
+
+# Rate Limiting
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX=100
+
+# OCR Settings (Optional)
+TESSERACT_LANG=vie
 ```
 
 ### Frontend (.env)
 ```env
 REACT_APP_API_URL=http://localhost:5000/api
+REACT_APP_ENV=development
 ```
+
+### Cloudflare Tunnel
+Credentials file: `C:\Users\<USER>\.cloudflared\<TUNNEL_ID>.json`
 
 ---
 
@@ -533,26 +721,42 @@ REACT_APP_API_URL=http://localhost:5000/api
 
 ### Backend
 ```bash
-npm start          # Khởi động server
-npm run dev        # Khởi động với nodemon (auto-reload)
+npm start              # Khởi động server (port 5000)
+npm run dev            # Khởi động với nodemon (auto-reload)
+node create-admin.js   # Tạo tài khoản admin mới
+node set-admin.js <email>  # Set user thành admin
 ```
 
 ### Frontend
 ```bash
-npm start          # Khởi động development server
-npm run build      # Build production
-npm test           # Chạy tests
+npm start              # Khởi động development server (port 3000)
+npm run build          # Build production
+npm test               # Chạy tests
+npm run eject          # Eject CRA config (cẩn thận!)
 ```
 
-### Utility Scripts
-```bash
-# Windows
-start.bat          # Khởi động cả Backend + Frontend
-stop.bat           # Dừng tất cả servers
+### All-in-One Scripts (Windows)
 
-# Set admin
-cd backend
-node set-admin.js <email>
+**Khởi động cơ bản:**
+```bash
+start.bat              # Backend + Frontend
+```
+
+**Khởi động với Cloudflare Tunnel:**
+```bash
+# Development mode (2 domains riêng biệt)
+cd cloudflare
+.\start-all.bat        # Backend + Frontend + Tunnel
+
+# Production mode (1 domain với path routing)
+.\start-production.bat
+```
+
+**Dừng tất cả:**
+```bash
+stop.bat               # Dừng Node.js processes
+cd cloudflare
+.\stop-all.bat         # Dừng tất cả services
 ```
 
 ---
@@ -579,19 +783,37 @@ Vui lòng tạo issue với:
 
 ## 📊 Roadmap
 
-- [x] ✅ Upload & OCR sách giáo khoa
-- [x] ✅ Tạo bài giảng AI (Markdown/LaTeX/JSON)
-- [x] ✅ Text-to-Speech với Murf.ai
-- [x] ✅ Quiz tự động
-- [x] ✅ Chatbot hỏi đáp
-- [x] ✅ Hướng nghiệp & Điểm chuẩn 2025
-- [x] ✅ Admin Panel
-- [ ] 🔄 Mobile App (React Native)
-- [ ] 🔄 Offline mode
-- [ ] 🔄 Multiplayer quiz
-- [ ] 🔄 Parent dashboard
-- [ ] 🔄 Integration với Google Classroom
 
+## 📊 Roadmap
+
+### Đã hoàn thành ✅
+- [x] Upload & OCR sách giáo khoa
+- [x] Tạo bài giảng AI (Markdown/LaTeX/JSON)
+- [x] Text-to-Speech với Murf.ai
+- [x] Quiz tự động với phân tích chi tiết
+- [x] Chatbot hỏi đáp 24/7
+- [x] Hướng nghiệp & Điểm chuẩn 2025
+- [x] Admin Panel đầy đủ
+- [x] Cloudflare Tunnel integration
+- [x] CORS support cho production
+- [x] Audio caching & optimization
+
+### Đang phát triển 🔄
+- [ ] Mobile App (React Native)
+- [ ] Offline mode với Service Worker
+- [ ] Progressive Web App (PWA)
+- [ ] Multiplayer quiz realtime
+- [ ] Gamification (achievements, leaderboard)
+
+### Kế hoạch tương lai 🔮
+- [ ] Parent dashboard & monitoring
+- [ ] Integration với Google Classroom
+- [ ] Video lessons support
+- [ ] Live tutoring sessions
+- [ ] AI voice chatbot (speech-to-speech)
+- [ ] Personalized learning path AI
+- [ ] Collaborative study rooms
+- [ ] Export lessons to PDF/ePub
 ---
 
 ## 📄 Bản Quyền
