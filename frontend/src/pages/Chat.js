@@ -133,7 +133,7 @@ const Chat = () => {
                 <SparklesIcon className="w-10 h-10 text-primary-600" />
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Xin chào! Tôi là Gia sư AI 🎓
+                Xin chào! Tôi là Edumentor 🎓
               </h3>
               <p className="text-gray-500 max-w-md mb-6">
                 Hãy hỏi tôi bất cứ điều gì về bài học. Tôi sẽ giải thích dễ hiểu nhất có thể!

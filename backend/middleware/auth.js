@@ -24,7 +24,7 @@ const verifyToken = async (req, res, next) => {
     }
 
     // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'gia-su-ai-secret-key');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'edumentor-secret-key');
     
     // Add user info to request
     req.user = decoded;
@@ -49,7 +49,7 @@ const verifyToken = async (req, res, next) => {
 const generateToken = (userId, email) => {
   return jwt.sign(
     { userId, email },
-    process.env.JWT_SECRET || 'gia-su-ai-secret-key',
+    process.env.JWT_SECRET || 'edumentor-secret-key',
     { expiresIn: '7d' }
   );
 };

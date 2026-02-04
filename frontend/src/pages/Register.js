@@ -80,7 +80,7 @@ const Register = () => {
               <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center">
                 <AcademicCapIcon className="w-7 h-7 text-white" />
               </div>
-              <span className="font-display font-bold text-2xl text-gray-900">GIA SƯ AI</span>
+              <span className="font-display font-bold text-2xl text-gray-900">Edumentor</span>
             </Link>
             <h2 className="mt-6 text-2xl font-bold text-gray-900">Đăng ký</h2>
             <p className="mt-2 text-gray-600">Tạo tài khoản để bắt đầu học</p>

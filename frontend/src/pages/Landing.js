@@ -67,7 +67,7 @@ const Landing = () => {
               <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center">
                 <AcademicCapIcon className="w-6 h-6 text-white" />
               </div>
-              <span className="font-display font-bold text-xl">GIA SƯ AI</span>
+              <span className="font-display font-bold text-xl">Edumentor</span>
             </div>
             
             <div className="flex items-center gap-4">
@@ -97,7 +97,7 @@ const Landing = () => {
               </span>
               
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold leading-tight mb-6">
-                Gia Sư AI<br />
+                Edumentor<br />
                 <span className="text-primary-200">Thông Minh</span><br />
                 Cho Học Sinh THPT
               </h1>
@@ -205,7 +205,7 @@ const Landing = () => {
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
               <h2 className="text-3xl sm:text-4xl font-display font-bold text-gray-900 mb-6">
-                Tại sao chọn <span className="text-gradient">GIA SƯ AI</span>?
+                Tại sao chọn <span className="text-gradient">Edumentor</span>?
               </h2>
               <p className="text-lg text-gray-600 mb-8">
                 Nền tảng học tập được thiết kế riêng cho học sinh THPT Việt Nam, 
@@ -272,7 +272,7 @@ const Landing = () => {
               Sẵn sàng học thông minh hơn?
             </h2>
             <p className="text-lg text-primary-100 mb-8">
-              Đăng ký miễn phí và trải nghiệm GIA SƯ AI ngay hôm nay
+              Đăng ký miễn phí và trải nghiệm Edumentor ngay hôm nay
             </p>
             <Link to="/register" className="btn bg-white text-primary-700 hover:bg-primary-50 px-8 py-4 text-lg">
               Bắt đầu miễn phí
@@ -290,10 +290,10 @@ const Landing = () => {
               <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
                 <AcademicCapIcon className="w-5 h-5 text-white" />
               </div>
-              <span className="font-display font-bold text-white">GIA SƯ AI</span>
+              <span className="font-display font-bold text-white">Edumentor</span>
             </div>
             <p className="text-sm">
-              © 2026 GIA SƯ AI. Made with ❤️ for Vietnamese Students.
+              © 2026 Edumentor. Made with ❤️ for Vietnamese Students.
             </p>
           </div>
         </div>

@@ -1,5 +1,5 @@
 /**
- * Firebase Initialization Script for GIA SƯ AI
+ * Firebase Initialization Script for EDUMENTOR
  * Run this script once to set up initial data in Firestore
  * 
  * Usage: node scripts/initFirebase.js
@@ -21,7 +21,7 @@ const db = admin.firestore();
 const sampleUsers = [
   {
     id: 'demo-user-001',
-    email: 'demo@giasuai.vn',
+    email: 'demo@edumentor.io.vn',
     password: 'Demo@123',
     name: 'Nguyễn Văn An',
     grade: 'Lớp 12',
@@ -31,7 +31,7 @@ const sampleUsers = [
   },
   {
     id: 'demo-user-002',
-    email: 'hocsinh@giasuai.vn',
+    email: 'hocsinh@edumentor.io.vn',
     password: 'HocSinh@123',
     name: 'Trần Thị Bình',
     grade: 'Lớp 11',
@@ -242,8 +242,8 @@ async function initializeFirebase() {
 
     console.log('\n✅ Firebase initialization completed successfully!');
     console.log('\n📋 Demo Accounts:');
-    console.log('   Email: demo@giasuai.vn | Password: Demo@123');
-    console.log('   Email: hocsinh@giasuai.vn | Password: HocSinh@123');
+    console.log('   Email: demo@edumentor.vn | Password: Demo@123');
+    console.log('   Email: hocsinh@edumentor.vn | Password: HocSinh@123');
 
   } catch (error) {
     console.error('❌ Error initializing Firebase:', error);

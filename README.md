@@ -1,4 +1,4 @@
-# 🎓 GIA SƯ AI - Nền Tảng Học Tập Thông Minh
+# 🎓 EDUMENTOR - Nền Tảng Học Tập Thông Minh
 
 <div align="center">
 
@@ -38,11 +38,11 @@
 
 ## 🎯 Giới Thiệu
 
-**GIA SƯ AI** là nền tảng học tập thông minh, ứng dụng trí tuệ nhân tạo tiên tiến nhất để hỗ trợ học sinh THPT Việt Nam học tập hiệu quả hơn. Hệ thống chuyển đổi sách giáo khoa thành bài giảng tương tác với audio, quiz tự động và chatbot hỏi đáp 24/7.
+**EDUMENTOR** là nền tảng học tập thông minh, ứng dụng trí tuệ nhân tạo tiên tiến nhất để hỗ trợ học sinh THPT Việt Nam học tập hiệu quả hơn. Hệ thống chuyển đổi sách giáo khoa thành bài giảng tương tác với audio, quiz tự động và chatbot hỏi đáp 24/7.
 
 ### 🔥 Vấn Đề Giải Quyết
 
-| Vấn đề | Giải pháp của GIA SƯ AI |
+| Vấn đề | Giải pháp của EDUMENTOR |
 |--------|-------------------------|
 | 📚 Sách giáo khoa khô khan | Bài giảng sinh động với LaTeX, ví dụ thực tế |
 | 👨‍🏫 Thiếu gia sư cá nhân | AI hỗ trợ học tập 24/7 |
@@ -113,7 +113,7 @@
 ### Trang chủ
 ```
 ┌─────────────────────────────────────────┐
-│  🎓 GIA SƯ AI                    [Login]│
+│  🎓 EDUMENTOR                       [Login]│
 ├─────────────────────────────────────────┤
 │                                         │
 │   Học thông minh hơn với AI             │
@@ -227,8 +227,8 @@
 
 ### Bước 1: Clone repository
 ```bash
-git clone https://github.com/cuongdev1108/gia-su-ai.git
-cd gia-su-ai
+git clone https://github.com/cuongdev1108/edumentor.git
+cd edumentor
 ```
 
 ### Bước 2: Cài đặt Backend
@@ -292,7 +292,7 @@ npm start
 ## 📁 Cấu Trúc Thư Mục
 
 ```
-gia-su-ai/
+edumentor/
 ├── 📂 backend/
 │   ├── 📂 controllers/          # Route handlers
 │   │   ├── adminController.js   # Admin CRUD operations
@@ -640,6 +640,6 @@ SOFTWARE.
 
 ### ⭐ Nếu dự án này hữu ích, hãy cho một star nhé!
 
-**GIA SƯ AI** - *Học thông minh hơn với AI*
+**EDUMENTOR** - *Học thông minh hơn với AI*
 
 </div>

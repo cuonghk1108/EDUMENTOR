@@ -1,0 +1,25 @@
+# Cloudflare Tunnel Configuration
+# File: config.yml
+# Hoặc chạy với: cloudflared tunnel --config D:\AII\cloudflare\config.yml run edumentor
+
+tunnel: 4f14b42d-2572-4678-91e9-f370e686f49e
+credentials-file: C:\Users\XC\.cloudflared\4f14b42d-2572-4678-91e9-f370e686f49e.json
+
+ingress:
+  # Frontend (React) - Port 3000 khi dev, hoặc serve build
+  - hostname: edumentor.io.vn
+    service: http://localhost:3000
+  
+  # API Backend - Port 5000
+  - hostname: api.edumentor.io.vn
+    service: http://localhost:5000
+  
+  # Hoặc dùng 1 domain với path routing:
+  # - hostname: yourdomain.com
+  #   path: /api/*
+  #   service: http://localhost:5000
+  # - hostname: yourdomain.com
+  #   service: http://localhost:3000
+  
+  # Catch-all (bắt buộc)
+  - service: http_status:404

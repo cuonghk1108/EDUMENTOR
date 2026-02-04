@@ -2,7 +2,7 @@
  * Database Service - NeDB Local NoSQL
  * All data persisted to disk in /data/ folder
  * 
- * GIA SƯ AI - Backend Database Service
+ * EDUMENTOR - Backend Database Service
  */
 
 const Datastore = require('nedb-promises');

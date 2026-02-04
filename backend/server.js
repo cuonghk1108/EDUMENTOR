@@ -19,14 +19,19 @@ app.use(helmet({
 }));
 
 // CORS configuration
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:3001',
+  process.env.FRONTEND_URL,
+  // Thêm các domain production (có thể set trong .env)
+  process.env.PRODUCTION_URL,
+  process.env.PRODUCTION_URL ? `https://www.${new URL(process.env.PRODUCTION_URL).hostname}` : null
+].filter(Boolean);
+
 app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'http://localhost:3001',
-    'http://127.0.0.1:3000',
-    'http://127.0.0.1:3001',
-    process.env.FRONTEND_URL
-  ].filter(Boolean),
+  origin: allowedOrigins,
   credentials: true
 }));
 
@@ -64,7 +69,7 @@ app.get('/health', (req, res) => {
   res.json({ 
     status: 'ok', 
     timestamp: new Date().toISOString(),
-    service: 'Gia Sư AI Backend'
+    service: 'Edumentor Backend'
   });
 });
 
@@ -93,7 +98,7 @@ app.listen(PORT, () => {
   console.log(`
 ╔═══════════════════════════════════════════════════════════╗
 ║                                                           ║
-║   🎓 GIA SƯ AI - Backend Server                          ║
+║   🎓 EDUMENTOR - Backend Server                          ║
 ║                                                           ║
 ║   Server đang chạy tại: http://localhost:${PORT}            ║
 ║   Environment: ${process.env.NODE_ENV || 'development'}                            ║

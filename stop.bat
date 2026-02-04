@@ -1,9 +1,9 @@
 @echo off
-title GIA SU AI - Stop Script
+title EDUMENTOR - Stop Script
 color 0C
 
 echo ========================================
-echo    GIA SU AI - Tat he thong
+echo    EDUMENTOR - Tat he thong
 echo ========================================
 echo.
 

@@ -1,9 +1,9 @@
 @echo off
-title GIA SU AI - Startup Script
+title EDUMENTOR - Startup Script
 color 0A
 
 echo ========================================
-echo    GIA SU AI - Khoi dong he thong
+echo    EDUMENTOR - Khoi dong he thong
 echo ========================================
 echo.
 
@@ -28,7 +28,7 @@ timeout /t 2 /nobreak >nul
 :: Start Backend
 echo [INFO] Dang khoi dong Backend...
 cd /d "%~dp0backend"
-start "GIA SU AI - Backend" cmd /k "color 0B && echo Backend Server && echo ================ && node server.js"
+start "EDUMENTOR - Backend" cmd /k "color 0B && echo Backend Server && echo ================ && node server.js"
 
 :: Wait for backend to start
 timeout /t 3 /nobreak >nul
@@ -36,7 +36,7 @@ timeout /t 3 /nobreak >nul
 :: Start Frontend
 echo [INFO] Dang khoi dong Frontend...
 cd /d "%~dp0frontend"
-start "GIA SU AI - Frontend" cmd /k "color 0E && echo Frontend Server && echo ================ && npm start"
+start "EDUMENTOR - Frontend" cmd /k "color 0E && echo Frontend Server && echo ================ && npm start"
 
 echo.
 echo ========================================

@@ -47,7 +47,7 @@ const Login = () => {
               <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center">
                 <AcademicCapIcon className="w-7 h-7 text-white" />
               </div>
-              <span className="font-display font-bold text-2xl text-gray-900">GIA SƯ AI</span>
+              <span className="font-display font-bold text-2xl text-gray-900">Edumentor</span>
             </Link>
             <h2 className="mt-6 text-2xl font-bold text-gray-900">Đăng nhập</h2>
             <p className="mt-2 text-gray-600">Chào mừng bạn quay trở lại!</p>
@@ -111,7 +111,7 @@ const Login = () => {
 
         {/* Demo account */}
         <div className="mt-4 text-center text-white/80 text-sm">
-          <p>Demo: demo@giasuai.vn / 123456</p>
+          <p>Demo: demo@edumentor.io.vn / 123456</p>
         </div>
       </motion.div>
     </div>

@@ -1,0 +1,41 @@
+# Cloudflare Tunnel Configuration - Production
+# Sử dụng 1 domain duy nhất với path routing
+# 
+# Domain: edumentor.io.vn
+
+tunnel: 4f14b42d-2572-4678-91e9-f370e686f49e
+credentials-file: C:\Users\XC\.cloudflared\4f14b42d-2572-4678-91e9-f370e686f49e.json
+
+# Cấu hình origin
+originRequest:
+  connectTimeout: 30s
+  noTLSVerify: false
+
+ingress:
+  # API Backend - tất cả request /api/* đến backend
+  - hostname: edumentor.io.vn
+    path: /api/*
+    service: http://localhost:5000
+    originRequest:
+      connectTimeout: 60s
+  
+  # Audio files từ backend
+  - hostname: edumentor.io.vn
+    path: /audio/*
+    service: http://localhost:5000
+  
+  # Upload files
+  - hostname: edumentor.io.vn
+    path: /uploads/*
+    service: http://localhost:5000
+
+  # Frontend - tất cả request khác đến React app
+  - hostname: edumentor.io.vn
+    service: http://localhost:3000
+  
+  # www redirect
+  - hostname: www.edumentor.io.vn
+    service: http://localhost:3000
+
+  # Catch-all rule (bắt buộc phải có)
+  - service: http_status:404

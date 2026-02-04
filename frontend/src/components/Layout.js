@@ -51,7 +51,7 @@ const Layout = () => {
             <AcademicCapIcon className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="font-display font-bold text-lg text-gray-900">GIA SƯ AI</h1>
+            <h1 className="font-display font-bold text-lg text-gray-900">Edumentor</h1>
             <p className="text-xs text-gray-500">Học thông minh hơn</p>
           </div>
         </div>

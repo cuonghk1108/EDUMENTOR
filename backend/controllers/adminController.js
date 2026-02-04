@@ -533,7 +533,7 @@ exports.getSettings = async (req, res) => {
   try {
     // Return system settings (can be stored in a separate db or config)
     const settings = {
-      siteName: 'GIA SƯ AI',
+      siteName: 'EDUMENTOR',
       siteDescription: 'Nền tảng học tập thông minh với AI',
       maxUploadSize: 50 * 1024 * 1024, // 50MB
       allowedFileTypes: ['image/png', 'image/jpeg', 'image/webp', 'application/pdf'],

@@ -1,5 +1,5 @@
 /**
- * DỮ LIỆU HƯỚNG NGHIỆP - GIA SƯ AI
+ * DỮ LIỆU HƯỚNG NGHIỆP - EDUMENTOR
  * Bao gồm: Khối thi, Điểm chuẩn, Ngành nghề, Xu hướng thị trường lao động
  * Cập nhật: 2025 - Theo chương trình GDPT 2018
  */
