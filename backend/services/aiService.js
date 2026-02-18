@@ -1295,6 +1295,66 @@ CHỈ OUTPUT PHẦN LATEX (không cần documentclass nếu là đoạn nhỏ).`
       console.error('Get career advice error:', error);
       throw new Error(`Lỗi tư vấn hướng nghiệp: ${error.message}`);
     }
+  },
+
+  /**
+   * Xử lý yêu cầu tùy chỉnh từ người dùng
+   * Cho phép người dùng nhập prompt bất kỳ để AI xử lý
+   */
+  async generateWithCustomPrompt(userPrompt, outputType = 'lesson', outputFormat = 'markdown', options = {}) {
+    try {
+      let systemPrompt = 'Bạn là một AI giáo dục thông minh, giúp đỡ học sinh THPT Việt Nam.';
+      const userMessage = userPrompt;
+
+      switch (outputType) {
+        case 'lesson':
+          systemPrompt = 'Bạn là gia sư AI giàu kinh nghiệm, giúp tạo bài giảng chất lượng cao cho học sinh THPT Việt Nam. Sử dụng ngôn ngữ đơn giản, dễ hiểu với ví dụ minh họa cụ thể.';
+          break;
+        case 'quiz':
+          systemPrompt = 'Bạn là giáo viên ra đề thi giỏi. Tạo các câu hỏi trắc nghiệm chất lượng cao với các đáp án nhiễu hợp lý.';
+          break;
+        case 'note':
+          systemPrompt = 'Bạn là chuyên gia tóm tắt. Tạo ghi chú học tập ngắn gọn, dễ nhớ, chỉ giữ lại những điểm quan trọng nhất.';
+          break;
+        case 'summary':
+          systemPrompt = 'Bạn là chuyên gia tóm tắt nội dung. Tóm tắt bài viết/nội dung thành những phần chính, súc tích.';
+          break;
+        default:
+          systemPrompt = 'Bạn là một AI giáo dục thông minh, giúp đỡ học sinh THPT Việt Nam.';
+      }
+
+      const response = await openai.chat.completions.create({
+        model: MODEL,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userMessage }
+        ],
+        max_tokens: options.maxTokens || 4000,
+        temperature: options.temperature || 0.7
+      });
+
+      const content = response.choices[0].message.content;
+
+      let processedContent = content;
+      if (outputFormat === 'json' && outputType === 'quiz') {
+        try {
+          processedContent = JSON.parse(content);
+        } catch (e) {
+          processedContent = content;
+        }
+      }
+
+      return {
+        success: true,
+        content: processedContent,
+        format: outputFormat,
+        type: outputType,
+        usage: response.usage
+      };
+    } catch (error) {
+      console.error('Custom AI generation error:', error);
+      throw new Error(`Lỗi xử lý yêu cầu tùy chỉnh: ${error.message}`);
+    }
   }
 };
 

@@ -1,12 +1,37 @@
 import axios from 'axios';
 
 // Create axios instance
+// Smart detection: use relative /api when served from same origin (production)
+// or localhost:5000/api when running separately (development)
+const defaultBaseUrl = (() => {
+  // If explicitly set via env, use that
+  if (process.env.REACT_APP_API_URL) return process.env.REACT_APP_API_URL;
+  
+  // In browser context
+  if (typeof window !== 'undefined' && window.location) {
+    const { port } = window.location;
+    
+    // If running on port 3000 (React dev server), point to backend at 5000
+    if (port === '3000') {
+      return 'http://localhost:5000/api';
+    }
+    
+    // Otherwise, assume backend serves frontend (same origin) - use relative URL
+    return '/api';
+  }
+  
+  // Fallback
+  return 'http://localhost:5000/api';
+})();
+
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
-  timeout: 30000,
+  baseURL: defaultBaseUrl,
+  timeout: 300000, // 5 phút cho request thông thường
   headers: {
     'Content-Type': 'application/json',
   },
+  maxContentLength: Infinity,
+  maxBodyLength: Infinity,
 });
 
 // Request interceptor
@@ -54,14 +79,22 @@ export const authAPI = {
 export const uploadAPI = {
   uploadFile: (formData) => api.post('/upload', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 300000, // 5 minutes for large files
   }),
   uploadMultiple: (formData) => api.post('/upload/multiple', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 300000, // 5 minutes for large files
   }),
   // Process SGK - Upload + OCR + Generate Lesson
   processSGK: (formData) => api.post('/process-sgk', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
-    timeout: 120000, // 2 minutes for AI processing
+    timeout: 900000, // 15 phút cho file lớn + OCR + AI processing
+    maxContentLength: Infinity,
+    maxBodyLength: Infinity,
+    onUploadProgress: (progressEvent) => {
+      const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+      console.log('Upload progress:', percentCompleted + '%');
+    },
   }),
 };
 
@@ -85,6 +118,10 @@ export const lessonAPI = {
   getAll: (userId) => api.get(`/lessons/${userId}`),
   getById: (lessonId) => api.get(`/lesson/${lessonId}`),
   markComplete: (lessonId) => api.put(`/lesson/${lessonId}/complete`),
+  // Customize lesson with custom prompt
+  customize: (lessonId, data) => api.post(`/lesson/${lessonId}/customize`, data, { timeout: 120000 }),
+  // Custom AI request
+  customAI: (data) => api.post('/ai/custom', data, { timeout: 180000 }),
 };
 
 // Quiz
@@ -100,6 +137,10 @@ export const quizAPI = {
 // Chat
 export const chatAPI = {
   sendMessage: (data) => api.post('/chat', data),
+  sendMessageWithImage: (formData) => api.post('/chat/image', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 120000,
+  }),
   getHistory: (userId) => api.get(`/chat-history/${userId}`),
   clearHistory: (userId) => api.delete(`/chat-history/${userId}`),
 };
@@ -132,6 +173,18 @@ export const dashboardAPI = {
   get: (userId) => api.get(`/dashboard/${userId}`),
   getAnalytics: (userId) => api.get(`/analytics/${userId}`),
   getStats: (userId) => api.get(`/stats/${userId}`),
+};
+
+// Streak - Đếm ngày học liên tiếp
+export const streakAPI = {
+  // Lấy streak hiện tại
+  get: () => api.get('/streak'),
+  // Ghi nhận hoạt động học tập
+  record: (activityType, minutes = 0) => api.post('/streak/record', { activityType, minutes }),
+  // Lấy lịch sử học
+  getHistory: (days = 30) => api.get(`/streak/history?days=${days}`),
+  // Lấy thống kê tuần
+  getWeekly: () => api.get('/streak/weekly'),
 };
 
 // Roadmap

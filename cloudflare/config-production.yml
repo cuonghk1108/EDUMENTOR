@@ -1,5 +1,6 @@
 # Cloudflare Tunnel Configuration - Production
 # Sử dụng 1 domain duy nhất với path routing
+# Upload limit: 5 files, tổng 100MB
 # 
 # Domain: edumentor.io.vn
 
@@ -13,21 +14,29 @@ originRequest:
 
 ingress:
   # API Backend - tất cả request /api/* đến backend
+  # QUAN TRỌNG: disableChunkedEncoding=true để fix lỗi upload file qua tunnel
   - hostname: edumentor.io.vn
     path: /api/*
     service: http://localhost:5000
     originRequest:
-      connectTimeout: 60s
+      connectTimeout: 300s
+      httpHostHeader: edumentor.io.vn
+      disableChunkedEncoding: true
   
   # Audio files từ backend
   - hostname: edumentor.io.vn
     path: /audio/*
     service: http://localhost:5000
+    originRequest:
+      connectTimeout: 60s
   
-  # Upload files
+  # Upload files - timeout cao cho files lớn (100MB)
   - hostname: edumentor.io.vn
     path: /uploads/*
     service: http://localhost:5000
+    originRequest:
+      connectTimeout: 300s
+      disableChunkedEncoding: true
 
   # Frontend - tất cả request khác đến React app
   - hostname: edumentor.io.vn

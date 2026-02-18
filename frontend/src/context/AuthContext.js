@@ -83,6 +83,38 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Google Login/Register (supports both credential and accessToken flows)
+  const googleLogin = async (credential, userInfo = null) => {
+    try {
+      let response;
+      if (userInfo) {
+        // Access token flow - send user info directly
+        response = await api.post('/auth/google', { 
+          accessToken: credential,
+          userInfo 
+        });
+      } else {
+        // ID token flow
+        response = await api.post('/auth/google', { credential });
+      }
+      const { user, token } = response.data;
+      
+      // Save to state and localStorage
+      setUser(user);
+      setToken(token);
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      
+      // Set auth header
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      
+      return { success: true, user };
+    } catch (error) {
+      const message = error.response?.data?.error || 'Đăng nhập Google thất bại';
+      return { success: false, error: message };
+    }
+  };
+
   // Logout
   const logout = async () => {
     try {
@@ -121,6 +153,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     login,
     register,
+    googleLogin,
     logout,
     updateProfile,
     isAuthenticated: !!user

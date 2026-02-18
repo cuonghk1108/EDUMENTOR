@@ -1,25 +1,61 @@
 # Cloudflare Tunnel Configuration
 # File: config.yml
 # Hoặc chạy với: cloudflared tunnel --config D:\AII\cloudflare\config.yml run edumentor
+# Sử dụng 1 domain duy nhất với path routing
+# Upload limit: 5 files, mỗi file tối đa 100MB
 
 tunnel: 4f14b42d-2572-4678-91e9-f370e686f49e
 credentials-file: C:\Users\XC\.cloudflared\4f14b42d-2572-4678-91e9-f370e686f49e.json
 
+# Cấu hình chung cho origin
+originRequest:
+  connectTimeout: 300s
+  noTLSVerify: false
+  noHappyEyeballs: true
+  keepAliveConnections: 100
+  keepAliveTimeout: 90s
+
 ingress:
-  # Frontend (React) - Port 3000 khi dev, hoặc serve build
+  # API Backend - tất cả request /api/* đến backend
+  # QUAN TRỌNG cho upload file lớn qua tunnel
   - hostname: edumentor.io.vn
-    service: http://localhost:3000
-  
-  # API Backend - Port 5000
-  - hostname: api.edumentor.io.vn
-    service: http://localhost:5000
-  
-  # Hoặc dùng 1 domain với path routing:
-  # - hostname: yourdomain.com
-  #   path: /api/*
-  #   service: http://localhost:5000
-  # - hostname: yourdomain.com
-  #   service: http://localhost:3000
-  
+    path: /api/*
+    service: http://127.0.0.1:5000
+    originRequest:
+      connectTimeout: 900s
+      http2Origin: false
+      disableChunkedEncoding: true
+      httpHostHeader: edumentor.io.vn
+      noHappyEyeballs: true
+      keepAliveConnections: 100
+      keepAliveTimeout: 300s
+      proxyType: ""
+
+  # Audio files từ backend
+  - hostname: edumentor.io.vn
+    path: /audio/*
+    service: http://127.0.0.1:5000
+    originRequest:
+      connectTimeout: 120s
+
+  # Upload files - timeout cao cho files lớn
+  - hostname: edumentor.io.vn
+    path: /uploads/*
+    service: http://127.0.0.1:5000
+    originRequest:
+      connectTimeout: 900s
+      disableChunkedEncoding: true
+      keepAliveTimeout: 300s
+
+  # All other routes - Backend serves frontend (unified)
+  - hostname: edumentor.io.vn
+    service: http://127.0.0.1:5000
+    originRequest:
+      connectTimeout: 60s
+
+  # www redirect
+  - hostname: www.edumentor.io.vn
+    service: http://127.0.0.1:5000
+
   # Catch-all (bắt buộc)
   - service: http_status:404

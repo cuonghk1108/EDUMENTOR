@@ -30,6 +30,8 @@ const db = {
   studySessions: Datastore.create({ filename: path.join(dataDir, 'study_sessions.db'), autoload: true }),
   audioHistory: Datastore.create({ filename: path.join(dataDir, 'audio_history.db'), autoload: true }),
   activityLog: Datastore.create({ filename: path.join(dataDir, 'activity_log.db'), autoload: true }),
+  // Streak tracking database
+  streaks: Datastore.create({ filename: path.join(dataDir, 'streaks.db'), autoload: true }),
 };
 
 // Create indexes
@@ -45,6 +47,7 @@ db.notes.ensureIndex({ fieldName: 'userId' });
 db.studySessions.ensureIndex({ fieldName: 'userId' });
 db.audioHistory.ensureIndex({ fieldName: 'userId' });
 db.activityLog.ensureIndex({ fieldName: 'userId' });
+db.streaks.ensureIndex({ fieldName: 'userId', unique: true });
 
 console.log('💾 Database initialized - Data stored in:', dataDir);
 
@@ -656,6 +659,193 @@ const activityLogService = {
   }
 };
 
+// ==================== STREAK SERVICE ====================
+const streakService = {
+  // Helper để lấy ngày bắt đầu của một ngày (00:00:00)
+  getDateStart(date) {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  },
+
+  // Helper để kiểm tra 2 ngày có liên tiếp không
+  isConsecutiveDay(date1, date2) {
+    const d1 = this.getDateStart(date1);
+    const d2 = this.getDateStart(date2);
+    const diffTime = Math.abs(d2 - d1);
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays === 1;
+  },
+
+  // Helper để kiểm tra 2 ngày có cùng ngày không
+  isSameDay(date1, date2) {
+    const d1 = this.getDateStart(date1);
+    const d2 = this.getDateStart(date2);
+    return d1.getTime() === d2.getTime();
+  },
+
+  // Lấy streak của user
+  async getByUserId(userId) {
+    let doc = await db.streaks.findOne({ userId });
+    
+    if (!doc) {
+      // Tạo mới nếu chưa có
+      doc = await db.streaks.insert({
+        userId,
+        currentStreak: 0,
+        longestStreak: 0,
+        lastStudyDate: null,
+        totalStudyDays: 0,
+        studyHistory: [], // Array các ngày đã học [{date, minutes, activities}]
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+    }
+    
+    return { id: doc._id, ...doc };
+  },
+
+  // Cập nhật streak khi user học
+  async recordStudyActivity(userId, activityType = 'general', minutes = 0) {
+    const today = this.getDateStart(new Date());
+    let streakData = await this.getByUserId(userId);
+    
+    const lastStudyDate = streakData.lastStudyDate ? new Date(streakData.lastStudyDate) : null;
+    
+    // Kiểm tra nếu đã học hôm nay rồi
+    if (lastStudyDate && this.isSameDay(lastStudyDate, today)) {
+      // Cập nhật thời gian học hôm nay
+      const todayHistory = streakData.studyHistory.find(h => 
+        this.isSameDay(new Date(h.date), today)
+      );
+      
+      if (todayHistory) {
+        todayHistory.minutes = (todayHistory.minutes || 0) + minutes;
+        if (!todayHistory.activities.includes(activityType)) {
+          todayHistory.activities.push(activityType);
+        }
+      }
+      
+      await db.streaks.update({ userId }, { 
+        $set: { 
+          studyHistory: streakData.studyHistory,
+          updatedAt: new Date() 
+        } 
+      });
+      
+      return this.getByUserId(userId);
+    }
+    
+    // Tính streak mới
+    let newStreak = 1;
+    
+    if (lastStudyDate) {
+      if (this.isConsecutiveDay(lastStudyDate, today)) {
+        // Ngày liên tiếp - tăng streak
+        newStreak = streakData.currentStreak + 1;
+      } else {
+        // Không liên tiếp - reset streak về 1
+        newStreak = 1;
+      }
+    }
+    
+    // Cập nhật longest streak nếu cần
+    const longestStreak = Math.max(newStreak, streakData.longestStreak);
+    
+    // Thêm vào history
+    const newHistory = [
+      ...streakData.studyHistory.slice(-364), // Giữ tối đa 365 ngày
+      {
+        date: today.toISOString(),
+        minutes: minutes,
+        activities: [activityType]
+      }
+    ];
+    
+    await db.streaks.update({ userId }, { 
+      $set: { 
+        currentStreak: newStreak,
+        longestStreak: longestStreak,
+        lastStudyDate: today.toISOString(),
+        totalStudyDays: streakData.totalStudyDays + 1,
+        studyHistory: newHistory,
+        updatedAt: new Date()
+      } 
+    });
+    
+    return this.getByUserId(userId);
+  },
+
+  // Kiểm tra và cập nhật streak status (gọi khi user login)
+  async checkAndUpdateStreak(userId) {
+    const today = this.getDateStart(new Date());
+    const streakData = await this.getByUserId(userId);
+    
+    if (!streakData.lastStudyDate) {
+      return streakData;
+    }
+    
+    const lastStudyDate = new Date(streakData.lastStudyDate);
+    const daysSinceLastStudy = Math.floor(
+      (today - this.getDateStart(lastStudyDate)) / (1000 * 60 * 60 * 24)
+    );
+    
+    // Nếu hơn 1 ngày không học, reset streak
+    if (daysSinceLastStudy > 1) {
+      await db.streaks.update({ userId }, { 
+        $set: { 
+          currentStreak: 0,
+          updatedAt: new Date()
+        } 
+      });
+    }
+    
+    return this.getByUserId(userId);
+  },
+
+  // Lấy lịch sử học trong n ngày gần đây
+  async getStudyHistory(userId, days = 30) {
+    const streakData = await this.getByUserId(userId);
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    
+    const recentHistory = streakData.studyHistory.filter(h => 
+      new Date(h.date) >= cutoffDate
+    );
+    
+    return recentHistory;
+  },
+
+  // Lấy thống kê tuần này
+  async getWeeklyStats(userId) {
+    const history = await this.getStudyHistory(userId, 7);
+    const today = new Date();
+    const weekDays = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+    
+    // Tạo map cho 7 ngày gần đây
+    const stats = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const dateStr = this.getDateStart(date).toISOString().split('T')[0];
+      
+      const dayHistory = history.find(h => 
+        h.date.split('T')[0] === dateStr
+      );
+      
+      stats.push({
+        name: weekDays[date.getDay()],
+        date: dateStr,
+        studied: !!dayHistory,
+        minutes: dayHistory?.minutes || 0,
+        activities: dayHistory?.activities || []
+      });
+    }
+    
+    return stats;
+  }
+};
+
 module.exports = {
   db,
   userService,
@@ -670,5 +860,6 @@ module.exports = {
   notesService,
   studySessionService,
   audioHistoryService,
-  activityLogService
+  activityLogService,
+  streakService
 };

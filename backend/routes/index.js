@@ -13,6 +13,7 @@ const authController = require('../controllers/authController');
 const roadmapController = require('../controllers/roadmapController');
 const careerController = require('../controllers/careerController');
 const adminController = require('../controllers/adminController');
+const customAIController = require('../controllers/customAIController');
 
 // Import middleware
 const upload = require('../middleware/upload');
@@ -32,6 +33,7 @@ router.get('/health', (req, res) => {
 router.post('/auth/register', authController.register);
 router.post('/auth/login', authController.login);
 router.post('/auth/logout', authController.logout);
+router.post('/auth/google', authController.googleAuth);
 
 // ============================================
 // PROTECTED ROUTES (Require Authentication)
@@ -56,10 +58,13 @@ router.post('/process-sgk', verifyToken, upload.single('file'), async (req, res)
       return res.status(400).json({ error: 'Không có file được upload' });
     }
 
-    const { title, subject, chapter, format = 'complete' } = req.body;
+    const { title, subject, chapter, format = 'complete', customPrompt = '' } = req.body;
     const userId = req.userId;
 
     console.log('📝 Process SGK - userId:', userId, 'title:', title, 'format:', format);
+    if (customPrompt) {
+      console.log('🎯 Custom prompt:', customPrompt.substring(0, 100) + '...');
+    }
 
     // Step 1: OCR
     console.log('🔍 Step 1: Processing OCR...');
@@ -71,18 +76,25 @@ router.post('/process-sgk', verifyToken, upload.single('file'), async (req, res)
       });
     }
 
+    // Combine OCR text with custom prompt if provided
+    let textToProcess = ocrResult.text;
+    if (customPrompt && customPrompt.trim()) {
+      textToProcess = `[YÊU CẦU RIÊNG CỦA NGƯỜI DÙNG]: ${customPrompt.trim()}\n\n[NỘI DUNG SGK]:\n${ocrResult.text}`;
+    }
+
     // Step 2: Generate lesson with AI
     console.log('✨ Step 2: Generating lesson with AI...');
     const options = {
       subject: subject || 'Chung',
-      grade: 'THPT'
+      grade: 'THPT',
+      customPrompt: customPrompt || ''
     };
 
     let lessonData = {};
     
     if (format === 'complete') {
       // Generate cả LaTeX và JSON structured
-      const aiResult = await aiService.generateLessonComplete(ocrResult.text, options);
+      const aiResult = await aiService.generateLessonComplete(textToProcess, options);
       console.log('📋 AI Result keys:', Object.keys(aiResult));
       lessonData = {
         content: aiResult.content || '',
@@ -91,19 +103,19 @@ router.post('/process-sgk', verifyToken, upload.single('file'), async (req, res)
       };
       console.log('📝 Lesson data:', { hasContent: !!lessonData.content, hasLatex: !!lessonData.latexContent, hasStructured: !!lessonData.structuredContent });
     } else if (format === 'latex') {
-      const aiResult = await aiService.generateLessonLatex(ocrResult.text, options);
+      const aiResult = await aiService.generateLessonLatex(textToProcess, options);
       lessonData = {
         content: aiResult.content,
         latexContent: aiResult.latexContent
       };
     } else if (format === 'json') {
-      const aiResult = await aiService.generateLessonStructured(ocrResult.text, options);
+      const aiResult = await aiService.generateLessonStructured(textToProcess, options);
       lessonData = {
         content: '',
         structuredContent: aiResult.structuredContent
       };
     } else {
-      const aiResult = await aiService.generateLesson(ocrResult.text, options);
+      const aiResult = await aiService.generateLesson(textToProcess, options);
       lessonData = {
         content: aiResult.content
       };
@@ -118,6 +130,7 @@ router.post('/process-sgk', verifyToken, upload.single('file'), async (req, res)
       chapter: chapter || '',
       ...lessonData,
       sourceText: ocrResult.text.substring(0, 5000),
+      customPrompt: customPrompt || '',
       ocrConfidence: ocrResult.confidence,
       completed: false
     });
@@ -149,6 +162,7 @@ router.post('/lesson/json', verifyToken, lessonController.generateLessonStructur
 router.post('/lesson/complete', verifyToken, lessonController.generateLessonComplete);
 router.post('/lesson/convert-latex', verifyToken, lessonController.convertToLatex);
 router.post('/lesson/:lessonId/convert-latex', verifyToken, lessonController.convertToLatex);
+router.post('/lesson/:lessonId/customize', verifyToken, lessonController.customizeLesson);
 router.get('/lessons/:userId', verifyToken, lessonController.getUserLessons);
 router.get('/lesson/:lessonId', verifyToken, lessonController.getLessonById);
 router.put('/lesson/:lessonId/complete', verifyToken, lessonController.markComplete);
@@ -157,12 +171,16 @@ router.put('/lesson/:lessonId/complete', verifyToken, lessonController.markCompl
 router.post('/quiz', verifyToken, quizController.generateQuiz);
 router.post('/quiz/submit', verifyToken, quizController.submitQuiz);
 router.get('/quizzes/:userId', verifyToken, quizController.getUserQuizzes);
+
+// Custom AI - Xử lý yêu cầu tùy chỉnh từ người dùng
+router.post('/ai/custom', verifyToken, customAIController.processCustomRequest);
 router.get('/quiz/:quizId', verifyToken, quizController.getQuizById);
 router.get('/quiz-history/:userId', verifyToken, quizController.getQuizHistory);
 router.get('/quiz-result/:quizId', verifyToken, quizController.getQuizResult);
 
 // Chat
 router.post('/chat', verifyToken, chatController.sendMessage);
+router.post('/chat/image', verifyToken, upload.single('image'), chatController.sendMessageWithImage);
 router.get('/chat-history/:userId', verifyToken, chatController.getChatHistory);
 router.delete('/chat-history/:userId', verifyToken, chatController.clearChatHistory);
 
@@ -252,6 +270,35 @@ router.get('/tts/status', verifyToken, ttsController.checkStatus);
 router.get('/profile/:userId', verifyToken, authController.getProfile);
 router.put('/profile/:userId', verifyToken, authController.updateProfile);
 
+// Avatar Upload
+router.post('/profile/avatar', verifyToken, upload.single('avatar'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'Không có file ảnh được upload' });
+    }
+
+    // Get file URL
+    const avatarUrl = `/uploads/${req.file.filename}`;
+    
+    // Update user's avatar in database
+    const { userService } = require('../services/firebaseService');
+    const user = await userService.update(req.userId, { avatar: avatarUrl });
+    
+    // Remove password from response
+    const { password: _, ...userWithoutPassword } = user;
+
+    res.json({
+      success: true,
+      message: 'Upload ảnh đại diện thành công',
+      avatarUrl,
+      user: userWithoutPassword
+    });
+  } catch (error) {
+    console.error('Avatar upload error:', error);
+    res.status(500).json({ error: 'Lỗi upload ảnh đại diện' });
+  }
+});
+
 // ==================== USER DATA MANAGEMENT ====================
 const { 
   userSettingsService, 
@@ -259,8 +306,67 @@ const {
   notesService, 
   studySessionService, 
   audioHistoryService,
-  activityLogService 
+  activityLogService,
+  streakService 
 } = require('../services/firebaseService');
+
+// ==================== STREAK API ====================
+// Lấy streak hiện tại
+router.get('/streak', verifyToken, async (req, res) => {
+  try {
+    const streak = await streakService.checkAndUpdateStreak(req.userId);
+    res.json({ success: true, streak });
+  } catch (error) {
+    console.error('Get streak error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Ghi nhận hoạt động học tập (tự động cập nhật streak)
+router.post('/streak/record', verifyToken, async (req, res) => {
+  try {
+    const { activityType, minutes } = req.body;
+    const streak = await streakService.recordStudyActivity(
+      req.userId, 
+      activityType || 'general', 
+      minutes || 0
+    );
+    res.json({ success: true, streak });
+  } catch (error) {
+    console.error('Record activity error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Lấy lịch sử học
+router.get('/streak/history', verifyToken, async (req, res) => {
+  try {
+    const days = parseInt(req.query.days) || 30;
+    const history = await streakService.getStudyHistory(req.userId, days);
+    res.json({ success: true, history });
+  } catch (error) {
+    console.error('Get history error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Lấy thống kê tuần
+router.get('/streak/weekly', verifyToken, async (req, res) => {
+  try {
+    const weeklyStats = await streakService.getWeeklyStats(req.userId);
+    const streak = await streakService.getByUserId(req.userId);
+    res.json({ 
+      success: true, 
+      weeklyStats,
+      currentStreak: streak.currentStreak,
+      longestStreak: streak.longestStreak,
+      totalStudyDays: streak.totalStudyDays
+    });
+  } catch (error) {
+    console.error('Get weekly stats error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // User Settings
 router.get('/settings', verifyToken, async (req, res) => {

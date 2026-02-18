@@ -289,3 +289,54 @@ exports.generateLessonComplete = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+/**
+ * Customize lesson with user's custom prompt
+ */
+exports.customizeLesson = async (req, res) => {
+  try {
+    const { lessonId } = req.params;
+    const { customPrompt } = req.body;
+    const userId = req.userId;
+
+    if (!customPrompt) {
+      return res.status(400).json({ error: 'Vui lòng cung cấp yêu cầu' });
+    }
+
+    // Get lesson from database
+    const lesson = await lessonService.getById(lessonId);
+
+    if (!lesson) {
+      return res.status(404).json({ error: 'Không tìm thấy bài học' });
+    }
+
+    if (lesson.userId !== userId) {
+      return res.status(403).json({ error: 'Không có quyền truy cập' });
+    }
+
+    // Generate customized lesson based on original text + custom prompt
+    const originalText = lesson.originalText || lesson.content;
+    const customPromptFull = `${originalText}\n\n[YÊU CẦU THÊM]: ${customPrompt}`;
+
+    // Generate new lesson with custom prompt
+    const result = await aiService.generateLessonComplete(customPromptFull);
+
+    // Update lesson with new content
+    const updatedLesson = await lessonService.update(lessonId, {
+      content: result.latex,
+      structuredContent: result.json,
+      latexContent: result.latex,
+      customPrompt: customPrompt,
+      lastCustomizedAt: new Date()
+    });
+
+    res.json({
+      success: true,
+      lesson: updatedLesson,
+      message: 'Bài giảng đã được cập nhật theo yêu cầu của bạn'
+    });
+  } catch (error) {
+    console.error('Customize lesson error:', error);
+    res.status(500).json({ error: error.message });
+  }
+};

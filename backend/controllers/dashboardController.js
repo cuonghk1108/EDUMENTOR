@@ -1,4 +1,4 @@
-const { learningStatsService, lessonService, quizService } = require('../services/firebaseService');
+const { learningStatsService, lessonService, quizService, streakService } = require('../services/firebaseService');
 
 /**
  * Get dashboard data for user
@@ -9,6 +9,9 @@ exports.getDashboard = async (req, res) => {
 
     // Get learning stats
     const stats = await learningStatsService.getByUserId(userId);
+
+    // Get streak data
+    const streakData = await streakService.checkAndUpdateStreak(userId);
 
     // Get recent lessons
     const recentLessons = await lessonService.getByUserId(userId, 5);
@@ -29,7 +32,9 @@ exports.getDashboard = async (req, res) => {
         completionRate,
         totalQuizzes: stats.totalQuizzes,
         averageScore: stats.averageScore,
-        streakDays: stats.streakDays || 0
+        streakDays: streakData.currentStreak || 0,
+        longestStreak: streakData.longestStreak || 0,
+        totalStudyDays: streakData.totalStudyDays || 0
       },
       performance: {
         totalCorrect: stats.totalCorrect,
@@ -56,7 +61,14 @@ exports.getDashboard = async (req, res) => {
         }))
       },
       topicStats: stats.topicStats || {},
-      lastActiveDate: stats.lastActiveDate
+      lastActiveDate: stats.lastActiveDate,
+      // Thêm streak data
+      streak: {
+        current: streakData.currentStreak,
+        longest: streakData.longestStreak,
+        totalDays: streakData.totalStudyDays,
+        lastStudyDate: streakData.lastStudyDate
+      }
     };
 
     res.json({

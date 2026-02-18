@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import ReactMarkdown from 'react-markdown';
 import { motion } from 'framer-motion';
-import { lessonAPI, ttsAPI, quizAPI } from '../services/api';
+import { lessonAPI, ttsAPI, quizAPI, streakAPI } from '../services/api';
 import StructuredLesson from '../components/StructuredLesson';
+import CustomizePromptModal from '../components/CustomizePromptModal';
+import MathRenderer from '../components/MathRenderer';
 import {
   BookOpenIcon,
   CheckCircleIcon,
@@ -15,7 +16,9 @@ import {
   SparklesIcon,
   ArrowPathIcon,
   DocumentTextIcon,
-  CodeBracketIcon
+  CodeBracketIcon,
+  PencilIcon,
+  ChatBubbleLeftRightIcon
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 
@@ -27,7 +30,8 @@ const LessonView = () => {
   const [audioUrl, setAudioUrl] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioLoading, setAudioLoading] = useState(false);
-  const [viewMode, setViewMode] = useState('structured'); // 'structured' | 'markdown' | 'latex'
+  const [viewMode, setViewMode] = useState('structured');
+  const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false);
   const audioRef = React.useRef(null);
   const baseUrl = process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5000';
 
@@ -41,10 +45,18 @@ const LessonView = () => {
   // Set audio URL from existing lesson audio
   React.useEffect(() => {
     if (lesson?.hasAudio && lesson?.audioIds?.length > 0) {
-      // Use the first audio file for the main player
       setAudioUrl(`${baseUrl}/api/tts/${lesson.audioIds[0]}`);
     }
   }, [lesson, baseUrl]);
+
+  // Record streak when viewing lesson
+  useEffect(() => {
+    if (lesson) {
+      streakAPI.record('lesson_view', 5).catch(err => {
+        console.log('Streak record failed:', err);
+      });
+    }
+  }, [lesson]);
 
   // Mark complete mutation
   const completeMutation = useMutation(
@@ -83,7 +95,6 @@ const LessonView = () => {
 
     setAudioLoading(true);
     try {
-      // Get first 4000 characters for TTS
       const text = lesson.content.replace(/[#*_\[\]]/g, '').slice(0, 4000);
       
       const response = await ttsAPI.generate({ 
@@ -95,7 +106,6 @@ const LessonView = () => {
       if (response.data.audio?.url) {
         const fullUrl = `${baseUrl}${response.data.audio.url}`;
         setAudioUrl(fullUrl);
-        // Invalidate lesson query to refresh audioIds
         queryClient.invalidateQueries(['lesson', lessonId]);
         toast.success('Tạo audio thành công!');
       }
@@ -105,6 +115,21 @@ const LessonView = () => {
       setAudioLoading(false);
     }
   };
+
+  // Customize lesson with prompt
+  const customizeMutation = useMutation(
+    (prompt) => lessonAPI.customize(lessonId, { customPrompt: prompt }),
+    {
+      onSuccess: (data) => {
+        queryClient.invalidateQueries(['lesson', lessonId]);
+        setIsCustomizeModalOpen(false);
+        toast.success('Bài giảng đã được cập nhật theo yêu cầu của bạn!');
+      },
+      onError: () => {
+        toast.error('Lỗi cập nhật bài giảng. Vui lòng thử lại.');
+      }
+    }
+  );
 
   // Play/Pause audio
   const toggleAudio = () => {
@@ -120,21 +145,28 @@ const LessonView = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="loading-dots text-primary-600">
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
+      <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+          className="w-16 h-16 border-4 border-purple-500/20 border-t-purple-500 rounded-full"
+        />
+        <p className="text-gray-400">Đang tải bài học...</p>
       </div>
     );
   }
 
   if (error || !lesson) {
     return (
-      <div className="text-center py-12">
-        <p className="text-red-500 mb-4">Không tìm thấy bài học</p>
-        <Link to="/lessons" className="btn-primary">
+      <div className="text-center py-16">
+        <div className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+          <BookOpenIcon className="w-10 h-10 text-red-400" />
+        </div>
+        <p className="text-red-400 mb-6 text-lg">Không tìm thấy bài học</p>
+        <Link 
+          to="/lessons" 
+          className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl font-semibold text-white"
+        >
           Về danh sách bài học
         </Link>
       </div>
@@ -142,27 +174,34 @@ const LessonView = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto p-6">
       {/* Header */}
       <div className="mb-8">
-        <Link to="/lessons" className="inline-flex items-center text-gray-500 hover:text-gray-700 mb-4">
-          <ArrowLeftIcon className="w-4 h-4 mr-1" />
+        <Link 
+          to="/lessons" 
+          className="inline-flex items-center text-gray-400 hover:text-white transition-colors mb-4"
+        >
+          <ArrowLeftIcon className="w-4 h-4 mr-2" />
           Quay lại danh sách
         </Link>
 
         <div className="flex items-start justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="badge-primary">{lesson.subject}</span>
-              {lesson.chapter && <span className="text-gray-400">• {lesson.chapter}</span>}
+            <div className="flex items-center gap-2 mb-3">
+              <span className="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full text-sm font-medium">
+                {lesson.subject}
+              </span>
+              {lesson.chapter && (
+                <span className="text-gray-500">• {lesson.chapter}</span>
+              )}
               {lesson.completed && (
-                <span className="badge-success">
-                  <CheckCircleIcon className="w-3 h-3 mr-1" />
+                <span className="flex items-center gap-1 px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-sm font-medium">
+                  <CheckCircleIcon className="w-3 h-3" />
                   Hoàn thành
                 </span>
               )}
             </div>
-            <h1 className="text-3xl font-display font-bold text-gray-900">
+            <h1 className="text-3xl font-display font-bold text-white">
               {lesson.title}
             </h1>
           </div>
@@ -173,14 +212,14 @@ const LessonView = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="card mb-8 flex flex-wrap items-center gap-4"
+        className="bg-gray-900/50 border border-white/5 rounded-2xl p-4 mb-8 flex flex-wrap items-center gap-4"
       >
         {/* Audio Section */}
         {audioUrl ? (
           <div className="flex items-center gap-3">
             <button
               onClick={toggleAudio}
-              className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center text-primary-600 hover:bg-primary-200 transition-colors"
+              className="w-12 h-12 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-full flex items-center justify-center text-green-400 hover:from-green-500/30 hover:to-emerald-500/30 transition-all"
             >
               {isPlaying ? (
                 <PauseIcon className="w-6 h-6" />
@@ -189,7 +228,7 @@ const LessonView = () => {
               )}
             </button>
             <div>
-              <p className="text-sm font-medium text-gray-900">Audio bài giảng</p>
+              <p className="text-sm font-medium text-white">Audio bài giảng</p>
               <p className="text-xs text-gray-500">Nhấn để {isPlaying ? 'tạm dừng' : 'phát'}</p>
             </div>
             <audio
@@ -202,12 +241,12 @@ const LessonView = () => {
           <button
             onClick={handleGenerateTTS}
             disabled={audioLoading}
-            className="btn-ghost"
+            className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-gray-300 hover:bg-white/10 transition-colors disabled:opacity-50"
           >
             {audioLoading ? (
-              <ArrowPathIcon className="w-5 h-5 mr-2 animate-spin" />
+              <ArrowPathIcon className="w-5 h-5 animate-spin" />
             ) : (
-              <SpeakerWaveIcon className="w-5 h-5 mr-2" />
+              <SpeakerWaveIcon className="w-5 h-5" />
             )}
             {audioLoading ? 'Đang tạo...' : 'Tạo audio bài giảng'}
           </button>
@@ -215,16 +254,25 @@ const LessonView = () => {
 
         <div className="flex-1" />
 
+        {/* Customize Lesson Button */}
+        <button
+          onClick={() => setIsCustomizeModalOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-gray-300 hover:bg-white/10 transition-colors"
+        >
+          <PencilIcon className="w-5 h-5" />
+          Yêu cầu dạy thêm
+        </button>
+
         {/* Quiz Button */}
         <button
           onClick={() => quizMutation.mutate()}
           disabled={quizMutation.isLoading}
-          className="btn-secondary"
+          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl text-white font-medium hover:shadow-lg hover:shadow-purple-500/25 transition-all disabled:opacity-50"
         >
           {quizMutation.isLoading ? (
-            <ArrowPathIcon className="w-5 h-5 mr-2 animate-spin" />
+            <ArrowPathIcon className="w-5 h-5 animate-spin" />
           ) : (
-            <SparklesIcon className="w-5 h-5 mr-2" />
+            <SparklesIcon className="w-5 h-5" />
           )}
           Tạo Quiz
         </button>
@@ -234,9 +282,9 @@ const LessonView = () => {
           <button
             onClick={() => completeMutation.mutate()}
             disabled={completeMutation.isLoading}
-            className="btn-primary"
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl text-white font-medium hover:shadow-lg hover:shadow-green-500/25 transition-all disabled:opacity-50"
           >
-            <CheckCircleIcon className="w-5 h-5 mr-2" />
+            <CheckCircleIcon className="w-5 h-5" />
             Đánh dấu hoàn thành
           </button>
         )}
@@ -247,45 +295,45 @@ const LessonView = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="card"
+        className="bg-gray-900/50 border border-white/5 rounded-2xl p-6"
       >
         {/* View Mode Tabs */}
         {(lesson.structuredContent || lesson.latexContent) && (
-          <div className="flex border-b border-gray-200 mb-4">
+          <div className="flex gap-1 p-1 bg-white/5 rounded-xl mb-6 w-fit">
             {lesson.structuredContent && (
               <button
                 onClick={() => setViewMode('structured')}
-                className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
+                className={`px-4 py-2 font-medium text-sm rounded-lg transition-all flex items-center gap-1 ${
                   viewMode === 'structured'
-                    ? 'border-primary-500 text-primary-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
+                    : 'text-gray-400 hover:text-white'
                 }`}
               >
-                <DocumentTextIcon className="w-4 h-4 inline mr-1" />
+                <DocumentTextIcon className="w-4 h-4" />
                 Bài giảng
               </button>
             )}
             <button
               onClick={() => setViewMode('markdown')}
-              className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
+              className={`px-4 py-2 font-medium text-sm rounded-lg transition-all flex items-center gap-1 ${
                 viewMode === 'markdown'
-                  ? 'border-primary-500 text-primary-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
+                  : 'text-gray-400 hover:text-white'
               }`}
             >
-              <BookOpenIcon className="w-4 h-4 inline mr-1" />
+              <BookOpenIcon className="w-4 h-4" />
               Markdown
             </button>
             {lesson.latexContent && (
               <button
                 onClick={() => setViewMode('latex')}
-                className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
+                className={`px-4 py-2 font-medium text-sm rounded-lg transition-all flex items-center gap-1 ${
                   viewMode === 'latex'
-                    ? 'border-primary-500 text-primary-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
+                    : 'text-gray-400 hover:text-white'
                 }`}
               >
-                <CodeBracketIcon className="w-4 h-4 inline mr-1" />
+                <CodeBracketIcon className="w-4 h-4" />
                 LaTeX
               </button>
             )}
@@ -297,7 +345,7 @@ const LessonView = () => {
           <StructuredLesson lesson={lesson} />
         ) : viewMode === 'latex' && lesson.latexContent ? (
           <div className="latex-content">
-            <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm font-mono whitespace-pre-wrap">
+            <pre className="bg-gray-950 text-gray-100 p-4 rounded-xl overflow-x-auto text-sm font-mono whitespace-pre-wrap border border-white/10">
               {lesson.latexContent}
             </pre>
             <button
@@ -305,29 +353,45 @@ const LessonView = () => {
                 navigator.clipboard.writeText(lesson.latexContent);
                 toast.success('Đã copy LaTeX!');
               }}
-              className="mt-2 btn-ghost text-sm"
+              className="mt-3 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-sm text-gray-300 hover:bg-white/10 transition-colors"
             >
               📋 Copy LaTeX
             </button>
           </div>
         ) : (
-          <div className="markdown-content">
-            <ReactMarkdown>{lesson.content}</ReactMarkdown>
+          <div className="markdown-content prose prose-invert max-w-none">
+            <MathRenderer content={lesson.content} />
           </div>
         )}
       </motion.div>
 
       {/* Bottom Actions */}
       <div className="mt-8 flex items-center justify-between">
-        <Link to="/lessons" className="btn-ghost">
-          <ArrowLeftIcon className="w-5 h-5 mr-2" />
+        <Link 
+          to="/lessons" 
+          className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-gray-300 hover:bg-white/10 transition-colors"
+        >
+          <ArrowLeftIcon className="w-5 h-5" />
           Danh sách bài học
         </Link>
 
-        <Link to="/chat" className="btn-outline">
+        <Link 
+          to="/chat" 
+          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl text-white font-medium hover:shadow-lg hover:shadow-cyan-500/25 transition-all"
+        >
+          <ChatBubbleLeftRightIcon className="w-5 h-5" />
           Có thắc mắc? Hỏi AI ngay
         </Link>
       </div>
+
+      {/* Customize Prompt Modal */}
+      <CustomizePromptModal
+        isOpen={isCustomizeModalOpen}
+        onClose={() => setIsCustomizeModalOpen(false)}
+        onSubmit={(prompt) => customizeMutation.mutate(prompt)}
+        isLoading={customizeMutation.isLoading}
+        lessonTitle={lesson.title}
+      />
     </div>
   );
 };

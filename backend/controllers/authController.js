@@ -1,5 +1,10 @@
 const { userService } = require('../services/firebaseService');
 const { generateToken, hashPassword, comparePassword, blacklistToken } = require('../middleware/auth');
+const { OAuth2Client } = require('google-auth-library');
+const axios = require('axios');
+
+// Google OAuth client
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 /**
  * Register new user
@@ -178,5 +183,100 @@ exports.updateProfile = async (req, res) => {
   } catch (error) {
     console.error('Update profile error:', error);
     res.status(500).json({ error: error.message });
+  }
+};
+
+/**
+ * Google OAuth Login/Register
+ * Supports both ID token and access token flows
+ */
+exports.googleAuth = async (req, res) => {
+  try {
+    const { credential, accessToken, userInfo } = req.body;
+
+    let email, name, picture, googleId;
+
+    if (credential) {
+      // ID Token flow - verify with Google
+      const ticket = await googleClient.verifyIdToken({
+        idToken: credential,
+        audience: process.env.GOOGLE_CLIENT_ID
+      });
+
+      const payload = ticket.getPayload();
+      email = payload.email;
+      name = payload.name;
+      picture = payload.picture;
+      googleId = payload.sub;
+    } else if (accessToken && userInfo) {
+      // Access Token flow - verify access token with Google
+      const tokenInfoResponse = await axios.get(`https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${accessToken}`);
+      const tokenInfo = tokenInfoResponse.data;
+      
+      if (tokenInfo.error || !tokenInfo.email) {
+        return res.status(401).json({ error: 'Access token không hợp lệ' });
+      }
+
+      // Verify email matches
+      if (tokenInfo.email !== userInfo.email) {
+        return res.status(401).json({ error: 'Xác thực Google thất bại' });
+      }
+
+      email = userInfo.email;
+      name = userInfo.name;
+      picture = userInfo.picture;
+      googleId = userInfo.sub;
+    } else {
+      return res.status(400).json({ error: 'Google credential is required' });
+    }
+
+    // Check if user exists
+    let user = await userService.getByEmail(email);
+
+    if (user) {
+      // Update Google info if changed
+      const updateData = {};
+      if (!user.googleId) updateData.googleId = googleId;
+      if (picture && user.avatar !== picture) updateData.avatar = picture;
+      if (name && user.name !== name && !user.name) updateData.name = name;
+      
+      if (Object.keys(updateData).length > 0) {
+        user = await userService.update(user.id, updateData);
+      }
+    } else {
+      // Create new user with Google info
+      const userData = {
+        email,
+        name: name || email.split('@')[0],
+        googleId,
+        avatar: picture || '',
+        password: '', // No password for Google users
+        grade: '',
+        school: '',
+        settings: {
+          notifications: true,
+          darkMode: false,
+          language: 'vi'
+        }
+      };
+
+      user = await userService.create(userData);
+    }
+
+    // Generate token
+    const token = generateToken(user.id, user.email);
+
+    // Remove password from response
+    const { password: _, ...userWithoutPassword } = user;
+
+    res.json({
+      success: true,
+      message: user.googleId ? 'Đăng nhập Google thành công' : 'Đăng ký Google thành công',
+      user: userWithoutPassword,
+      token
+    });
+  } catch (error) {
+    console.error('Google auth error:', error);
+    res.status(500).json({ error: 'Lỗi xác thực Google' });
   }
 };

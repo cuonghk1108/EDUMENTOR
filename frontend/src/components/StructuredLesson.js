@@ -13,43 +13,38 @@ import {
   AcademicCapIcon,
   ExclamationTriangleIcon,
   CheckCircleIcon,
-  ArrowPathIcon
+  ArrowPathIcon,
+  SparklesIcon
 } from '@heroicons/react/24/outline';
 import { ttsAPI } from '../services/api';
 import toast from 'react-hot-toast';
 
 /**
  * Render text with LaTeX formulas
- * Supports both inline ($...$) and block ($$...$$) math
  */
 const MathText = ({ text }) => {
   if (!text) return null;
 
-  // Split text by math delimiters
   const parts = [];
   let remaining = text;
   let key = 0;
 
-  // Process block math first ($$...$$)
   while (remaining.includes('$$')) {
     const startIdx = remaining.indexOf('$$');
     const endIdx = remaining.indexOf('$$', startIdx + 2);
     
     if (endIdx === -1) break;
 
-    // Add text before math
     if (startIdx > 0) {
       parts.push({ type: 'text', content: remaining.slice(0, startIdx), key: key++ });
     }
 
-    // Add block math
     const mathContent = remaining.slice(startIdx + 2, endIdx);
     parts.push({ type: 'block', content: mathContent, key: key++ });
 
     remaining = remaining.slice(endIdx + 2);
   }
 
-  // Process inline math ($...$) in remaining text
   const processInline = (str) => {
     const inlineParts = [];
     let rest = str;
@@ -61,19 +56,16 @@ const MathText = ({ text }) => {
 
       if (end === -1) break;
 
-      // Add text before math
       if (start > 0) {
         inlineParts.push({ type: 'text', content: rest.slice(0, start), key: `i${inlineKey++}` });
       }
 
-      // Add inline math
       const math = rest.slice(start + 1, end);
       inlineParts.push({ type: 'inline', content: math, key: `i${inlineKey++}` });
 
       rest = rest.slice(end + 1);
     }
 
-    // Add remaining text
     if (rest) {
       inlineParts.push({ type: 'text', content: rest, key: `i${inlineKey++}` });
     }
@@ -81,13 +73,11 @@ const MathText = ({ text }) => {
     return inlineParts;
   };
 
-  // Add remaining text with inline math processing
   if (remaining) {
     const inlineParts = processInline(remaining);
     parts.push(...inlineParts.map(p => ({ ...p, key: key++ })));
   }
 
-  // If no math found, process entire text for inline math
   if (parts.length === 0) {
     const inlineParts = processInline(text);
     return (
@@ -97,7 +87,7 @@ const MathText = ({ text }) => {
             try {
               return <InlineMath key={part.key} math={part.content} />;
             } catch (e) {
-              return <code key={part.key} className="text-red-500">{part.content}</code>;
+              return <code key={part.key} className="text-red-400 bg-red-500/10 px-1 rounded">{part.content}</code>;
             }
           }
           return <span key={part.key}>{part.content}</span>;
@@ -117,14 +107,14 @@ const MathText = ({ text }) => {
               </div>
             );
           } catch (e) {
-            return <pre key={part.key} className="text-red-500 bg-red-50 p-2 rounded">{part.content}</pre>;
+            return <pre key={part.key} className="text-red-400 bg-red-500/10 p-2 rounded">{part.content}</pre>;
           }
         }
         if (part.type === 'inline') {
           try {
             return <InlineMath key={part.key} math={part.content} />;
           } catch (e) {
-            return <code key={part.key} className="text-red-500">{part.content}</code>;
+            return <code key={part.key} className="text-red-400 bg-red-500/10 px-1 rounded">{part.content}</code>;
           }
         }
         return <span key={part.key}>{part.content}</span>;
@@ -146,7 +136,6 @@ const SectionAudio = ({ text, sectionName, existingAudioUrl, sectionId, lessonId
   const [audioReady, setAudioReady] = useState(!!existingAudioUrl);
   const audioRef = useRef(null);
 
-  // Update audioUrl when existingAudioUrl changes
   React.useEffect(() => {
     if (existingAudioUrl) {
       setAudioUrl(`${baseUrl}${existingAudioUrl}`);
@@ -159,11 +148,10 @@ const SectionAudio = ({ text, sectionName, existingAudioUrl, sectionId, lessonId
 
     setIsLoading(true);
     try {
-      // Clean text for TTS (remove LaTeX)
       const cleanText = text
-        .replace(/\$\$[\s\S]*?\$\$/g, '') // Remove block math
-        .replace(/\$[^$]+\$/g, '') // Remove inline math
-        .replace(/\\[a-zA-Z]+\{[^}]*\}/g, '') // Remove LaTeX commands
+        .replace(/\$\$[\s\S]*?\$\$/g, '')
+        .replace(/\$[^$]+\$/g, '')
+        .replace(/\\[a-zA-Z]+\{[^}]*\}/g, '')
         .replace(/\s+/g, ' ')
         .trim();
 
@@ -202,8 +190,8 @@ const SectionAudio = ({ text, sectionName, existingAudioUrl, sectionId, lessonId
       {audioReady && audioUrl ? (
         <>
           <button
-            onClick={togglePlay}
-            className="p-2 rounded-full bg-primary-100 text-primary-600 hover:bg-primary-200 transition-colors"
+            onClick={(e) => { e.stopPropagation(); togglePlay(); }}
+            className="p-2 rounded-full bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors"
             title={isPlaying ? 'Tạm dừng' : 'Phát'}
           >
             {isPlaying ? <PauseIcon className="w-5 h-5" /> : <PlayIcon className="w-5 h-5" />}
@@ -214,7 +202,6 @@ const SectionAudio = ({ text, sectionName, existingAudioUrl, sectionId, lessonId
             onEnded={() => setIsPlaying(false)}
             onCanPlayThrough={() => setAudioReady(true)}
             onError={() => {
-              // Audio file might be missing, allow regenerate
               setAudioReady(false);
               setAudioUrl(null);
             }}
@@ -222,9 +209,9 @@ const SectionAudio = ({ text, sectionName, existingAudioUrl, sectionId, lessonId
         </>
       ) : (
         <button
-          onClick={generateAudio}
+          onClick={(e) => { e.stopPropagation(); generateAudio(); }}
           disabled={isLoading}
-          className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors disabled:opacity-50"
+          className="p-2 rounded-full bg-white/10 text-gray-400 hover:bg-white/20 transition-colors disabled:opacity-50"
           title="Tạo audio"
         >
           {isLoading ? (
@@ -239,7 +226,7 @@ const SectionAudio = ({ text, sectionName, existingAudioUrl, sectionId, lessonId
 };
 
 /**
- * Collapsible section component
+ * Collapsible section component - Dark Theme
  */
 const CollapsibleSection = ({ 
   title, 
@@ -250,30 +237,30 @@ const CollapsibleSection = ({
   existingAudioUrl,
   sectionId,
   lessonId,
-  color = 'primary' 
+  color = 'purple' 
 }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   const colorClasses = {
-    primary: 'bg-primary-50 border-primary-200 text-primary-700',
-    green: 'bg-green-50 border-green-200 text-green-700',
-    purple: 'bg-purple-50 border-purple-200 text-purple-700',
-    orange: 'bg-orange-50 border-orange-200 text-orange-700',
-    red: 'bg-red-50 border-red-200 text-red-700',
-    blue: 'bg-blue-50 border-blue-200 text-blue-700'
+    purple: 'from-purple-500/20 to-pink-500/20 border-purple-500/30 text-purple-300',
+    green: 'from-green-500/20 to-emerald-500/20 border-green-500/30 text-green-300',
+    blue: 'from-blue-500/20 to-cyan-500/20 border-blue-500/30 text-blue-300',
+    orange: 'from-orange-500/20 to-amber-500/20 border-orange-500/30 text-orange-300',
+    red: 'from-red-500/20 to-rose-500/20 border-red-500/30 text-red-300',
+    cyan: 'from-cyan-500/20 to-teal-500/20 border-cyan-500/30 text-cyan-300'
   };
 
   return (
-    <div className="mb-4 border rounded-xl overflow-hidden shadow-sm">
+    <div className="mb-6 rounded-2xl overflow-hidden border border-white/10 bg-gray-900/50 backdrop-blur-sm">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full px-4 py-3 flex items-center justify-between ${colorClasses[color]} border-b`}
+        className={`w-full px-5 py-4 flex items-center justify-between bg-gradient-to-r ${colorClasses[color]} border-b border-white/10`}
       >
         <div className="flex items-center gap-3">
-          {Icon && <Icon className="w-5 h-5" />}
-          <span className="font-semibold">{title}</span>
+          {Icon && <Icon className="w-6 h-6" />}
+          <span className="font-semibold text-white">{title}</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {audioText && (
             <SectionAudio 
               text={audioText} 
@@ -283,7 +270,9 @@ const CollapsibleSection = ({
               lessonId={lessonId}
             />
           )}
-          {isOpen ? <ChevronUpIcon className="w-5 h-5" /> : <ChevronDownIcon className="w-5 h-5" />}
+          <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+            {isOpen ? <ChevronUpIcon className="w-5 h-5 text-white" /> : <ChevronDownIcon className="w-5 h-5 text-white" />}
+          </div>
         </div>
       </button>
       <AnimatePresence>
@@ -295,7 +284,7 @@ const CollapsibleSection = ({
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="p-4 bg-white">{children}</div>
+            <div className="p-5 text-gray-200">{children}</div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -304,120 +293,176 @@ const CollapsibleSection = ({
 };
 
 /**
- * Formula card component
+ * Formula card component - Dark Theme
  */
 const FormulaCard = ({ formula }) => (
-  <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100 mb-3">
-    <h4 className="font-semibold text-blue-800 mb-2">{formula.name}</h4>
-    <div className="bg-white p-3 rounded-lg shadow-sm mb-2 overflow-x-auto">
-      <MathText text={formula.formula} />
+  <div className="formula-card relative p-5 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 rounded-xl border border-purple-500/20 mb-4 overflow-hidden">
+    {/* Decorative background */}
+    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-full -translate-y-16 translate-x-16 blur-2xl" />
+    <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-blue-500/10 to-cyan-500/10 rounded-full translate-y-12 -translate-x-12 blur-2xl" />
+    
+    <div className="relative z-10">
+      <h4 className="font-bold text-purple-300 mb-3 flex items-center gap-2">
+        <span className="w-2 h-2 bg-purple-400 rounded-full"></span>
+        {formula.name}
+      </h4>
+      
+      <div className="bg-gray-900/80 backdrop-blur-sm p-4 rounded-xl shadow-lg mb-3 overflow-x-auto border border-white/10">
+        <div className="text-center text-white">
+          <MathText text={formula.formula} />
+        </div>
+      </div>
+      
+      <div className="space-y-2 text-sm">
+        {formula.description && (
+          <div className="flex items-start gap-2 p-3 bg-white/5 rounded-lg border border-white/5">
+            <span className="text-blue-400 mt-0.5">📝</span>
+            <div>
+              <span className="font-medium text-gray-300">Ý nghĩa: </span>
+              <span className="text-gray-400">{formula.description}</span>
+            </div>
+          </div>
+        )}
+        {formula.conditions && (
+          <div className="flex items-start gap-2 p-3 bg-orange-500/10 rounded-lg border border-orange-500/20">
+            <span className="text-orange-400 mt-0.5">⚠️</span>
+            <div>
+              <span className="font-medium text-orange-300">Điều kiện: </span>
+              <span className="text-gray-400">{formula.conditions}</span>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
-    {formula.description && (
-      <p className="text-sm text-gray-600 mb-1">
-        <span className="font-medium">Ý nghĩa:</span> {formula.description}
-      </p>
-    )}
-    {formula.conditions && (
-      <p className="text-sm text-gray-600">
-        <span className="font-medium">Điều kiện:</span> {formula.conditions}
-      </p>
-    )}
   </div>
 );
 
 /**
- * Example card component
+ * Example card component - Dark Theme
  */
 const ExampleCard = ({ example, index }) => {
   const [showSolution, setShowSolution] = useState(false);
 
-  const difficultyColors = {
-    easy: 'bg-green-100 text-green-700',
-    medium: 'bg-yellow-100 text-yellow-700',
-    hard: 'bg-red-100 text-red-700'
+  const difficultyConfig = {
+    easy: { bg: 'bg-green-500/20', text: 'text-green-300', border: 'border-green-500/30', label: 'Dễ', icon: '🟢' },
+    medium: { bg: 'bg-yellow-500/20', text: 'text-yellow-300', border: 'border-yellow-500/30', label: 'Trung bình', icon: '🟡' },
+    hard: { bg: 'bg-red-500/20', text: 'text-red-300', border: 'border-red-500/30', label: 'Khó', icon: '🔴' }
   };
 
-  const difficultyLabels = {
-    easy: 'Dễ',
-    medium: 'Trung bình',
-    hard: 'Khó'
-  };
+  const config = difficultyConfig[example.difficulty] || difficultyConfig.medium;
 
   return (
-    <div className="p-4 bg-white rounded-lg border border-gray-200 shadow-sm mb-4">
-      <div className="flex items-start justify-between mb-3">
-        <h4 className="font-semibold text-gray-800">Ví dụ {index}</h4>
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${difficultyColors[example.difficulty] || difficultyColors.medium}`}>
-          {difficultyLabels[example.difficulty] || 'Trung bình'}
+    <div className="example-card bg-gray-900/50 rounded-xl border border-white/10 mb-4 overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-b border-white/10">
+        <div className="flex items-center gap-3">
+          <span className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 text-white rounded-xl flex items-center justify-center font-bold shadow-lg shadow-green-500/20">
+            {index}
+          </span>
+          <h4 className="font-semibold text-white">Ví dụ {index}</h4>
+        </div>
+        <span className={`px-3 py-1.5 rounded-full text-xs font-medium ${config.bg} ${config.text} border ${config.border}`}>
+          {config.icon} {config.label}
         </span>
       </div>
       
-      <div className="mb-3 p-3 bg-gray-50 rounded-lg">
-        <p className="font-medium text-gray-700 mb-1">Đề bài:</p>
-        <MathText text={example.problem} />
-      </div>
+      {/* Problem */}
+      <div className="p-5">
+        <div className="mb-4 p-4 bg-white/5 rounded-xl border border-white/10">
+          <p className="font-medium text-gray-400 text-sm mb-2 uppercase tracking-wide flex items-center gap-2">
+            <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full"></span>
+            Đề bài
+          </p>
+          <div className="text-gray-200">
+            <MathText text={example.problem} />
+          </div>
+        </div>
 
-      <button
-        onClick={() => setShowSolution(!showSolution)}
-        className="text-primary-600 hover:text-primary-700 font-medium text-sm mb-2"
-      >
-        {showSolution ? '▼ Ẩn lời giải' : '▶ Xem lời giải'}
-      </button>
+        {/* Toggle solution button */}
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => setShowSolution(!showSolution)}
+          className={`w-full py-3 rounded-xl font-medium text-sm transition-all flex items-center justify-center gap-2 ${
+            showSolution 
+              ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25' 
+              : 'bg-green-500/20 text-green-300 border border-green-500/30 hover:bg-green-500/30'
+          }`}
+        >
+          {showSolution ? '👁️ Ẩn lời giải' : '✨ Xem lời giải chi tiết'}
+        </motion.button>
 
-      <AnimatePresence>
-        {showSolution && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden"
-          >
-            <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-              <p className="font-medium text-green-700 mb-2">Lời giải:</p>
-              <div className="text-gray-700 whitespace-pre-wrap">
-                <MathText text={example.solution} />
+        {/* Solution */}
+        <AnimatePresence>
+          {showSolution && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="mt-4 p-5 bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-xl border border-green-500/20">
+                <p className="font-medium text-green-400 mb-4 flex items-center gap-2">
+                  <span className="w-7 h-7 bg-gradient-to-br from-green-500 to-emerald-500 text-white rounded-lg flex items-center justify-center text-xs shadow-lg shadow-green-500/20">✓</span>
+                  Lời giải chi tiết
+                </p>
+                <div className="text-gray-300 space-y-3 pl-4 border-l-2 border-green-500/30">
+                  <MathText text={example.solution} />
+                </div>
+                
+                {example.answer && (
+                  <div className="mt-4 p-3 bg-green-500/20 rounded-xl border border-green-500/30">
+                    <p className="font-bold text-green-300 flex items-center gap-2">
+                      🎯 Đáp số: <span className="text-white"><MathText text={example.answer} /></span>
+                    </p>
+                  </div>
+                )}
+                
+                {example.tips && (
+                  <div className="mt-3 p-3 bg-blue-500/10 rounded-xl border border-blue-500/20">
+                    <p className="text-sm text-blue-300 flex items-start gap-2">
+                      <span className="text-lg">💡</span>
+                      <span><strong>Mẹo:</strong> <span className="text-gray-300">{example.tips}</span></span>
+                    </p>
+                  </div>
+                )}
               </div>
-              {example.answer && (
-                <p className="mt-2 font-semibold text-green-800">
-                  Đáp số: <MathText text={example.answer} />
-                </p>
-              )}
-              {example.tips && (
-                <p className="mt-2 text-sm text-blue-600 italic">
-                  💡 Mẹo: {example.tips}
-                </p>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 };
 
 /**
- * Exercise card component
+ * Exercise card component - Dark Theme
  */
 const ExerciseCard = ({ exercise, index }) => {
   const [showHints, setShowHints] = useState(false);
   const [showAnswer, setShowAnswer] = useState(false);
 
   const difficultyColors = {
-    easy: 'bg-green-100 text-green-700',
-    medium: 'bg-yellow-100 text-yellow-700',
-    hard: 'bg-red-100 text-red-700'
+    easy: 'bg-green-500/20 text-green-300 border-green-500/30',
+    medium: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
+    hard: 'bg-red-500/20 text-red-300 border-red-500/30'
   };
 
   return (
-    <div className="p-4 bg-white rounded-lg border-2 border-dashed border-gray-300 mb-4">
+    <div className="p-5 bg-white/5 rounded-xl border-2 border-dashed border-white/20 mb-4">
       <div className="flex items-start justify-between mb-3">
-        <h4 className="font-semibold text-gray-800">Bài {index}</h4>
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${difficultyColors[exercise.difficulty] || difficultyColors.medium}`}>
+        <h4 className="font-semibold text-white flex items-center gap-2">
+          <span className="w-8 h-8 bg-orange-500/20 text-orange-300 rounded-lg flex items-center justify-center text-sm font-bold">
+            {index}
+          </span>
+          Bài {index}
+        </h4>
+        <span className={`px-3 py-1 rounded-full text-xs font-medium border ${difficultyColors[exercise.difficulty] || difficultyColors.medium}`}>
           {exercise.difficulty === 'easy' ? 'Dễ' : exercise.difficulty === 'hard' ? 'Khó' : 'TB'}
         </span>
       </div>
 
-      <div className="mb-3">
+      <div className="mb-4 text-gray-300">
         <MathText text={exercise.problem} />
       </div>
 
@@ -425,14 +470,14 @@ const ExerciseCard = ({ exercise, index }) => {
         {exercise.hints && exercise.hints.length > 0 && (
           <button
             onClick={() => setShowHints(!showHints)}
-            className="text-sm px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full hover:bg-yellow-200"
+            className="text-sm px-4 py-2 bg-yellow-500/20 text-yellow-300 rounded-xl hover:bg-yellow-500/30 border border-yellow-500/30 transition-colors"
           >
             💡 {showHints ? 'Ẩn gợi ý' : 'Xem gợi ý'}
           </button>
         )}
         <button
           onClick={() => setShowAnswer(!showAnswer)}
-          className="text-sm px-3 py-1 bg-green-100 text-green-700 rounded-full hover:bg-green-200"
+          className="text-sm px-4 py-2 bg-green-500/20 text-green-300 rounded-xl hover:bg-green-500/30 border border-green-500/30 transition-colors"
         >
           ✓ {showAnswer ? 'Ẩn đáp số' : 'Xem đáp số'}
         </button>
@@ -444,12 +489,15 @@ const ExerciseCard = ({ exercise, index }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="mt-3 p-3 bg-yellow-50 rounded-lg"
+            className="mt-4 p-4 bg-yellow-500/10 rounded-xl border border-yellow-500/20"
           >
-            <p className="font-medium text-yellow-700 mb-1">Gợi ý:</p>
-            <ul className="list-disc list-inside text-sm text-gray-700">
+            <p className="font-medium text-yellow-300 mb-2">💡 Gợi ý:</p>
+            <ul className="space-y-1 text-sm text-gray-300">
               {exercise.hints.map((hint, i) => (
-                <li key={i}>{hint}</li>
+                <li key={i} className="flex items-start gap-2">
+                  <span className="text-yellow-400">•</span>
+                  {hint}
+                </li>
               ))}
             </ul>
           </motion.div>
@@ -462,10 +510,10 @@ const ExerciseCard = ({ exercise, index }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="mt-3 p-3 bg-green-50 rounded-lg"
+            className="mt-4 p-4 bg-green-500/10 rounded-xl border border-green-500/20"
           >
-            <p className="font-semibold text-green-700">
-              Đáp số: <MathText text={exercise.answer} />
+            <p className="font-semibold text-green-300">
+              🎯 Đáp số: <span className="text-white"><MathText text={exercise.answer} /></span>
             </p>
           </motion.div>
         )}
@@ -475,17 +523,16 @@ const ExerciseCard = ({ exercise, index }) => {
 };
 
 /**
- * Main StructuredLesson component
+ * Main StructuredLesson component - Dark Theme
  */
 const StructuredLesson = ({ lesson }) => {
-  // Parse structured content if it's a string
   let data = lesson.structuredContent;
   if (typeof data === 'string') {
     try {
       data = JSON.parse(data);
     } catch (e) {
       return (
-        <div className="p-4 bg-red-50 rounded-lg text-red-700">
+        <div className="p-4 bg-red-500/10 rounded-xl text-red-400 border border-red-500/20">
           Lỗi: Không thể parse nội dung bài học
         </div>
       );
@@ -496,7 +543,6 @@ const StructuredLesson = ({ lesson }) => {
     return null;
   }
 
-  // Get audio sections map from lesson (if audio was generated before)
   const audioSectionsMap = {};
   if (lesson.audioSections && Array.isArray(lesson.audioSections)) {
     lesson.audioSections.forEach(section => {
@@ -506,21 +552,33 @@ const StructuredLesson = ({ lesson }) => {
     });
   }
 
-  // Helper to get audio URL for a section
   const getAudioUrl = (sectionId) => audioSectionsMap[sectionId] || null;
 
   return (
     <div className="structured-lesson">
       {/* Title & Info */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">{data.title}</h1>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-white mb-4">{data.title}</h1>
         <div className="flex flex-wrap gap-2">
-          {data.subject && <span className="badge-primary">{data.subject}</span>}
-          {data.grade && <span className="badge-secondary">Lớp {data.grade}</span>}
-          {data.chapter && <span className="badge-ghost">{data.chapter}</span>}
+          {data.subject && (
+            <span className="px-4 py-1.5 bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-300 rounded-full text-sm font-medium border border-purple-500/30">
+              {data.subject}
+            </span>
+          )}
+          {data.grade && (
+            <span className="px-4 py-1.5 bg-cyan-500/20 text-cyan-300 rounded-full text-sm font-medium border border-cyan-500/30">
+              Lớp {data.grade}
+            </span>
+          )}
+          {data.chapter && (
+            <span className="px-4 py-1.5 bg-white/10 text-gray-300 rounded-full text-sm border border-white/20">
+              {data.chapter}
+            </span>
+          )}
           {lesson.hasAudio && (
-            <span className="badge bg-green-100 text-green-700">
-              🔊 Có audio
+            <span className="px-4 py-1.5 bg-green-500/20 text-green-300 rounded-full text-sm font-medium border border-green-500/30 flex items-center gap-1">
+              <SpeakerWaveIcon className="w-4 h-4" />
+              Có audio
             </span>
           )}
         </div>
@@ -528,15 +586,17 @@ const StructuredLesson = ({ lesson }) => {
 
       {/* Key Points */}
       {data.keyPoints && data.keyPoints.length > 0 && (
-        <div className="mb-6 p-4 bg-gradient-to-r from-primary-50 to-blue-50 rounded-xl border border-primary-100">
-          <h3 className="font-semibold text-primary-800 mb-2 flex items-center gap-2">
-            <LightBulbIcon className="w-5 h-5" />
+        <div className="mb-8 p-5 bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-cyan-500/10 rounded-2xl border border-purple-500/20">
+          <h3 className="font-semibold text-purple-300 mb-4 flex items-center gap-2">
+            <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+              <LightBulbIcon className="w-5 h-5 text-white" />
+            </div>
             Điểm quan trọng
           </h3>
-          <ul className="space-y-1">
+          <ul className="space-y-2">
             {data.keyPoints.map((point, i) => (
-              <li key={i} className="flex items-start gap-2 text-gray-700">
-                <CheckCircleIcon className="w-4 h-4 text-primary-600 mt-1 flex-shrink-0" />
+              <li key={i} className="flex items-start gap-3 text-gray-300">
+                <CheckCircleIcon className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
                 <MathText text={point} />
               </li>
             ))}
@@ -556,7 +616,7 @@ const StructuredLesson = ({ lesson }) => {
           lessonId={lesson._id || lesson.id}
           defaultOpen={true}
         >
-          <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap">
+          <div className="prose prose-invert max-w-none whitespace-pre-wrap">
             <MathText text={data.theory} />
           </div>
         </CollapsibleSection>
@@ -610,25 +670,28 @@ const StructuredLesson = ({ lesson }) => {
 
       {/* Summary */}
       {data.summary && (
-        <div className="mt-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
-          <h3 className="font-semibold text-green-800 mb-2">📝 Tóm tắt</h3>
-          <p className="text-gray-700">
+        <div className="mt-8 p-5 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-2xl border border-green-500/20">
+          <h3 className="font-semibold text-green-400 mb-3 flex items-center gap-2">
+            <SparklesIcon className="w-5 h-5" />
+            Tóm tắt
+          </h3>
+          <div className="text-gray-300">
             <MathText text={data.summary} />
-          </p>
+          </div>
         </div>
       )}
 
       {/* Common Mistakes */}
       {data.commonMistakes && data.commonMistakes.length > 0 && (
-        <div className="mt-4 p-4 bg-red-50 rounded-xl border border-red-200">
-          <h3 className="font-semibold text-red-800 mb-2 flex items-center gap-2">
+        <div className="mt-6 p-5 bg-red-500/10 rounded-2xl border border-red-500/20">
+          <h3 className="font-semibold text-red-400 mb-4 flex items-center gap-2">
             <ExclamationTriangleIcon className="w-5 h-5" />
             Lỗi thường gặp
           </h3>
-          <ul className="space-y-1">
+          <ul className="space-y-2">
             {data.commonMistakes.map((mistake, i) => (
-              <li key={i} className="text-gray-700 flex items-start gap-2">
-                <span className="text-red-500">⚠</span>
+              <li key={i} className="text-gray-300 flex items-start gap-2">
+                <span className="text-red-400">⚠️</span>
                 {mistake}
               </li>
             ))}
@@ -638,10 +701,10 @@ const StructuredLesson = ({ lesson }) => {
 
       {/* Related Topics */}
       {data.relatedTopics && data.relatedTopics.length > 0 && (
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-6 flex flex-wrap items-center gap-2">
           <span className="text-sm text-gray-500">Chủ đề liên quan:</span>
           {data.relatedTopics.map((topic, i) => (
-            <span key={i} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
+            <span key={i} className="px-3 py-1.5 bg-white/10 text-gray-300 rounded-full text-sm border border-white/10 hover:border-white/20 transition-colors">
               {topic}
             </span>
           ))}
