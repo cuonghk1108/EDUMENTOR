@@ -324,7 +324,7 @@ Hiện tại **EDUMENTOR hoàn toàn MIỄN PHÍ** cho học sinh! 🎉
 
 - ✅ **Web responsive:** Truy cập qua trình duyệt điện thoại
 - ⏳ **Android App:** Đang thử nghiệm beta
-- ⏳ **iOS App:** Coming soon 2024
+- ⏳ **iOS App:** Coming soon 2026
 
 Đăng ký email để nhận thông báo khi app ra mắt!
 
@@ -371,7 +371,7 @@ Hiện tại **EDUMENTOR hoàn toàn MIỄN PHÍ** cho học sinh! 🎉
 **Hiện tại hỗ trợ:**
 
 | Môn Học | Lớp | Trạng Thái |
-|---------|-----|------------|
+|---------|-----|:----------:|
 | 🧮 Toán | 10-12 | ✅ Đầy đủ |
 | ⚗️ Hóa Học | 10-12 | ✅ Đầy đủ |
 | ⚛️ Vật Lý | 10-12 | ✅ Đầy đủ |
@@ -1080,7 +1080,7 @@ curl -X POST http://localhost:5000/api/lessons \
 
 </div>
 
-### ✅ Hoàn Thành (Q1 2024)
+### ✅ Hoàn Thành (2024)
 
 <details open>
 <summary><b>Xem các tính năng đã launch</b></summary>
@@ -1100,12 +1100,13 @@ curl -X POST http://localhost:5000/api/lessons \
 | ✨ Animations & UI tương tác | ✅ | Mar 2024 |
 | 🎮 Gamification (badges, XP, missions) | ✅ | Apr 2024 |
 | 📈 Dashboard & analytics | ✅ | Apr 2024 |
+| 📅 Daily tracking system | ✅ | Feb 2025 |
 
 </details>
 
 ---
 
-### 🛠️ Đang Phát Triển (Q2 2024)
+### 🛠️ Đang Phát Triển (2025)
 
 <details open>
 <summary><b>Xem các tính năng đang code</b></summary>
@@ -1113,18 +1114,18 @@ curl -X POST http://localhost:5000/api/lessons \
 <br>
 
 | Feature | Progress | ETA |
-|---------|:--------:|:---:|
-| 📱 Mobile app (React Native) | 🟡🟡🟡⬜⬜ 60% | May 2024 |
-| 🌐 PWA & offline mode | 🟡🟡⬜⬜⬜ 40% | Jun 2024 |
-| 📈 Advanced analytics dashboard | 🟡🟡⬜⬜⬜ 40% | Jun 2024 |
-| 🏆 Leaderboard & competitive mode | 🟡⬜⬜⬜⬜ 20% | Jul 2024 |
-| 🎓 Lớp học & quản lý thầy cô | 🟡⬜⬜⬜⬜ 20% | Jul 2024 |
+|---------|:--------:|:-----:|
+| 📱 Mobile app (React Native) | 🟡🟡🟡⬜⬜ 60% | May 2025 |
+| 🌐 PWA & offline mode | 🟡🟡⬜⬜⬜ 40% | Jun 2025 |
+| 📈 Advanced analytics dashboard | 🟡🟡⬜⬜⬜ 40% | Jun 2025 |
+| 🏆 Leaderboard & competitive mode | 🟡⬜⬜⬜⬜ 20% | Jul 2025 |
+| 🎓 Lớp học & quản lý thầy cô | 🟡⬜⬜⬜⬜ 20% | Jul 2025 |
 
 </details>
 
 ---
 
-### 📝 Kế Hoạch Tương Lai (Q3-Q4 2024)
+### 📝 Kế Hoạch Tương Lai (2025-2026)
 
 <details>
 <summary><b>Xem tính năng sắp tới</b></summary>
