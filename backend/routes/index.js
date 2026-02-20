@@ -174,9 +174,21 @@ router.post('/lesson/convert-latex', verifyToken, lessonController.convertToLate
 router.post('/lesson/:lessonId/convert-latex', verifyToken, lessonController.convertToLatex);
 router.post('/lesson/:lessonId/customize', verifyToken, lessonController.customizeLesson);
 router.get('/tasks/:taskId', verifyToken, taskController.getTaskStatus);
+router.delete('/tasks/:taskId', verifyToken, taskController.cancelTask);
 router.get('/lessons/:userId', verifyToken, lessonController.getUserLessons);
 router.get('/lesson/:lessonId', verifyToken, lessonController.getLessonById);
 router.put('/lesson/:lessonId/complete', verifyToken, lessonController.markComplete);
+
+// File Processing & Upload
+router.get('/upload/status/:fileId', verifyToken, uploadController.getFileStatus);
+
+// ============================================
+// INTERNAL ROUTES (For Celery Worker)
+// ============================================
+
+router.post('/internal/file/process', verifyInternalToken, taskController.queueFileProcessing);
+router.post('/internal/ocr/extract', verifyInternalToken, taskController.queueImageOcr);
+router.post('/internal/pdf/extract', verifyInternalToken, taskController.queuePdfExtraction);
 
 // Quiz
 router.post('/quiz', verifyToken, quizController.generateQuiz);
