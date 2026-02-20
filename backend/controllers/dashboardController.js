@@ -33,7 +33,7 @@ exports.getDashboard = async (req, res) => {
     }).length;
     
     // Count chat messages
-    const chatHistory = await chatService.getByUserId(userId, 10000);
+    const chatHistory = await chatService.getHistory(userId, 10000);
     const totalMessages = chatHistory.filter(msg => msg.role === 'user').length;
     
     // Track study time patterns (for early bird / night owl badges)
