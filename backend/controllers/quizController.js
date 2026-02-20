@@ -1,5 +1,5 @@
 const aiService = require('../services/aiService');
-const { quizService, learningStatsService } = require('../services/firebaseService');
+const { quizService, learningStatsService, dailyStatsService } = require('../services/firebaseService');
 
 /**
  * Generate quiz from text content (20 questions)
@@ -94,6 +94,9 @@ exports.submitQuiz = async (req, res) => {
 
     // Save result
     await quizService.saveResult(quizId, userId, quizResult);
+
+    // Track daily stats for engagement
+    await dailyStatsService.incrementQuizzes(userId, score);
 
     res.json({
       success: true,

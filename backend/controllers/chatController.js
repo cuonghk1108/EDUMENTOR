@@ -1,6 +1,6 @@
 const aiService = require('../services/aiService');
 const ocrService = require('../services/ocrService');
-const { chatService, lessonService } = require('../services/firebaseService');
+const { chatService, lessonService, dailyStatsService } = require('../services/firebaseService');
 const path = require('path');
 const fs = require('fs').promises;
 
@@ -38,6 +38,9 @@ exports.sendMessage = async (req, res) => {
       content: message,
       lessonId: lessonId || null
     });
+    
+    // Track daily stats for engagement
+    await dailyStatsService.incrementChats(userId);
 
     // Generate AI response
     const result = await aiService.chat(message, lessonContext, formattedHistory);

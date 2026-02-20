@@ -1,5 +1,5 @@
 const aiService = require('../services/aiService');
-const { lessonService, learningStatsService } = require('../services/firebaseService');
+const { lessonService, learningStatsService, dailyStatsService } = require('../services/firebaseService');
 
 const generateLessonForUser = async ({ userId, text, title, subject, chapter }) => {
   const result = await aiService.generateLesson(text);
@@ -131,6 +131,9 @@ exports.markComplete = async (req, res) => {
 
     // Update stats
     await learningStatsService.incrementLessonCount(userId, true);
+    
+    // Track daily stats for engagement
+    await dailyStatsService.incrementLessons(userId);
 
     res.json({
       success: true,

@@ -32,6 +32,8 @@ const db = {
   activityLog: Datastore.create({ filename: path.join(dataDir, 'activity_log.db'), autoload: true }),
   // Streak tracking database
   streaks: Datastore.create({ filename: path.join(dataDir, 'streaks.db'), autoload: true }),
+  // Daily stats tracking for engagement system
+  dailyStats: Datastore.create({ filename: path.join(dataDir, 'daily_stats.db'), autoload: true }),
   studyPlanner: Datastore.create({ filename: path.join(dataDir, 'study_planner.db'), autoload: true }),
   flashcards: Datastore.create({ filename: path.join(dataDir, 'flashcards.db'), autoload: true }),
   focusSessions: Datastore.create({ filename: path.join(dataDir, 'focus_sessions.db'), autoload: true }),
@@ -1148,6 +1150,108 @@ const parentReportService = {
   }
 };
 
+// ==================== DAILY STATS SERVICE ====================
+const dailyStatsService = {
+  // Get today's date as string (YYYY-MM-DD)
+  getTodayDate() {
+    return new Date().toISOString().split('T')[0];
+  },
+
+  // Check if date is today
+  isToday(dateString) {
+    return dateString === this.getTodayDate();
+  },
+
+  // Get or create today's stats
+  async getTodayStats(userId) {
+    const today = this.getTodayDate();
+    let doc = await db.dailyStats.findOne({ userId, date: today });
+    
+    if (!doc) {
+      // Create new stats for today
+      doc = await db.dailyStats.insert({
+        userId,
+        date: today,
+        lessonsCompleted: 0,
+        quizzesCompleted: 0,
+        chatMessages: 0,
+        highestScore: 0,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+    }
+    
+    return { id: doc._id, ...doc };
+  },
+
+  // Increment lessons count for today
+  async incrementLessons(userId) {
+    const today = this.getTodayDate();
+    let stats = await this.getTodayStats(userId);
+    
+    await db.dailyStats.update(
+      { userId, date: today },
+      { $set: { 
+        lessonsCompleted: (stats.lessonsCompleted || 0) + 1,
+        updatedAt: new Date()
+      }}
+    );
+    
+    return this.getTodayStats(userId);
+  },
+
+  // Increment quizzes count and update highest score
+  async incrementQuizzes(userId, score) {
+    const today = this.getTodayDate();
+    let stats = await this.getTodayStats(userId);
+    
+    const newHighest = Math.max(stats.highestScore || 0, score || 0);
+    
+    await db.dailyStats.update(
+      { userId, date: today },
+      { $set: { 
+        quizzesCompleted: (stats.quizzesCompleted || 0) + 1,
+        highestScore: newHighest,
+        updatedAt: new Date()
+      }}
+    );
+    
+    return this.getTodayStats(userId);
+  },
+
+  // Increment chat messages count
+  async incrementChats(userId) {
+    const today = this.getTodayDate();
+    let stats = await this.getTodayStats(userId);
+    
+    await db.dailyStats.update(
+      { userId, date: today },
+      { $set: { 
+        chatMessages: (stats.chatMessages || 0) + 1,
+        updatedAt: new Date()
+      }}
+    );
+    
+    return this.getTodayStats(userId);
+  },
+
+  // Get stats for specific date range
+  async getStatsForDateRange(userId, startDate, endDate) {
+    const docs = await db.dailyStats.find({
+      userId,
+      date: { $gte: startDate, $lte: endDate }
+    }).sort({ date: -1 });
+    
+    return docs.map(doc => ({ id: doc._id, ...doc }));
+  },
+
+  // Get all stats for user (for analytics)
+  async getAllStats(userId) {
+    const docs = await db.dailyStats.find({ userId }).sort({ date: -1 });
+    return docs.map(doc => ({ id: doc._id, ...doc }));
+  }
+};
+
 // ==================== STUDY GROUP SERVICE ====================
 const studyGroupService = {
   async create(ownerId, data) {
@@ -1200,6 +1304,7 @@ module.exports = {
   audioHistoryService,
   activityLogService,
   streakService,
+  dailyStatsService,
   examSimulationService,
   parentReportService,
   studyGroupService

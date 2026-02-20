@@ -170,15 +170,22 @@ const Dashboard = () => {
       earlyMorningStudies: 0,
       lateNightStudies: 0
     },
+    today: {
+      lessonsCompleted: 0,
+      quizzesCompleted: 0,
+      chatMessages: 0,
+      highestScore: 0
+    },
     weaknesses: [],
     strengths: [],
     recentActivity: { lessons: [], quizzes: [] }
   };
 
-  const { overview, performance, engagement, weaknesses, strengths, recentActivity } = dashboard;
+  const { overview, performance, engagement, today, weaknesses, strengths, recentActivity } = dashboard;
 
   // Prepare user stats for engagement components
   const userStats = {
+    // Overall stats for achievements
     completedLessons: overview.completedLessons,
     completedQuizzes: overview.totalQuizzes,
     streakDays: overview.streakDays,
@@ -187,6 +194,11 @@ const Dashboard = () => {
     perfectScores: engagement?.perfectScores || 0,
     earlyMorningStudies: engagement?.earlyMorningStudies || 0,
     lateNightStudies: engagement?.lateNightStudies || 0,
+    // Today's stats for daily missions
+    todayLessons: today?.lessonsCompleted || 0,
+    todayQuizzes: today?.quizzesCompleted || 0,
+    todayChats: today?.chatMessages || 0,
+    highestScoreToday: today?.highestScore || 0,
     lastActivity: new Date().toISOString().split('T')[0] // Today's date
   };
 

@@ -8,7 +8,7 @@ export const DAILY_MISSIONS = [
   {
     id: 'complete_1_lesson',
     title: 'Hoàn thành 1 bài học',
-    description: 'Học ít nhất 1 bài để duy trì tiến độ',
+    description: 'Học ít nhất 1 bài hôm nay',
     icon: '📚',
     xp: 50,
     target: 1,
@@ -17,7 +17,7 @@ export const DAILY_MISSIONS = [
   {
     id: 'complete_3_quizzes',
     title: 'Làm 3 bài quiz',
-    description: 'Kiểm tra kiến thức với quiz',
+    description: 'Làm 3 quiz trong ngày hôm nay',
     icon: '✅',
     xp: 100,
     target: 3,
@@ -26,7 +26,7 @@ export const DAILY_MISSIONS = [
   {
     id: 'maintain_streak',
     title: 'Duy trì streak',
-    description: 'Học mỗi ngày để giữ streak',
+    description: 'Giữ chuỗi học tập liên tục',
     icon: '🔥',
     xp: 30,
     target: 1,
@@ -35,7 +35,7 @@ export const DAILY_MISSIONS = [
   {
     id: 'chat_with_ai',
     title: 'Hỏi AI 5 câu',
-    description: 'Tương tác với AI Tutor',
+    description: 'Gửi 5 tin nhắn với AI hôm nay',
     icon: '💬',
     xp: 40,
     target: 5,
@@ -44,7 +44,7 @@ export const DAILY_MISSIONS = [
   {
     id: 'score_above_80',
     title: 'Đạt điểm ≥80%',
-    description: 'Hoàn thành quiz với điểm cao',
+    description: 'Đạt điểm cao trong quiz hôm nay',
     icon: '⭐',
     xp: 150,
     target: 80,
@@ -158,26 +158,25 @@ export const MOTIVATIONAL_TIPS = [
 
 /**
  * Check mission progress
- * Note: Currently checking overall stats, not daily stats
- * TODO: Implement daily tracking in backend for accurate daily missions
+ * Uses daily stats for accurate tracking
  */
 export const checkMissionProgress = (mission, userStats) => {
   const { type, target } = mission;
   
   switch (type) {
     case 'lessons':
-      // Check total completed lessons
+      // Check today's completed lessons
       return {
-        current: userStats.completedLessons || 0,
+        current: userStats.todayLessons || 0,
         target,
-        completed: (userStats.completedLessons || 0) >= target
+        completed: (userStats.todayLessons || 0) >= target
       };
     case 'quizzes':
-      // Check total completed quizzes
+      // Check today's completed quizzes
       return {
-        current: userStats.completedQuizzes || 0,
+        current: userStats.todayQuizzes || 0,
         target,
-        completed: (userStats.completedQuizzes || 0) >= target
+        completed: (userStats.todayQuizzes || 0) >= target
       };
     case 'streak':
       // Check current streak
@@ -187,18 +186,18 @@ export const checkMissionProgress = (mission, userStats) => {
         completed: (userStats.streakDays || 0) >= 1
       };
     case 'chat':
-      // Check total messages
+      // Check today's messages
       return {
-        current: userStats.totalMessages || 0,
+        current: userStats.todayChats || 0,
         target,
-        completed: (userStats.totalMessages || 0) >= target
+        completed: (userStats.todayChats || 0) >= target
       };
     case 'score':
-      // Check average score
+      // Check today's highest score
       return {
-        current: userStats.averageScore || 0,
+        current: userStats.highestScoreToday || 0,
         target,
-        completed: (userStats.averageScore || 0) >= target
+        completed: (userStats.highestScoreToday || 0) >= target
       };
     default:
       return { current: 0, target, completed: false };

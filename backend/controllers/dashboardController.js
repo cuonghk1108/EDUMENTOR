@@ -1,4 +1,4 @@
-const { learningStatsService, lessonService, quizService, streakService, chatService } = require('../services/firebaseService');
+const { learningStatsService, lessonService, quizService, streakService, chatService, dailyStatsService } = require('../services/firebaseService');
 
 /**
  * Get dashboard data for user
@@ -12,6 +12,9 @@ exports.getDashboard = async (req, res) => {
 
     // Get streak data
     const streakData = await streakService.checkAndUpdateStreak(userId);
+    
+    // Get today's stats for daily missions
+    const todayStats = await dailyStatsService.getTodayStats(userId);
 
     // Get recent lessons
     const recentLessons = await lessonService.getByUserId(userId, 5);
@@ -71,6 +74,13 @@ exports.getDashboard = async (req, res) => {
         perfectScores,
         earlyMorningStudies,
         lateNightStudies
+      },
+      // Today's stats for daily missions
+      today: {
+        lessonsCompleted: todayStats.lessonsCompleted || 0,
+        quizzesCompleted: todayStats.quizzesCompleted || 0,
+        chatMessages: todayStats.chatMessages || 0,
+        highestScore: todayStats.highestScore || 0
       },
       weaknesses: stats.weakTopics || [],
       strengths: stats.strongTopics || [],
