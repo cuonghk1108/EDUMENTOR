@@ -705,6 +705,7 @@ router.put('/admin/users/:userId/role', verifyToken, verifyAdmin, adminControlle
 
 // Lesson Management
 router.get('/admin/lessons', verifyToken, verifyAdmin, adminController.getLessons);
+router.get('/admin/lessons/:lessonId', verifyToken, verifyAdmin, adminController.getLessonDetail);
 router.delete('/admin/lessons/:lessonId', verifyToken, verifyAdmin, adminController.deleteLesson);
 
 // Quiz Management
@@ -719,6 +720,7 @@ router.get('/admin/subjects', verifyToken, verifyAdmin, adminController.getSubje
 
 // Chat Management
 router.get('/admin/chats', verifyToken, verifyAdmin, adminController.getChats);
+router.get('/admin/chats/:chatId', verifyToken, verifyAdmin, adminController.getChatDetail);
 router.delete('/admin/chats/:chatId', verifyToken, verifyAdmin, adminController.deleteChat);
 router.delete('/admin/chats/user/:userId', verifyToken, verifyAdmin, adminController.deleteUserChats);
 

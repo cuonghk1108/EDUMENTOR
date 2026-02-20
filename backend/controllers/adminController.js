@@ -1080,3 +1080,73 @@ exports.updateSettings = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+/**
+ * Get detailed view of a specific lesson
+ */
+exports.getLessonDetail = async (req, res) => {
+  try {
+    const { lessonId } = req.params;
+    
+    const lesson = await lessonService.getById(lessonId);
+    
+    if (!lesson) {
+      return res.status(404).json({ error: 'Lesson not found' });
+    }
+
+    // Get creator info
+    const creator = lesson.userId ? await userService.getById(lesson.userId) : null;
+
+    res.json({
+      success: true,
+      lesson: {
+        ...lesson,
+        creator: creator ? { 
+          id: creator.id,
+          name: creator.name, 
+          email: creator.email,
+          grade: creator.grade,
+          school: creator.school
+        } : null
+      }
+    });
+  } catch (error) {
+    console.error('Get lesson detail error:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/**
+ * Get detailed view of a specific chat conversation
+ */
+exports.getChatDetail = async (req, res) => {
+  try {
+    const { chatId } = req.params;
+    
+    const chat = await chatHistoryService.getById(chatId);
+    
+    if (!chat) {
+      return res.status(404).json({ error: 'Chat not found' });
+    }
+
+    // Get user info
+    const user = await userService.getById(chat.userId);
+
+    res.json({
+      success: true,
+      chat: {
+        ...chat,
+        user: user ? { 
+          id: user.id,
+          name: user.name, 
+          email: user.email,
+          grade: user.grade,
+          school: user.school
+        } : null
+      }
+    });
+  } catch (error) {
+    console.error('Get chat detail error:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
