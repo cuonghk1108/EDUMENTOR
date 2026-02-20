@@ -198,3 +198,455 @@ Nếu EDUMENTOR giúp em học tập tốt hơn, hãy chia sẻ với bạn bè 
 MIT License © 2026 **cuongdev1108**
 
 Nền tảng được phát triển nhằm hỗ trợ giáo dục miễn phí cho học sinh THPT Việt Nam.
+
+---
+
+---
+
+# 👨‍💻 DÀNH CHO DEVELOPER
+
+## 🛠 Công Nghệ Sử Dụng
+
+### Frontend
+- **React** 18.x – Thư viện UI
+- **TailwindCSS** 3.x – Styling responsive
+- **Framer Motion** – Animations
+- **KaTeX + remark-math** – Hiển thị công thức LaTeX
+- **@react-oauth/google** – Đăng nhập Google
+- **Axios** – HTTP client
+- **React Router** 6.x – Navigation
+
+### Backend
+- **Node.js** 18+ – JavaScript runtime
+- **Express.js** – Web framework
+- **JWT** – Xác thực
+- **bcrypt** – Hashing password
+- **NeDB** – Lightweight database
+- **Multer** – File upload
+- **Tesseract.js** – OCR tiếng Việt
+
+### AI & Dịch Vụ Ngoài
+- **Grok AI (xAI)** – Tạo bài giảng, quiz, chatbot
+- **Murf.ai** – Text-to-Speech
+- **Google OAuth** – Xác thực
+- **Cloudflare Tunnel** – Expose server
+
+### Optional: Background Jobs
+- **Python** 3.10+
+- **Celery** – Task queue
+- **Redis** – Message broker & caching
+- **FastAPI** – Worker API
+
+---
+
+## 🏗 Kiến Trúc Hệ Thống
+
+### Development Mode (2 server)
+```
+Frontend (Port 3000)         Backend (Port 5000)
+    ↓                              ↓
+  React Dev               Express + NeDB
+    ↓                              ↓
+  http://localhost:3000    http://localhost:5000/api
+```
+
+### Production Mode (Unified)
+```
+Frontend Build           Backend Server (Port 5000)
+    ↓                           ↓
+  /frontend/build          Serves React + /api
+    ↓                           ↓
+All requests             Single endpoint
+  go to                   https://edumentor.io.vn
+backend (5000)
+```
+
+---
+
+## 📦 Cài Đặt & Chạy
+
+### Yêu Cầu
+- Node.js ≥ 18
+- npm ≥ 9
+- Windows/Mac/Linux
+
+### 1. Clone Repository
+```bash
+git clone https://github.com/cuongdev1108/AI-Tutor.git
+cd AI-Tutor
+```
+
+### 2. Cài Đặt Backend
+```bash
+cd backend
+npm install
+```
+
+### 3. Cài Đặt Frontend
+```bash
+cd ../frontend
+npm install
+```
+
+### 4. Tạo File Biến Môi Trường
+```bash
+cd ../backend
+# Sao chép .env.example thành .env
+copy .env.example .env
+# Hoặc trên macOS/Linux:
+# cp .env.example .env
+```
+
+### 5. Chạy Development (2 Terminal)
+
+**Terminal 1 - Backend:**
+```bash
+cd backend
+npm start
+# Server chạy tại http://localhost:5000
+```
+
+**Terminal 2 - Frontend:**
+```bash
+cd frontend
+npm start
+# App chạy tại http://localhost:3000
+```
+
+### 6. Build Production
+```bash
+# Build frontend
+cd frontend
+npm run build
+
+# Chạy backend (serve frontend + API)
+cd ../backend
+npm start
+
+# Truy cập tại http://localhost:5000
+```
+
+---
+
+## ⚙️ Biến Môi Trường
+
+### Backend – `backend/.env`
+
+```env
+# Server
+PORT=5000
+NODE_ENV=development
+
+# JWT Authentication
+JWT_SECRET=your_super_secret_jwt_key_here
+JWT_EXPIRES_IN=7d
+
+# Grok AI (xAI)
+XAI_API_KEY=your_xai_api_key_from_console_dot_ai
+XAI_MODEL=grok-beta
+
+# Murf.ai (Text-to-Speech)
+MURF_API_KEY=your_murf_api_key
+
+# Google OAuth
+GOOGLE_CLIENT_ID=your_client_id.apps.googleusercontent.com
+
+# CORS & URLs
+FRONTEND_URL=http://localhost:3000
+PRODUCTION_URL=https://edumentor.io.vn
+
+# File Upload
+UPLOAD_DIR=./uploads
+MAX_FILE_SIZE=10485760
+
+# Optional: Celery / Redis
+CELERY_API_URL=http://localhost:8001
+INTERNAL_API_TOKEN=your_internal_token
+REDIS_URL=redis://localhost:6379
+```
+
+### Frontend – `frontend/.env`
+
+```env
+# API Endpoint
+REACT_APP_API_URL=http://localhost:5000/api
+# Production: REACT_APP_API_URL=/api
+
+# Google OAuth
+REACT_APP_GOOGLE_CLIENT_ID=your_client_id.apps.googleusercontent.com
+```
+
+---
+
+## 🔐 Thiết Lập Google OAuth
+
+1. **Google Cloud Console:**
+   - Vào https://console.cloud.google.com/
+   - Create OAuth 2.0 Client ID (Web application)
+
+2. **Authorized Origins:**
+   ```
+   http://localhost:3000
+   http://localhost:5000
+   https://edumentor.io.vn
+   ```
+
+3. **Copy Client ID vào:**
+   - Backend: `GOOGLE_CLIENT_ID`
+   - Frontend: `REACT_APP_GOOGLE_CLIENT_ID`
+
+4. **Build frontend nếu chạy production:**
+   ```bash
+   npm run build
+   ```
+
+---
+
+## 🌐 Cloudflare Tunnel Setup
+
+### Tệp: `cloudflare/config.yml`
+
+```yaml
+tunnel: your_tunnel_uuid
+credentials-file: ~/.cloudflared/your_tunnel_uuid.json
+
+ingress:
+  - hostname: edumentor.io.vn
+    service: http://localhost:5000
+  
+  - service: http_status:404
+```
+
+### Chạy Tunnel:
+```bash
+cloudflared tunnel --config cloudflare/config.yml run
+```
+
+---
+
+## 👨‍💼 Admin Setup
+
+### Tạo Tài Khoản Admin Đầu Tiên
+
+```bash
+cd backend
+node create-admin.js
+```
+
+**Credentials mặc định:**
+- Email: `admin@edumentor.io.vn`
+- Password: `Admin@123456`
+
+Sau đó đăng nhập tại `/admin` và thay đổi mật khẩu.
+
+---
+
+## 📁 Cấu Trúc Dự Án
+
+```
+AI-Tutor/
+├── backend/
+│   ├── controllers/              # Logic xử lý
+│   │   ├── authController.js
+│   │   ├── lessonController.js
+│   │   ├── quizController.js
+│   │   ├── chatController.js
+│   │   ├── adminController.js
+│   │   └── ...
+│   ├── routes/                   # API endpoints
+│   ├── services/                 # Business logic
+│   │   ├── aiService.js         # Grok AI integration
+│   │   ├── ocrService.js        # OCR Tesseract
+│   │   ├── murfService.js       # Text-to-Speech
+│   │   └── ...
+│   ├── middleware/               # Auth, upload, etc
+│   ├── database/                 # NeDB data files
+│   ├── uploads/                  # User uploaded files
+│   ├── server.js                 # Entry point
+│   ├── package.json
+│   └── .env
+│
+├── frontend/
+│   ├── public/
+│   ├── src/
+│   │   ├── pages/               # React pages
+│   │   │   ├── Dashboard.js
+│   │   │   ├── Lessons.js
+│   │   │   ├── Chat.js
+│   │   │   ├── Quiz.js
+│   │   │   └── ...
+│   │   ├── components/          # Reusable components
+│   │   │   ├── Layout.js
+│   │   │   ├── MathRenderer.js  # LaTeX rendering
+│   │   │   ├── StructuredLesson.js
+│   │   │   └── ...
+│   │   ├── context/             # React Context (Auth, etc)
+│   │   ├── services/            # API calls
+│   │   ├── App.js
+│   │   └── index.js
+│   ├── package.json
+│   ├── .env
+│   └── build/                   # Production build
+│
+├── celery/                       # Optional: Background jobs
+│   ├── celery_app.py
+│   ├── tasks.py
+│   ├── worker_api.py
+│   ├── requirements.txt
+│   └── .env
+│
+├── cloudflare/                   # Tunnel config
+│   └── config.yml
+│
+├── README.md
+├── LICENSE
+└── start.bat                     # Start all services (Windows)
+```
+
+---
+
+## 🔌 API Documentation
+
+**Base URL (Dev):** `http://localhost:5000/api`
+
+**Headers:**
+```json
+{
+  "Authorization": "Bearer <your_jwt_token>",
+  "Content-Type": "application/json"
+}
+```
+
+### Auth Endpoints
+- `POST /auth/register` – Đăng ký tài khoản
+- `POST /auth/login` – Đăng nhập
+- `POST /auth/google` – OAuth Google
+
+### Lesson Endpoints
+- `GET /lessons` – Danh sách bài học
+- `GET /lessons/:id` – Chi tiết bài học
+- `POST /lessons` – Tạo bài học
+
+### Quiz Endpoints
+- `GET /quiz` – Danh sách quiz
+- `POST /quiz/generate` – Sinh quiz AI
+- `POST /quiz/:id/submit` – Nộp bài
+
+### Chat Endpoints
+- `POST /chat` – Gửi tin nhắn chatbot
+
+### TTS Endpoints
+- `POST /tts` – Tạo audio
+
+### Career Endpoints
+- `GET /career/diem-chuan` – Tra cứu điểm chuẩn
+
+---
+
+## 🚀 Roadmap
+
+### ✅ Hoàn Thành
+- [x] Bài giảng tương tác từ SGK
+- [x] OCR & công thức Toán học
+- [x] Quiz tự động + giải thích
+- [x] TTS + cache audio
+- [x] Chatbot hỏi đáp 24/7
+- [x] Google OAuth
+- [x] Hợp nhất backend + frontend
+- [x] Cloudflare & domain production
+- [x] Animations & UI tương tác
+
+### 🔄 Đang Phát Triển
+- [ ] Mobile app (React Native / Flutter)
+- [ ] Gamification (badges, streaks, leaderboard)
+- [ ] PWA & offline mode
+- [ ] Advanced analytics
+
+### 📋 Kế Hoạch
+- [ ] Video giảng bộ
+- [ ] Live class integration
+- [ ] Competitive mode
+- [ ] Integration with school systems
+
+---
+
+## 🐛 Troubleshooting
+
+### Backend không start
+```bash
+# Kiểm tra port 5000 đã được sử dụng
+netstat -an | grep 5000
+
+# Kill process nếu cần
+lsof -ti:5000 | xargs kill -9
+```
+
+### Frontend build failed
+```bash
+# Clear cache & reinstall
+rm -rf node_modules package-lock.json
+npm install
+npm run build
+```
+
+### LaTeX không render
+- Kiểm tra `MathRenderer.js` – phải import `remarkMath` trong markdown processor
+- Verify `KaTeX` được include
+
+### OCR Tesseract error
+```bash
+# Cài lại packages
+npm install tesseract.js
+```
+
+---
+
+## 📝 Development Notes
+
+### Commit Convention
+```
+feat: New feature
+fix: Bug fix
+docs: Documentation
+style: Code style
+refactor: Code refactor
+perf: Performance
+test: Tests
+```
+
+**Example:**
+```
+feat: add lesson AI generation
+docs: update README for developers
+fix: LaTeX formula rendering issue
+```
+
+---
+
+## 🤝 Contribution Guidelines
+
+1. Fork repository
+2. Create feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'feat: add amazing feature'`
+4. Push to branch: `git push origin feature/amazing-feature`
+5. Open Pull Request
+
+---
+
+## 💬 Support & Community
+
+**Issues & Bugs:** https://github.com/cuongdev1108/AI-Tutor/issues
+
+**Discussions:** https://github.com/cuongdev1108/AI-Tutor/discussions
+
+**Email:** dev@edumentor.io.vn
+
+---
+
+<div align="center">
+
+**Made with ❤️ for Vietnamese high school students**
+
+Nếu dự án này hữu ích, vui lòng ⭐ star repository!
+
+</div>
