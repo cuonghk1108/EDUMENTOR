@@ -1,109 +1,256 @@
-﻿﻿# 🎓 EDUMENTOR - Gia Sư AI Cho Học Sinh THPT
+﻿﻿<div align="center">
 
-<div align="center">
+# 🎓 EDUMENTOR
 
-**Học Tập Thông Minh Với Công Nghệ AI**
+### *Gia Sư AI Cho Học Sinh THPT*
 
-*Bài giảng tương tác • Quiz thông minh • Giải bài tập 24/7 • Hướng nghiệp cá nhân*
+[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](https://github.com/cuonghk1108/EDUMENTOR)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/react-18.x-61dafb.svg)](https://reactjs.org/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/cuonghk1108/EDUMENTOR/pulls)
 
-**🚀 Phiên Bản 1.1.0 · 📅 2026**
+**Học Tập Thông Minh • Công Nghệ AI • 100% Miễn Phí**
 
-🔗 **Truy cập ngay:** https://edumentor.io.vn
+[🌐 Website](https://edumentor.io.vn) • [📖 Docs](#-tài-liệu-api) • [💬 Support](#-liên-hệ--hỗ-trợ) • [🐛 Report Issue](https://github.com/cuonghk1108/EDUMENTOR/issues)
+
+---
+
+### ✨ Tính Năng Nổi Bật
+
+🎯 Bài Giảng Tương Tác • 📝 Quiz AI • 🔊 Text-to-Speech • 💬 Chatbot 24/7 • 📊 Học Tập Thông Minh
 
 </div>
 
 ---
 
-## � Mục Lục
+## 📑 Mục Lục
 
-- [EDUMENTOR là gì?](#-edumentor-là-gì)
-- [Những tính năng hữu ích](#-những-tính-năng-hữu-ích)
-- [Cách sử dụng cơ bản](#-cách-sử-dụng-cơ-bản)
-- [Các câu hỏi thường gặp](#-các-câu-hỏi-thường-gặp)
-- [Liên hệ & Hỗ trợ](#-liên-hệ--hỗ-trợ)
+<details open>
+<summary><b>Dành cho Học Sinh</b></summary>
 
----
+- [🎯 Giới Thiệu](#-giới-thiệu)
+- [✨ Tính Năng](#-tính-năng)
+- [🚀 Bắt Đầu](#-bắt-đầu)
+- [❓ FAQ](#-câu-hỏi-thường-gặp)
+- [💬 Liên Hệ](#-liên-hệ--hỗ-trợ)
 
-## 🤖 EDUMENTOR là gì?
+</details>
 
-**EDUMENTOR** là một gia sư AI giúp em học tập hiệu quả hơn. Thay vì chỉ đọc sách giáo khoa khô khan, em sẽ:
+<details>
+<summary><b>Dành cho Developer</b></summary>
 
-✅ **Học qua bài giảng tương tác** – Mỗi bài học được thiết kế với:
-- Nội dung dễ hiểu và sinh động
-- Công thức toán học hiển thị rõ ràng
-- Ví dụ minh họa cấp tuyến
-- Phần ghi chú tương tác để em chú thích
+- [🛠 Tech Stack](#-tech-stack)
+- [🏗 Kiến Trúc](#-kiến-trúc-hệ-thống)
+- [📦 Cài Đặt](#-cài-đặt--chạy-project)
+- [⚙️ Cấu Hình](#️-cấu-hình-environment)
+- [📁 Cấu Trúc](#-cấu-trúc-project)
+- [🔌 API](#-api-documentation)
+- [🤝 Contributing](#-contributing)
 
-✅ **Kiểm tra kiến thức qua quiz thông minh** – Hệ thống tự sinh:
-- Các câu hỏi đa dạng
-- Giải thích chi tiết cho từng câu
-- Phân tích điểm yếu cần cải thiện
-
-✅ **Nghe bài giảng bằng giọng AI** – Tạo không gian học linh hoạt:
-- Nghe trên đường đi, chạy bộ, rửa bát
-- Giọng đọc tự nhiên và rõ ràng
-- Tốc độ điều chỉnh được theo ý muốn
-
-✅ **Hỏi đáp 24/7 với chatbot AI** – Không cần chờ thầy cô:
-- Gửi câu hỏi bất kỳ lúc nào
-- Nhận giải thích từng bước
-- Hỗ trợ giải bài tập
-
-✅ **Lộ trình học tập cá nhân** – Không bị "một đơn vị cắt" như ở trường:
-- Gợi ý học theo mục tiêu của em
-- Theo dõi tiến độ của em
-- Đề xuất từng bước tiếp theo
+</details>
 
 ---
 
-## ✨ Những Tính Năng Hữu Ích
+## 🎯 Giới Thiệu
+
+> **EDUMENTOR** là nền tảng học tập thông minh sử dụng AI, giúp học sinh THPT Việt Nam học hiệu quả hơn với công nghệ tiên tiến.
+
+### 🌟 Tại Sao Chọn EDUMENTOR?
+
+<table>
+<tr>
+<td width="50%">
+
+#### 📚 Học Mọi Lúc Mọi Nơi
+- ✅ Không cần chờ thầy cô
+- ✅ Học bất kỳ lúc nào trong ngày
+- ✅ Giải đáp thắc mắc tức thì
+- ✅ Luyện tập không giới hạn
+
+</td>
+<td width="50%">
+
+#### 🎯 Cá Nhân Hóa 100%
+- ✅ Lộ trình học cho riêng bạn
+- ✅ Phân tích điểm yếu cá nhân
+- ✅ Gợi ý bài học phù hợp
+- ✅ Theo dõi tiến độ chi tiết
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+#### 🤖 AI Thông Minh
+- ✅ Tạo bài giảng tự động
+- ✅ Quiz được sinh ngẫu nhiên
+- ✅ Chatbot giải thích chi tiết
+- ✅ Âm thanh giọng tự nhiên
+
+</td>
+<td width="50%">
+
+#### 💰 Hoàn Toàn Miễn Phí
+- ✅ Không phí đăng ký
+- ✅ Không giới hạn sử dụng
+- ✅ Không quảng cáo làm phiền
+- ✅ Không ẩn chi phí
+
+</td>
+</tr>
+</table>
+
+---
+
+## ✨ Tính Năng
 
 ### 📖 Bài Giảng Tương Tác
-- **Nội dung được AI chuẩn bị** – Từ sách giáo khoa, EDUMENTOR tạo ra bài giảng chi tiết với:
-  - Lý thuyết dễ hiểu
-  - Công thức toán học hiển thị đẹp
-  - Ví dụ thực tế minh họa
-  - Các bài tập luyện tập
-- **Ghi chú tương tác** – Em có thể:
-  - Đánh dấu những điểm quan trọng
-  - Viết ghi chú cá nhân
-  - Xem tiến độ học của mình
 
-### 📝 Quiz & Kiểm Tra Kiến Thức
-- **Quiz tự động sinh ra** từ bài giảng
-- **Đa dạng hình thức** – Trắc nghiệm, tự luận, điền chuỗi
-- **Giải thích chi tiết** – Sau mỗi câu, em sẽ hiểu mình sai tại sao
-- **Phản hồi ngay lập tức** – Biết điểm yếu để cải thiện
+<details open>
+<summary><b>Click để xem chi tiết</b></summary>
 
-### 🔊 Nghe Bài Giảng Bất Kỳ Lúc Nào
-- **Giọng AI tự nhiên** – Nghe như thầy cô giảng bài
-- **Linh hoạt** – Em có thể:
-  - Nghe lại từng phần khó
-  - Tua tới tua lại
-  - Điều chỉnh tốc độ nói
-- **Học mọi nơi** – Trong xe, ở nhà, trước khi ngủ
+<br>
 
-### 💬 Chatbot Hỏi Đáp 24/7
-- **Luôn sẵn sàng** – Không phải chờ thầy cô
-- **Giải thích rõ ràng** – Không chỉ đáp án, mà còn cách giải
-- **Giải bài tập từng bước** – Hướng dẫn cách làm
-- **Support đa ngôn ngữ** – Hỏi bằng dễ yêu ✌️
+```
+📚 Nội dung được AI xử lý từ sách giáo khoa
+├── ✍️ Lý thuyết dễ hiểu, logic rõ ràng
+├── 🧮 Công thức toán học hiển thị đẹp (LaTeX)
+├── 📌 Ví dụ minh họa thực tế
+├── 📝 Bài tập luyện tập đa dạng
+└── 💾 Tự động lưu tiến độ học
+```
 
-### 🗺️ Lộ Trình Học Tập Cá Nhân
-- **Không "một khuôn mẫu" cho tất cả** – Mỗi em tự chọn mục tiêu:
-  - Luyện tập môn yếu
-  - Chuẩn bị cho kỳ thi
-  - Học chủ đề nào đó
-- **Gợi ý thông minh** – AI gợi ý bạn nên học gì tiếp
-- **Tra cứu thông tin ĐH** – Xem điểm chuẩn các trường, ngành
-- **Hướng nghiệp** – Tìm ngành phù hợp với điểm mạnh của em
+**Tính năng nổi bật:**
+- 🎨 Giao diện thân thiện, dễ đọc
+- 📱 Responsive, học trên mọi thiết bị
+- 🔖 Đánh dấu phần quan trọng
+- ✏️ Ghi chú cá nhân
+- 📊 Theo dõi % hoàn thành
 
-### 🔐 Tài Khoản Cá Nhân
-- **Đăng nhập dễ** – Email + mật khẩu hoặc Google
-- **Lưu progress** – Em có thể:
-  - Đi học, về tiếp tục từ chỗ cũ
-  - Xem lại những bài đã làm
-  - Theo dõi tiến độ qua thời gian
+</details>
+
+### 📝 Quiz & Kiểm Tra
+
+<details open>
+<summary><b>Click để xem chi tiết</b></summary>
+
+<br>
+
+| Tính năng | Mô tả |
+|-----------|-------|
+| 🤖 **Tự động sinh quiz** | AI tạo câu hỏi từ nội dung bài học |
+| 🎲 **Đa dạng hình thức** | Trắc nghiệm, đúng/sai, điền khuyết |
+| 💡 **Giải thích chi tiết** | Hiểu tại sao sai sau mỗi câu |
+| ⚡ **Phản hồi tức thì** | Biết kết quả ngay lập tức |
+| 📈 **Phân tích điểm yếu** | Gợi ý chủ đề cần ôn lại |
+| 🔄 **Regenerate quiz** | Tạo mới đề khác để luyện thêm |
+
+</details>
+
+### 🔊 Text-to-Speech
+
+<details>
+<summary><b>Click để xem chi tiết</b></summary>
+
+<br>
+
+> Nghe bài giảng bằng giọng AI tự nhiên - Học mọi lúc mọi nơi!
+
+**Tính năng:**
+- 🎙️ Giọng đọc tiếng Việt tự nhiên
+- ⏯️ Điều khiển phát/dừng/tua
+- 🎚️ Tốc độ phát có thể điều chỉnh
+- 💾 Cache audio để nghe offline
+- 🚗 Học trên đường đi (hands-free)
+
+**Use cases:**
+```
+🚶 Đi bộ/chạy bộ    →  Nghe bài giảng
+🚌 Di chuyển         →  Ôn tập kiến thức
+😴 Trước khi ngủ     →  Học nhẹ nhàng
+👨‍🍳 Làm việc nhà      →  Học đa nhiệm
+```
+
+</details>
+
+### 💬 Chatbot AI 24/7
+
+<details>
+<summary><b>Click để xem chi tiết</b></summary>
+
+<br>
+
+#### 🤖 Gia Sư AI Cá Nhân
+
+**Chatbot có thể làm gì?**
+
+✅ Giải đáp thắc mắc kiến thức  
+✅ Hướng dẫn giải bài tập từng bước  
+✅ Giải thích khái niệm khó hiểu  
+✅ Gợi ý cách học hiệu quả  
+✅ Hỗ trợ upload ảnh bài tập (OCR)  
+
+**Đặc biệt:**
+```python
+# Chatbot hiểu cả tiếng Việt tự nhiên!
+"Giải thích định luật bảo toàn năng lượng cho em hiểu đi"
+"Bài toán này làm sao ạ?" + [đính kèm ảnh]
+"Cho em cách nhớ bảng tan của sin cos"
+```
+
+</details>
+
+### 🗺️ Lộ Trình Học Tập
+
+<details>
+<summary><b>Click để xem chi tiết</b></summary>
+
+<br>
+
+**Lộ trình cá nhân hóa theo mục tiêu:**
+
+```mermaid
+Chọn Mục Tiêu → AI Gợi Ý → Học Bài → Làm Quiz → Đánh Giá → Tiếp Tục
+```
+
+📌 **Các loại lộ trình:**
+- 🎯 Luyện môn yếu
+- 📖 Học theo chương SGK
+- 🏆 Chuẩn bị thi THPT QG
+- 🎓 Hướng nghiệp + tra điểm chuẩn
+
+📊 **Dashboard theo dõi:**
+- Tổng số bài đã học
+- Điểm trung bình quiz
+- Streak học liên tục
+- Huy hiệu thành tích
+
+</details>
+
+### 🎮 Gamification
+
+<details>
+<summary><b>Click để xem chi tiết</b></summary>
+
+<br>
+
+| Feature | Icon | Mô tả |
+|---------|------|-------|
+| **Nhiệm vụ hàng ngày** | 🎯 | 5 nhiệm vụ để kiếm XP |
+| **Huy hiệu** | 🏆 | 8 thành tích để mở khóa |
+| **Streak** | 🔥 | Học liên tục nhiều ngày |
+| **XP & Level** | ⭐ | Tăng cấp khi hoàn thành |
+| **Leaderboard** | 📊 | So sánh với bạn bè |
+
+**Daily Missions:**
+- 📚 Hoàn thành 1 bài học → 50 XP
+- ✅ Làm 3 quiz → 100 XP
+- 🔥 Duy trì streak → 30 XP
+- 💬 Hỏi AI 5 câu → 40 XP
+- ⭐ Đạt điểm ≥80% → 150 XP
+
+</details>
 
 ---
 
@@ -146,58 +293,206 @@
 
 ---
 
-## ❓ Các Câu Hỏi Thường Gặp
+## ❓ FAQ - Câu Hỏi Thường Gặp
 
-**🤔 Có phải trả tiền không?**
-> Hiện tại EDUMENTOR là dự án thí điểm, em có thể sử dụng **miễn phí**. Trong tương lai, có thể có bản Premium với nhiều tính năng hơn, nhưng bản cơ bản sẽ luôn miễn phí.
+<details>
+<summary><b>🤔 Có phải trả tiền không?</b></summary>
 
-**📱 Có app trên điện thoại không?**
-> App mobile đang được phát triển. Hiện em vẫn có thể mở EDUMENTOR trên trình duyệt điện thoại (Chrome, Safari, ...) và sẽ tương đối thuận tiện.
+<br>
 
-**🌐 Cần internet không?**
-> Có, EDUMENTOR cần kết nối internet để hoạt động. Em có thể không cần "data nhiều" (không stream video), chỉ cần load trang và chat.
+Hiện tại **EDUMENTOR hoàn toàn MIỄN PHÍ** cho học sinh! 🎉
 
-**🎓 Có hỗ trợ tất cả môn học không?**
-> Hiện tại EDUMENTOR hỗ trợ các môn trong chương trình THPT: Toán, Lý, Hóa, Sinh. Các môn khác như Văn, Sử, Địa, Kinh tế sẽ được thêm dần.
+| Tính Năng | Free | Premium (Tương Lai) |
+|-----------|:----:|:-------------------:|
+| Tạo bài giảng AI | ✅ 10/ngày | ✅ Không giới hạn |
+| Quiz tự động | ✅ | ✅ |
+| Chatbot 24/7 | ✅ 50 tin/ngày | ✅ Không giới hạn |
+| Text-to-Speech | ✅ | ✅ + giọng cao cấp |
+| OCR upload ảnh | ✅ 10/ngày | ✅ Không giới hạn |
+| Lộ trình cá nhân | ✅ | ✅ + AI coach |
 
-**💬 Chatbot có hiểu "meme" hay tiếng lóng không?**
-> Chatbot AI được huấn luyện để hiểu tiếng Việt tự nhiên. Em có thể gõ "lóng" nhưng nó sẽ giải thích theo kiến thức chính thống (vì mục đích là học tập).
+> **Cam kết:** Phiên bản cơ bản sẽ luôn miễn phí! 💙
 
-**🔒 Dữ liệu của em có an toàn không?**
-> Em đăng nhập bằng tài khoản cá nhân, dữ liệu được mã hóa. EDUMENTOR **không bán dữ liệu** cho bên thứ ba. Thầy cô chỉ có thể xem progress của em nếu thầy cô được cấp quyền quản lý lớp.
+</details>
 
-**🐛 Nếu gặp lỗi thì sao?**
-> Em có thể báo lỗi trong ứng dụng (nút "Báo cáo lỗi") hoặc liên hệ team EDUMENTOR qua email. **Support sẽ phản hồi trong 24 giờ**. 
+<details>
+<summary><b>📱 Có app mobile không?</b></summary>
+
+<br>
+
+**Đang phát triển!** 🚧
+
+- ✅ **Web responsive:** Truy cập qua trình duyệt điện thoại
+- ⏳ **Android App:** Đang thử nghiệm beta
+- ⏳ **iOS App:** Coming soon 2024
+
+Đăng ký email để nhận thông báo khi app ra mắt!
+
+</details>
+
+<details>
+<summary><b>🔒 Dữ liệu của em có an toàn không?</b></summary>
+
+<br>
+
+**Bảo mật tuyệt đối!** 🛡️
+
+✅ Mật khẩu được **hash với bcrypt**  
+✅ HTTPS/SSL encryption  
+✅ JWT authentication  
+✅ Không bán dữ liệu cho bên thứ ba  
+✅ Tuân thủ GDPR và CCPA  
+
+</details>
+
+<details>
+<summary><b>🤖 AI có trả lời sai không?</b></summary>
+
+<br>
+
+**AI rất thông minh nhưng không hoàn hảo 100%!**
+
+| Tình Huống | Giải Pháp |
+|------------|----------|
+| Câu trả lời sai | ✅ Hệ thống kiểm tra chéo với nhiều nguồn |
+| Công thức toán nhầm | ✅ Sử dụng Wolfram Alpha API backup |
+| Thông tin lỗi thời | ✅ Cập nhật kiến thức định kỳ |
+| Không hiểu câu hỏi | ✅ Chatbot yêu cầu làm rõ |
+
+**Mẹo:** Nếu nghi ngờ, hỏi lại hoặc tham khảo thêm sách giáo khoa! 📚
+
+</details>
+
+<details>
+<summary><b>📚 Có đủ nội dung cho tất cả môn không?</b></summary>
+
+<br>
+
+**Hiện tại hỗ trợ:**
+
+| Môn Học | Lớp | Trạng Thái |
+|---------|-----|------------|
+| 🧮 Toán | 10-12 | ✅ Đầy đủ |
+| ⚗️ Hóa Học | 10-12 | ✅ Đầy đủ |
+| ⚛️ Vật Lý | 10-12 | ✅ Đầy đủ |
+| 🧬 Sinh Học | 10-12 | ✅ Đầy đủ |
+| 🌍 Địa Lý | 10-12 | ⏳ Đang cập nhật |
+| 📜 Lịch Sử | 10-12 | ⏳ Đang cập nhật |
+| 🇬🇧 Tiếng Anh | 10-12 | ⏳ Đang cập nhật |
+| 📝 Văn | 10-12 | ⏳ Đang cập nhật |
+
+**AI có thể tạo bài giảng cho bất kỳ môn nào, nhưng độ chính xác cao nhất với môn khoa học tự nhiên.**
+
+</details>
+
+<details>
+<summary><b>🌐 Có cần internet không?</b></summary>
+
+<br>
+
+**Có, EDUMENTOR yêu cầu kết nối internet ổn định.**
+
+📊 **Dung lượng data:**
+- 📄 Xem bài giảng: ~500 KB/bài
+- 💬 Chat AI: ~100 KB/tin nhắn
+- 🔊 TTS audio: ~1-2 MB/bài (có cache)
+- 📷 Upload ảnh OCR: ~500 KB-2 MB/ảnh
+
+💡 **Tip:** Kết nối WiFi để tiết kiệm data khi nghe TTS!
+
+</details>
+
+<details>
+<summary><b>📝 Chatbot có hiểu tiếng lóng không?</b></summary>
+
+<br>
+
+**Chatbot AI hiểu tiếng Việt tự nhiên!** 🎯
+
+✅ Em có thể hỏi theo phong cách của mình  
+✅ AI nhận diện "slang" phổ biến  
+✅ Trả lời bằng ngôn ngữ học thuật chuẩn  
+✅ Giải thích theo cách dễ hiểu  
+
+```python
+# Ví dụ
+Em: "Bài này khó vãi, giải thích đi"
+AI: "Mình hiểu bài này khó. Để mình phân tích từng bước nhé..."
+```
+
+</details>
+
+<details>
+<summary><b>🐛 Gặp lỗi thì làm sao?</b></summary>
+
+<br>
+
+**Quy trình báo lỗi:**
+
+1. 📸 Chụp ảnh màn hình lỗi
+2. 📝 Mô tả ngắn gọn bước tái hiện
+3. 📧 Gửi email: support@edumentor.io.vn
+4. ⏰ **Nhận phản hồi trong 24h**
+
+**Hoặc:**
+- 🐞 Dùng nút "Báo lỗi" trong app
+- 💬 Nhắn qua Facebook page
+- 🐙 Mở issue trên GitHub
+
+</details> 
 
 ---
 
 ## 📞 Liên Hệ & Hỗ Trợ
 
-**Website:** https://edumentor.io.vn
-
-**Email:** support@edumentor.io.vn
-
-**Feedback & Suggestions:** Bấm nút "Phản hồi" trong ứng dụng
-
-Cảm ơn em đã sử dụng EDUMENTOR! 🌟 Mỗi góp ý của em sẽ giúp em học tập tốt hơn.
-
----
-
 <div align="center">
 
-**EDUMENTOR – Học thông minh, giỏi hơn mỗi ngày! 🚀**
-
-Nếu EDUMENTOR giúp em học tập tốt hơn, hãy chia sẻ với bạn bè nhé! 💪
+[![Website](https://img.shields.io/badge/🌐_Website-edumentor.io.vn-4285F4?style=for-the-badge)](https://edumentor.io.vn)
+[![Email](https://img.shields.io/badge/📧_Email-support@edumentor.io.vn-EA4335?style=for-the-badge)](mailto:support@edumentor.io.vn)
+[![GitHub](https://img.shields.io/badge/🐙_GitHub-AI--Tutor-181717?style=for-the-badge&logo=github)](https://github.com/cuongdev1108/AI-Tutor)
+[![Facebook](https://img.shields.io/badge/👥_Facebook-EDUMENTOR-1877F2?style=for-the-badge&logo=facebook)](https://facebook.com)
 
 </div>
 
+<br>
+
+<div align="center">
+
+### 💬 Các Kênh Hỗ Trợ
+
+| Kênh | Mục Đích | Thời Gian Phản Hồi |
+|------|----------|-------------------|
+| 📧 **Email** | Báo lỗi, góp ý | < 24 giờ |
+| 💬 **In-app Chat** | Hỏi đáp nhanh | Ngay lập tức (AI) |
+| 🐙 **GitHub Issues** | Bug reports | < 48 giờ |
+| 👥 **Facebook** | Cộng đồng, tin tức | Mỗi ngày |
+
+</div>
+
+<br>
+
+<div align="center">
+
 ---
 
-## 📄 Thông Tin Pháp Lý
+### 🌟 **EDUMENTOR – Học thông minh, giỏi hơn mỗi ngày!** 🚀
 
-MIT License © 2026 **cuongdev1108**
+*Nếu EDUMENTOR giúp em học tập tốt hơn, hãy chia sẻ với bạn bè nhé!* 💪
 
-Nền tảng được phát triển nhằm hỗ trợ giáo dục miễn phí cho học sinh THPT Việt Nam.
+[![Share on Facebook](https://img.shields.io/badge/Chia_sẻ-Facebook-1877F2?style=flat-square&logo=facebook)](https://facebook.com)  
+[![Share on Zalo](https://img.shields.io/badge/Chia_sẻ-Zalo-0068FF?style=flat-square)](https://zalo.me)
+
+---
+
+### 📄 Thông Tin Pháp Lý
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+**MIT License © 2026 cuongdev1108**
+
+*Nền tảng được phát triển nhằm hỗ trợ giáo dục miễn phí cho học sinh THPT Việt Nam.* 🇻🇳
+
+</div>
 
 ---
 
@@ -207,58 +502,171 @@ Nền tảng được phát triển nhằm hỗ trợ giáo dục miễn phí ch
 
 ## 🛠 Công Nghệ Sử Dụng
 
+<div align="center">
+
+### Frontend Stack
+
+![React](https://img.shields.io/badge/React-18.x-61DAFB?style=for-the-badge&logo=react&logoColor=black)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.x-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
+![Framer Motion](https://img.shields.io/badge/Framer_Motion-10.x-0055FF?style=for-the-badge&logo=framer&logoColor=white)
+![React Router](https://img.shields.io/badge/React_Router-6.x-CA4245?style=for-the-badge&logo=reactrouter&logoColor=white)
+
+### Backend Stack
+
+![Node.js](https://img.shields.io/badge/Node.js-18+-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
+![Express](https://img.shields.io/badge/Express.js-4.x-000000?style=for-the-badge&logo=express&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-Auth-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
+![NeDB](https://img.shields.io/badge/NeDB-Database-4479A1?style=for-the-badge&logo=databricks&logoColor=white)
+
+### AI & Services
+
+![Grok AI](https://img.shields.io/badge/Grok_AI-xAI-000000?style=for-the-badge&logo=openai&logoColor=white)
+![Murf.ai](https://img.shields.io/badge/Murf.ai-TTS-FF6B6B?style=for-the-badge&logo=google&logoColor=white)
+![Google OAuth](https://img.shields.io/badge/Google_OAuth-4285F4?style=for-the-badge&logo=google&logoColor=white)
+![Cloudflare](https://img.shields.io/badge/Cloudflare-F38020?style=for-the-badge&logo=cloudflare&logoColor=white)
+
+</div>
+
+<details>
+<summary><b>📚 Chi Tiết Công Nghệ</b></summary>
+
+<br>
+
 ### Frontend
-- **React** 18.x – Thư viện UI
-- **TailwindCSS** 3.x – Styling responsive
-- **Framer Motion** – Animations
-- **KaTeX + remark-math** – Hiển thị công thức LaTeX
-- **@react-oauth/google** – Đăng nhập Google
-- **Axios** – HTTP client
-- **React Router** 6.x – Navigation
+
+| Công Nghệ | Phiên Bản | Mục Đích |
+|----------|----------|----------|
+| **React** | 18.x | Thư viện UI chính |
+| **TailwindCSS** | 3.x | Styling responsive |
+| **Framer Motion** | 10.x | Animations & transitions |
+| **KaTeX** | 0.16+ | Hiển thị công thức LaTeX |
+| **remark-math** | 5.x | Parse toán học trong Markdown |
+| **@react-oauth/google** | 0.11+ | Đăng nhập Google |
+| **Axios** | 1.x | HTTP client |
+| **React Router** | 6.x | Routing & navigation |
 
 ### Backend
-- **Node.js** 18+ – JavaScript runtime
-- **Express.js** – Web framework
-- **JWT** – Xác thực
-- **bcrypt** – Hashing password
-- **NeDB** – Lightweight database
-- **Multer** – File upload
-- **Tesseract.js** – OCR tiếng Việt
+
+| Công Nghệ | Phiên Bản | Mục Đích |
+|----------|----------|----------|
+| **Node.js** | 18+ | JavaScript runtime |
+| **Express.js** | 4.x | Web framework |
+| **JWT** | 9.x | Xác thực token |
+| **bcrypt** | 5.x | Hash mật khẩu |
+| **NeDB** | 1.8+ | Lightweight NoSQL DB |
+| **Multer** | 1.4+ | File upload middleware |
+| **Tesseract.js** | 4.x | OCR tiếng Việt |
+| **CORS** | 2.x | Cross-origin resource sharing |
 
 ### AI & Dịch Vụ Ngoài
-- **Grok AI (xAI)** – Tạo bài giảng, quiz, chatbot
-- **Murf.ai** – Text-to-Speech
-- **Google OAuth** – Xác thực
-- **Cloudflare Tunnel** – Expose server
+
+| Dịch Vụ | Mục Đích |
+|---------|----------|
+| **Grok AI (xAI)** | Tạo bài giảng, quiz, chatbot |
+| **Murf.ai** | Text-to-Speech giọng Việt |
+| **Google OAuth** | Xác thực nhanh chóng |
+| **Cloudflare Tunnel** | Expose server ra internet |
+| **Wolfram Alpha** | Backup kiểm tra công thức toán |
 
 ### Optional: Background Jobs
-- **Python** 3.10+
-- **Celery** – Task queue
-- **Redis** – Message broker & caching
-- **FastAPI** – Worker API
+
+| Công Nghệ | Phiên Bản | Mục Đích |
+|----------|----------|----------|
+| **Python** | 3.10+ | Worker runtime |
+| **Celery** | 5.x | Task queue |
+| **Redis** | 7.x | Message broker & cache |
+| **FastAPI** | 0.100+ | Worker API |
+
+</details>
 
 ---
 
 ## 🏗 Kiến Trúc Hệ Thống
 
-### Development Mode (2 server)
-```
-Frontend (Port 3000)         Backend (Port 5000)
-    ↓                              ↓
-  React Dev               Express + NeDB
-    ↓                              ↓
-  http://localhost:3000    http://localhost:5000/api
+### 🛠️ Development Mode (2 servers)
+
+```mermaid
+graph LR
+    A[💻 Frontend<br/>React Dev Server<br/>Port 3000] -->|Proxy API| B[🔧 Backend<br/>Express Server<br/>Port 5000]
+    B --> C[(NeDB<br/>Database)]
+    B --> D[🤖 Grok AI<br/>xAI API]
+    B --> E[🔊 Murf.ai<br/>TTS API]
+    B --> F[🔐 Google<br/>OAuth]
+    
+    style A fill:#61dafb,stroke:#333,stroke-width:2px,color:#000
+    style B fill:#68a063,stroke:#333,stroke-width:2px,color:#fff
+    style C fill:#4479A1,stroke:#333,stroke-width:2px,color:#fff
+    style D fill:#000,stroke:#333,stroke-width:2px,color:#fff
+    style E fill:#ff6b6b,stroke:#333,stroke-width:2px,color:#fff
+    style F fill:#4285F4,stroke:#333,stroke-width:2px,color:#fff
 ```
 
-### Production Mode (Unified)
+**Usage:**
+```bash
+# Terminal 1
+cd frontend
+npm start  # http://localhost:3000
+
+# Terminal 2
+cd backend
+npm start  # http://localhost:5000
 ```
-Frontend Build           Backend Server (Port 5000)
-    ↓                           ↓
-  /frontend/build          Serves React + /api
-    ↓                           ↓
-All requests             Single endpoint
-  go to                   https://edumentor.io.vn
-backend (5000)
+
+---
+
+### 🚀 Production Mode (Unified)
+
+```mermaid
+graph TB
+    A[🌐 User Browser] -->|HTTPS| B[Cloudflare Tunnel]
+    B --> C[🔌 Backend Server<br/>Express Port 5000]
+    C -->|Serves| D[📦 Frontend Build<br/>/frontend/build]
+    C -->|API Routes| E[/api endpoints]
+    E --> F[(NeDB)]
+    E --> G[🤖 Grok AI]
+    E --> H[🔊 Murf.ai]
+    E --> I[🔐 Google OAuth]
+    
+    style A fill:#4285F4,stroke:#333,stroke-width:2px,color:#fff
+    style B fill:#F38020,stroke:#333,stroke-width:2px,color:#fff
+    style C fill:#68a063,stroke:#333,stroke-width:2px,color:#fff
+    style D fill:#61dafb,stroke:#333,stroke-width:2px,color:#000
+    style E fill:#FFD700,stroke:#333,stroke-width:2px,color:#000
+```
+
+**Deployment:**
+```bash
+# Build frontend
+cd frontend
+npm run build
+
+# Start unified server
+cd ../backend
+npm start
+
+# Access at: https://edumentor.io.vn
+```
+
+---
+
+### 🔄 Data Flow Architecture
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant F as Frontend
+    participant B as Backend
+    participant DB as NeDB
+    participant AI as Grok AI
+    
+    U->>F: Request lesson
+    F->>B: POST /api/lessons {topic}
+    B->>AI: Generate lesson content
+    AI-->>B: Markdown + LaTeX
+    B->>DB: Save lesson
+    DB-->>B: Lesson ID
+    B-->>F: Lesson data
+    F-->>U: Render lesson + TTS
 ```
 
 ---
@@ -507,66 +915,253 @@ AI-Tutor/
 
 ## 🔌 API Documentation
 
-**Base URL (Dev):** `http://localhost:5000/api`
+<div align="center">
 
-**Headers:**
+**Base URL (Dev):** `http://localhost:5000/api`  
+**Base URL (Prod):** `https://edumentor.io.vn/api`
+
+</div>
+
+### 🔒 Authentication Headers
+
+```http
+Authorization: Bearer <your_jwt_token>
+Content-Type: application/json
+```
+
+---
+
+### 👤 Auth Endpoints
+
+<details>
+<summary><b>Click để xem chi tiết</b></summary>
+
+<br>
+
+| Method | Endpoint | Mô Tả |
+|--------|----------|-------|
+| `POST` | `/auth/register` | Đăng ký tài khoản |
+| `POST` | `/auth/login` | Đăng nhập email/password |
+| `POST` | `/auth/google` | Đăng nhập OAuth Google |
+| `POST` | `/auth/refresh` | Làm mới JWT token |
+| `POST` | `/auth/forgot-password` | Quên mật khẩu |
+| `POST` | `/auth/reset-password` | Đặt lại mật khẩu |
+
+**Example Request:**
+```bash
+curl -X POST http://localhost:5000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "student@example.com",
+    "password": "password123"
+  }'
+```
+
+**Example Response:**
 ```json
 {
-  "Authorization": "Bearer <your_jwt_token>",
-  "Content-Type": "application/json"
+  "success": true,
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": "user123",
+    "email": "student@example.com",
+    "name": "Nguyễn Văn A"
+  }
 }
 ```
 
-### Auth Endpoints
-- `POST /auth/register` – Đăng ký tài khoản
-- `POST /auth/login` – Đăng nhập
-- `POST /auth/google` – OAuth Google
+</details>
 
-### Lesson Endpoints
-- `GET /lessons` – Danh sách bài học
-- `GET /lessons/:id` – Chi tiết bài học
-- `POST /lessons` – Tạo bài học
+---
 
-### Quiz Endpoints
-- `GET /quiz` – Danh sách quiz
-- `POST /quiz/generate` – Sinh quiz AI
-- `POST /quiz/:id/submit` – Nộp bài
+### 📚 Lesson Endpoints
 
-### Chat Endpoints
-- `POST /chat` – Gửi tin nhắn chatbot
+<details>
+<summary><b>Click để xem chi tiết</b></summary>
 
-### TTS Endpoints
-- `POST /tts` – Tạo audio
+<br>
 
-### Career Endpoints
-- `GET /career/diem-chuan` – Tra cứu điểm chuẩn
+| Method | Endpoint | Mô Tả |
+|--------|----------|-------|
+| `GET` | `/lessons` | Danh sách bài học của user |
+| `GET` | `/lessons/:id` | Chi tiết bài học |
+| `POST` | `/lessons` | Tạo bài học mới (AI) |
+| `POST` | `/lessons/:id/complete` | Đánh dấu hoàn thành |
+| `DELETE` | `/lessons/:id` | Xóa bài học |
+
+**Create Lesson Example:**
+```bash
+curl -X POST http://localhost:5000/api/lessons \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "topic": "Định luật Newton",
+    "subject": "Vật Lý",
+    "level": "Lớp 10"
+  }'
+```
+
+</details>
+
+---
+
+### ✅ Quiz Endpoints
+
+<details>
+<summary><b>Click để xem chi tiết</b></summary>
+
+<br>
+
+| Method | Endpoint | Mô Tả |
+|--------|----------|-------|
+| `GET` | `/quiz` | Danh sách quiz của user |
+| `POST` | `/quiz/generate` | Tạo quiz AI từ bài giảng |
+| `POST` | `/quiz/:id/submit` | Nộp bài quiz |
+| `GET` | `/quiz/:id/results` | Kết quả quiz |
+
+</details>
+
+---
+
+### 💬 Chat Endpoints
+
+<details>
+<summary><b>Click để xem chi tiết</b></summary>
+
+<br>
+
+| Method | Endpoint | Mô Tả |
+|--------|----------|-------|
+| `POST` | `/chat` | Gửi tin nhắn chatbot |
+| `POST` | `/chat/upload` | Upload ảnh bài tập (OCR) |
+| `GET` | `/chat/history` | Lịch sử chat |
+
+</details>
+
+---
+
+### 🔊 TTS Endpoints
+
+<details>
+<summary><b>Click để xem chi tiết</b></summary>
+
+<br>
+
+| Method | Endpoint | Mô Tả |
+|--------|----------|-------|
+| `POST` | `/tts` | Tạo audio từ text |
+| `GET` | `/tts/audio/:filename` | Lấy file audio |
+
+</details>
+
+---
+
+### 🎯 Career Endpoints
+
+<details>
+<summary><b>Click để xem chi tiết</b></summary>
+
+<br>
+
+| Method | Endpoint | Mô Tả |
+|--------|----------|-------|
+| `GET` | `/career/diem-chuan` | Tra cứu điểm chuẩn đại học |
+| `GET` | `/career/roadmap` | Lộ trình hướng nghiệp |
+
+</details>
 
 ---
 
 ## 🚀 Roadmap
 
-### ✅ Hoàn Thành
-- [x] Bài giảng tương tác từ SGK
-- [x] OCR & công thức Toán học
-- [x] Quiz tự động + giải thích
-- [x] TTS + cache audio
-- [x] Chatbot hỏi đáp 24/7
-- [x] Google OAuth
-- [x] Hợp nhất backend + frontend
-- [x] Cloudflare & domain production
-- [x] Animations & UI tương tác
+<div align="center">
 
-### 🔄 Đang Phát Triển
-- [ ] Mobile app (React Native / Flutter)
-- [ ] Gamification (badges, streaks, leaderboard)
-- [ ] PWA & offline mode
-- [ ] Advanced analytics
+### 🛣️ Lộ Trình Phát Triển
 
-### 📋 Kế Hoạch
-- [ ] Video giảng bộ
-- [ ] Live class integration
-- [ ] Competitive mode
-- [ ] Integration with school systems
+</div>
+
+### ✅ Hoàn Thành (Q1 2024)
+
+<details open>
+<summary><b>Xem các tính năng đã launch</b></summary>
+
+<br>
+
+| Feature | Status | Release Date |
+|---------|:------:|:------------:|
+| 📚 Bài giảng tương tác từ SGK | ✅ | Jan 2024 |
+| 📷 OCR & công thức toán học | ✅ | Jan 2024 |
+| ✅ Quiz tự động + giải thích | ✅ | Feb 2024 |
+| 🔊 TTS + cache audio | ✅ | Feb 2024 |
+| 💬 Chatbot hỏi đáp 24/7 | ✅ | Feb 2024 |
+| 🔐 Google OAuth login | ✅ | Mar 2024 |
+| 🔀 Hợp nhất backend + frontend | ✅ | Mar 2024 |
+| 🌐 Cloudflare & domain production | ✅ | Mar 2024 |
+| ✨ Animations & UI tương tác | ✅ | Mar 2024 |
+| 🎮 Gamification (badges, XP, missions) | ✅ | Apr 2024 |
+| 📈 Dashboard & analytics | ✅ | Apr 2024 |
+
+</details>
+
+---
+
+### 🛠️ Đang Phát Triển (Q2 2024)
+
+<details open>
+<summary><b>Xem các tính năng đang code</b></summary>
+
+<br>
+
+| Feature | Progress | ETA |
+|---------|:--------:|:---:|
+| 📱 Mobile app (React Native) | 🟡🟡🟡⬜⬜ 60% | May 2024 |
+| 🌐 PWA & offline mode | 🟡🟡⬜⬜⬜ 40% | Jun 2024 |
+| 📈 Advanced analytics dashboard | 🟡🟡⬜⬜⬜ 40% | Jun 2024 |
+| 🏆 Leaderboard & competitive mode | 🟡⬜⬜⬜⬜ 20% | Jul 2024 |
+| 🎓 Lớp học & quản lý thầy cô | 🟡⬜⬜⬜⬜ 20% | Jul 2024 |
+
+</details>
+
+---
+
+### 📝 Kế Hoạch Tương Lai (Q3-Q4 2024)
+
+<details>
+<summary><b>Xem tính năng sắp tới</b></summary>
+
+<br>
+
+📹 **Video giảng bài**
+- AI tạo video giảng bài tự động
+- Subtitle tiếng Việt
+- Interactive timestamps
+
+🎥 **Live class integration**
+- Video conferencing
+- Whiteboard tương tác
+- Screen sharing
+
+🤜 **Competitive mode**
+- Real-time quiz battles
+- Tournament system
+- Prizes & rewards
+
+🏫 **School system integration**
+- Liên kết với trường học
+- Export báo cáo tiến độ
+- Integration với LMS
+
+🤖 **AI Voice Tutor**
+- Chat bằng giọng nói
+- Voice commands
+- Natural conversation
+
+🎮 **VR/AR Learning**
+- 3D models for science
+- Virtual lab experiments
+- Immersive learning
+
+</details>
 
 ---
 
@@ -625,28 +1220,257 @@ fix: LaTeX formula rendering issue
 
 ## 🤝 Contribution Guidelines
 
-1. Fork repository
-2. Create feature branch: `git checkout -b feature/amazing-feature`
-3. Commit changes: `git commit -m 'feat: add amazing feature'`
-4. Push to branch: `git push origin feature/amazing-feature`
-5. Open Pull Request
+<div align="center">
+
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=for-the-badge)](http://makeapullrequest.com)
+[![First Timers Friendly](https://img.shields.io/badge/first--timers--friendly-blue?style=for-the-badge)](https://www.firsttimersonly.com/)
+
+</div>
+
+### 👨‍💻 How to Contribute
+
+<details>
+<summary><b>Step-by-step guide</b></summary>
+
+<br>
+
+**1. Fork Repository**
+```bash
+# Click "Fork" button on GitHub
+```
+
+**2. Clone Your Fork**
+```bash
+git clone https://github.com/YOUR_USERNAME/AI-Tutor.git
+cd AI-Tutor
+```
+
+**3. Create Feature Branch**
+```bash
+git checkout -b feature/amazing-feature
+# or
+git checkout -b fix/bug-fix
+```
+
+**4. Make Changes**
+```bash
+# Edit files
+# Test your changes
+```
+
+**5. Commit with Convention**
+```bash
+git add .
+git commit -m "feat: add amazing feature"
+```
+
+**Commit Convention:**
+- `feat:` New feature
+- `fix:` Bug fix
+- `docs:` Documentation only
+- `style:` Code style (formatting, semicolons, etc)
+- `refactor:` Code refactor
+- `perf:` Performance improvement
+- `test:` Adding tests
+- `chore:` Build process or auxiliary tools
+
+**6. Push to GitHub**
+```bash
+git push origin feature/amazing-feature
+```
+
+**7. Open Pull Request**
+- Go to your fork on GitHub
+- Click "Compare & pull request"
+- Fill in PR template
+- Wait for review
+
+</details>
+
+---
+
+### 🐛 Found a Bug?
+
+<details>
+<summary><b>How to report bugs</b></summary>
+
+<br>
+
+**Before reporting:**
+☑️ Search existing issues  
+☑️ Check if it's already fixed  
+☑️ Try latest version  
+
+**Bug Report Template:**
+```markdown
+## Bug Description
+[Clear description]
+
+## Steps to Reproduce
+1. Go to...
+2. Click on...
+3. See error
+
+## Expected Behavior
+[What should happen]
+
+## Actual Behavior
+[What actually happens]
+
+## Screenshots
+[If applicable]
+
+## Environment
+- OS: [Windows 11 / macOS 13 / Ubuntu 22.04]
+- Browser: [Chrome 120 / Firefox 121]
+- Node.js: [v18.17.0]
+```
+
+</details>
+
+---
+
+### 💡 Feature Request?
+
+<details>
+<summary><b>Suggest new features</b></summary>
+
+<br>
+
+**Feature Request Template:**
+```markdown
+## Feature Description
+[Clear description of the feature]
+
+## Problem It Solves
+[What problem does this solve?]
+
+## Proposed Solution
+[How would it work?]
+
+## Alternatives Considered
+[Other ways to solve this?]
+
+## Additional Context
+[Screenshots, mockups, examples]
+```
+
+</details>
+
+---
+
+### ✨ Code Style
+
+**JavaScript/React:**
+```javascript
+// Use camelCase for variables
+const userName = "student";
+
+// Use PascalCase for components
+function LessonCard() { }
+
+// Use arrow functions for callbacks
+const handleClick = () => { };
+
+// Use async/await over promises
+async function fetchData() { }
+```
+
+**File Structure:**
+```
+components/
+  ComponentName.js      // PascalCase
+utils/
+  helperFunction.js     // camelCase
+services/
+  apiService.js         // camelCase + Service suffix
+```
 
 ---
 
 ## 💬 Support & Community
 
-**Issues & Bugs:** https://github.com/cuongdev1108/AI-Tutor/issues
+<div align="center">
 
-**Discussions:** https://github.com/cuongdev1108/AI-Tutor/discussions
+### 👥 Join Our Community
 
-**Email:** dev@edumentor.io.vn
+[![GitHub Issues](https://img.shields.io/github/issues/cuongdev1108/AI-Tutor?style=for-the-badge&logo=github)](https://github.com/cuongdev1108/AI-Tutor/issues)
+[![GitHub Discussions](https://img.shields.io/github/discussions/cuongdev1108/AI-Tutor?style=for-the-badge&logo=github)](https://github.com/cuongdev1108/AI-Tutor/discussions)
+[![Discord](https://img.shields.io/badge/Discord-Join_Chat-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg)
+[![Email](https://img.shields.io/badge/Email-dev@edumentor.io.vn-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:dev@edumentor.io.vn)
+
+</div>
+
+<br>
+
+### 🛠️ Getting Help
+
+| Need | Channel | Best For |
+|------|---------|----------|
+| 🐛 **Bug Reports** | [GitHub Issues](https://github.com/cuongdev1108/AI-Tutor/issues) | Technical problems |
+| 💬 **Questions** | [GitHub Discussions](https://github.com/cuongdev1108/AI-Tutor/discussions) | General questions |
+| 💡 **Feature Requests** | [GitHub Discussions](https://github.com/cuongdev1108/AI-Tutor/discussions) | New ideas |
+| 🚀 **Show & Tell** | [GitHub Discussions](https://github.com/cuongdev1108/AI-Tutor/discussions) | Share your work |
+| 📧 **Private Support** | [dev@edumentor.io.vn](mailto:dev@edumentor.io.vn) | Security issues |
+
+---
+
+### 👏 Contributors
+
+<div align="center">
+
+Thầy lời chào tới những người đóng góp tuyệt vời! 🚀
+
+[![Contributors](https://contrib.rocks/image?repo=cuongdev1108/AI-Tutor)](https://github.com/cuongdev1108/AI-Tutor/graphs/contributors)
+
+*Made with [contrib.rocks](https://contrib.rocks)*
+
+</div>
 
 ---
 
 <div align="center">
 
-**Made with ❤️ for Vietnamese high school students**
+<br>
 
-Nếu dự án này hữu ích, vui lòng ⭐ star repository!
+### 🌟 Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=cuongdev1108/AI-Tutor&type=Date)](https://star-history.com/#cuongdev1108/AI-Tutor&Date)
+
+<br>
+
+---
+
+<br>
+
+## 🎖️ Made with ❤️ for Vietnamese High School Students
+
+<br>
+
+![Vietnam Flag](https://img.shields.io/badge/Made_in-Vi%E1%BB%87t_Nam-da251d?style=for-the-badge)
+![Love](https://img.shields.io/badge/Made_with-%E2%9D%A4%EF%B8%8F-red?style=for-the-badge)
+![Students](https://img.shields.io/badge/For-Students-blue?style=for-the-badge)
+
+<br>
+
+### ⭐ Nếu dự án này hữu ích, hãy cho một Star! ⭐
+
+<br>
+
+[![GitHub stars](https://img.shields.io/github/stars/cuongdev1108/AI-Tutor?style=social)](https://github.com/cuongdev1108/AI-Tutor/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/cuongdev1108/AI-Tutor?style=social)](https://github.com/cuongdev1108/AI-Tutor/network/members)
+[![GitHub watchers](https://img.shields.io/github/watchers/cuongdev1108/AI-Tutor?style=social)](https://github.com/cuongdev1108/AI-Tutor/watchers)
+
+<br>
+
+---
+
+<br>
+
+**© 2024 EDUMENTOR | Empowering Vietnamese Students with AI**
+
+*Developed with 🚀 by [@cuongdev1108](https://github.com/cuongdev1108)*
+
+<br>
 
 </div>
