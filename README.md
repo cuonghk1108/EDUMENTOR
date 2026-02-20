@@ -1468,7 +1468,7 @@ Thầy lời chào tới những người đóng góp tuyệt vời! 🚀
 
 <br>
 
-**© 2024 EDUMENTOR | Empowering Vietnamese Students with AI**
+**© 2026 EDUMENTOR | Empowering Vietnamese Students with AI**
 
 *Developed with 🚀 by [@cuongdev1108](https://github.com/cuongdev1108)*
 
