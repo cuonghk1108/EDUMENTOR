@@ -24,6 +24,9 @@ import {
   BoltIcon
 } from '@heroicons/react/24/outline';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
+import DailyMissions from '../components/DailyMissions';
+import AchievementBadges from '../components/AchievementBadges';
+import WelcomeModal from '../components/WelcomeModal';
 
 // Animated progress ring
 const ProgressRing = ({ progress, size = 80, strokeWidth = 8, color = '#a855f7' }) => {
@@ -90,11 +93,25 @@ const QuickActionButton = ({ to, icon: Icon, label, gradient, delay }) => {
 const Dashboard = () => {
   const { user } = useAuth();
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [showWelcome, setShowWelcome] = useState(false);
   
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
+
+  // Check if user should see welcome modal (new users only)
+  useEffect(() => {
+    const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
+    if (!hasSeenWelcome) {
+      setShowWelcome(true);
+    }
+  }, []);
+
+  const handleCloseWelcome = () => {
+    setShowWelcome(false);
+    localStorage.setItem('hasSeenWelcome', 'true');
+  };
 
   const getGreeting = () => {
     const hour = currentTime.getHours();
@@ -153,6 +170,17 @@ const Dashboard = () => {
   };
 
   const { overview, performance, weaknesses, strengths, recentActivity } = dashboard;
+
+  // Prepare user stats for engagement components
+  const userStats = {
+    completedLessons: overview.completedLessons,
+    completedQuizzes: overview.totalQuizzes,
+    streakDays: overview.streakDays,
+    totalMessages: 0, // TODO: track from chat history
+    averageScore: overview.averageScore,
+    perfectScores: 0, // TODO: track perfect quiz scores
+    lastActivity: new Date().toISOString().split('T')[0] // Today's date
+  };
 
   const weeklyData = [
     { name: 'T2', lessons: 2, quizzes: 1 },
@@ -275,6 +303,24 @@ const Dashboard = () => {
           <QuickActionButton to="/roadmap" icon={MapIcon} label="Lộ trình" gradient="from-orange-500 to-orange-600" delay={0.3} />
           <QuickActionButton to="/study-plan" icon={AcademicCapIcon} label="Ôn thi" gradient="from-green-500 to-green-600" delay={0.35} />
         </div>
+      </div>
+
+      {/* Engagement Section - Daily Missions & Achievements */}
+      <div className="grid lg:grid-cols-2 gap-6 relative z-10">
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <DailyMissions userStats={userStats} />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <AchievementBadges userStats={userStats} />
+        </motion.div>
       </div>
 
       {/* Main Stats Grid */}
@@ -657,6 +703,9 @@ const Dashboard = () => {
           </Link>
         </div>
       </motion.div>
+
+      {/* Welcome Modal for new users */}
+      <WelcomeModal isOpen={showWelcome} onClose={handleCloseWelcome} userName={user?.name} />
     </div>
   );
 };
