@@ -1,5 +1,6 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { motion, useReducedMotion } from 'framer-motion';
 import { useAuth } from './context/AuthContext';
 
 // Layout
@@ -81,34 +82,52 @@ const PublicRoute = ({ children }) => {
   return children;
 };
 
+const PageTransition = ({ children }) => {
+  const shouldReduceMotion = useReducedMotion();
+
+  if (shouldReduceMotion) {
+    return children;
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.2, ease: 'easeOut' }}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
 function App() {
   return (
     <Routes>
       {/* Public routes */}
-      <Route path="/" element={<Landing />} />
+      <Route path="/" element={<PageTransition><Landing /></PageTransition>} />
       <Route path="/login" element={
         <PublicRoute>
-          <Login />
+          <PageTransition><Login /></PageTransition>
         </PublicRoute>
       } />
       <Route path="/register" element={
         <PublicRoute>
-          <Register />
+          <PageTransition><Register /></PageTransition>
         </PublicRoute>
       } />
       <Route path="/forgot-password" element={
         <PublicRoute>
-          <ForgotPassword />
+          <PageTransition><ForgotPassword /></PageTransition>
         </PublicRoute>
       } />
       <Route path="/reset-password" element={
         <PublicRoute>
-          <ResetPassword />
+          <PageTransition><ResetPassword /></PageTransition>
         </PublicRoute>
       } />
       <Route path="/complete-profile" element={
         <ProtectedRoute>
-          <CompleteProfile />
+          <PageTransition><CompleteProfile /></PageTransition>
         </ProtectedRoute>
       } />
       
@@ -136,15 +155,17 @@ function App() {
       
       {/* 404 */}
       <Route path="*" element={
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-6xl font-bold text-gray-300">404</h1>
-            <p className="text-gray-500 mt-4">Trang không tồn tại</p>
-            <a href="/" className="btn-primary mt-6 inline-block">
-              Về trang chủ
-            </a>
+        <PageTransition>
+          <div className="min-h-screen flex items-center justify-center">
+            <div className="text-center">
+              <h1 className="text-6xl font-bold text-gray-300">404</h1>
+              <p className="text-gray-500 mt-4">Trang không tồn tại</p>
+              <a href="/" className="btn-primary mt-6 inline-block">
+                Về trang chủ
+              </a>
+            </div>
           </div>
-        </div>
+        </PageTransition>
       } />
     </Routes>
   );

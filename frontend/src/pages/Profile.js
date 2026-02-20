@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import { getResourceUrl } from '../utils/apiHelpers';
 import {
   UserCircleIcon,
   EnvelopeIcon,
@@ -159,7 +160,7 @@ const Profile = () => {
             />
             {user?.avatar ? (
               <img
-                src={`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${user.avatar}`}
+                src={getResourceUrl(user.avatar)}
                 alt="Avatar"
                 className="w-20 h-20 rounded-2xl object-cover border-2 border-white/10"
               />

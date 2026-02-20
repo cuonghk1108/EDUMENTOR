@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import 'katex/dist/katex.min.css';
 import { InlineMath, BlockMath } from 'react-katex';
+import { getBaseUrl } from '../utils/apiHelpers';
 import {
   SpeakerWaveIcon,
   PauseIcon,
@@ -354,7 +355,7 @@ const ProgressTracker = ({ currentIndex, totalIndex }) => {
  * Audio player for a section
  */
 const SectionAudio = ({ text, sectionName, existingAudioUrl, sectionId, lessonId }) => {
-  const baseUrl = process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5000';
+  const baseUrl = getBaseUrl();
   const [audioUrl, setAudioUrl] = useState(
     existingAudioUrl ? `${baseUrl}${existingAudioUrl}` : null
   );

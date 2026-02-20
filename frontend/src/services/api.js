@@ -1,32 +1,14 @@
 import axios from 'axios';
+import { getApiBaseUrl } from '../utils/apiHelpers';
 
 // Create axios instance
 // Smart detection: use relative /api when served from same origin (production)
 // or localhost:5000/api when running separately (development)
-const defaultBaseUrl = (() => {
-  // If explicitly set via env, use that
-  if (process.env.REACT_APP_API_URL) return process.env.REACT_APP_API_URL;
-  
-  // In browser context
-  if (typeof window !== 'undefined' && window.location) {
-    const { port } = window.location;
-    
-    // If running on port 3000 (React dev server), point to backend at 5000
-    if (port === '3000') {
-      return 'http://localhost:5000/api';
-    }
-    
-    // Otherwise, assume backend serves frontend (same origin) - use relative URL
-    return '/api';
-  }
-  
-  // Fallback
-  return 'http://localhost:5000/api';
-})();
+const defaultBaseUrl = getApiBaseUrl();
 
 const api = axios.create({
   baseURL: defaultBaseUrl,
-  timeout: 300000, // 5 phút cho request thông thường
+  timeout: 60000, // 60s timeout (mobile-friendly)
   headers: {
     'Content-Type': 'application/json',
   },

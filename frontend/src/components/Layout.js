@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { getResourceUrl } from '../utils/apiHelpers';
 import { 
   HomeIcon, 
   CloudArrowUpIcon, 
@@ -30,6 +31,7 @@ const Layout = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const shouldReduceMotion = useReducedMotion();
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -77,7 +79,9 @@ const Layout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950">
+    <div className="relative min-h-screen bg-gray-950 overflow-hidden">
+      <div className="app-ambient-bg" />
+
       {/* Mobile Header - Dark Theme */}
       <header className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-gray-900/95 backdrop-blur-xl border-b border-white/5 safe-area-top">
         <div className="flex items-center justify-between px-4 py-3">
@@ -98,7 +102,7 @@ const Layout = () => {
               <div className="relative">
                 {user?.avatar ? (
                   <img
-                    src={`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${user.avatar}`}
+                    src={getResourceUrl(user.avatar)}
                     alt="Avatar"
                     className="w-8 h-8 rounded-full object-cover ring-2 ring-primary-500/50"
                   />
@@ -111,7 +115,9 @@ const Layout = () => {
                 )}
                 {/* Streak badge */}
                 {user?.streak?.current > 0 && (
-                  <div className="absolute -bottom-1 -right-1 bg-gradient-to-r from-orange-500 to-yellow-500 rounded-full px-1.5 py-0.5 flex items-center gap-0.5 shadow-lg ring-2 ring-gray-900">
+                  <div className={`absolute -bottom-1 -right-1 bg-gradient-to-r from-orange-500 to-yellow-500 rounded-full px-1.5 py-0.5 flex items-center gap-0.5 shadow-lg ring-2 ring-gray-900 ${
+                    user.streak.current >= 7 ? 'streak-glow' : ''
+                  }`}>
                     <FireIcon className="w-2.5 h-2.5 text-white" />
                     <span className="text-[10px] font-bold text-white leading-none">{user.streak.current}</span>
                   </div>
@@ -154,7 +160,7 @@ const Layout = () => {
                   <div className="relative">
                     {user?.avatar ? (
                       <img
-                        src={`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${user.avatar}`}
+                        src={getResourceUrl(user.avatar)}
                         alt="Avatar"
                         className="w-12 h-12 rounded-full object-cover ring-2 ring-primary-500/50"
                       />
@@ -167,7 +173,9 @@ const Layout = () => {
                     )}
                     {/* Streak badge */}
                     {user?.streak?.current > 0 && (
-                      <div className="absolute -bottom-1 -right-1 bg-gradient-to-r from-orange-500 to-yellow-500 rounded-full px-2 py-1 flex items-center gap-1 shadow-lg ring-2 ring-gray-900">
+                      <div className={`absolute -bottom-1 -right-1 bg-gradient-to-r from-orange-500 to-yellow-500 rounded-full px-2 py-1 flex items-center gap-1 shadow-lg ring-2 ring-gray-900 ${
+                        user.streak.current >= 7 ? 'streak-glow' : ''
+                      }`}>
                         <FireIcon className="w-3 h-3 text-white" />
                         <span className="text-xs font-bold text-white leading-none">{user.streak.current}</span>
                       </div>
@@ -226,7 +234,7 @@ const Layout = () => {
       </AnimatePresence>
 
       {/* Desktop Sidebar - Dark Theme */}
-      <aside className="hidden lg:block fixed inset-y-0 left-0 w-72 bg-gray-900 border-r border-white/5 z-30">
+      <aside className="hidden lg:block fixed inset-y-0 left-0 w-72 bg-gray-900/95 border-r border-white/5 z-30 backdrop-blur-xl">
         {/* Logo */}
         <div className="flex items-center gap-3 px-6 py-6 border-b border-white/5">
           <div className="relative">
@@ -289,7 +297,7 @@ const Layout = () => {
             <div className="relative">
               {user?.avatar ? (
                 <img
-                  src={`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${user.avatar}`}
+                  src={getResourceUrl(user.avatar)}
                   alt="Avatar"
                   className="w-10 h-10 rounded-full object-cover ring-2 ring-primary-500/30"
                 />
@@ -306,7 +314,9 @@ const Layout = () => {
               <p className="text-xs text-gray-500 truncate">{user?.email}</p>
             </div>
             {user?.streak?.current > 0 && (
-              <div className="flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-orange-500/20 to-yellow-500/20 rounded-full">
+              <div className={`flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-orange-500/20 to-yellow-500/20 rounded-full ${
+                user.streak.current >= 7 ? 'streak-glow' : ''
+              }`}>
                 <FireIcon className="w-3.5 h-3.5 text-orange-400" />
                 <span className="text-xs text-orange-400 font-bold">{user.streak.current}</span>
               </div>
@@ -324,10 +334,21 @@ const Layout = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="lg:pl-72 pt-14 pb-20 lg:pt-0 lg:pb-0">
+      <main className="relative z-10 lg:pl-72 pt-14 pb-20 lg:pt-0 lg:pb-0">
         <div className="min-h-screen flex flex-col">
           <div className="flex-1">
-            <Outlet />
+            <motion.div
+              key={location.pathname}
+              initial={shouldReduceMotion ? false : { opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={
+                shouldReduceMotion
+                  ? { duration: 0.01 }
+                  : { type: 'spring', damping: 26, stiffness: 240, mass: 0.55 }
+              }
+            >
+              <Outlet />
+            </motion.div>
           </div>
           
           {/* Footer - Hidden on Chat page */}
@@ -356,12 +377,12 @@ const Layout = () => {
               <NavLink
                 key={item.name}
                 to={item.href}
-                className="flex flex-col items-center justify-center py-2 px-3 min-w-0"
+                className="flex flex-col items-center justify-center py-2 px-3 min-w-0 transition-transform duration-200 ease-out active:scale-[0.98]"
               >
                 {isProfile && user?.avatar ? (
                   <div className="relative">
                     <img
-                      src={`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${user.avatar}`}
+                      src={getResourceUrl(user.avatar)}
                       alt="Avatar"
                       className={`w-6 h-6 rounded-full object-cover ${isActive ? 'ring-2 ring-primary-500' : ''}`}
                     />

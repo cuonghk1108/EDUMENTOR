@@ -16,10 +16,10 @@ const MathRenderer = ({ content, className = '' }) => {
   const processedContent = preprocessMath(content);
 
   return (
-    <div className={`math-content prose prose-lg max-w-none ${className}`}>
+    <div className={`math-content formula-premium prose prose-lg max-w-none ${className}`}>
       <ReactMarkdown
         remarkPlugins={[remarkMath]}
-        rehypePlugins={[rehypeKatex]}
+        rehypePlugins={[[rehypeKatex, { throwOnError: false, strict: 'ignore' }]]}
         components={{
           // Custom heading styles
           h1: ({ children }) => (
@@ -136,47 +136,32 @@ const MathRenderer = ({ content, className = '' }) => {
 function preprocessMath(content) {
   if (!content) return '';
   
-  let processed = content;
-  
-  // Step 1: Fix common escaped patterns from JSON stringification
-  // \\ -> \ for common LaTeX commands
-  processed = processed.replace(/\\\\(frac|sqrt|sum|int|lim|sin|cos|tan|log|ln|alpha|beta|gamma|delta|theta|pi|omega|leq|geq|neq|times|div|pm|mp|cdot|vec|hat|bar|dot|ddot|tilde|left|right|begin|end|text|mathrm|mathbf|partial|nabla|infty|exist|forall)\b/g, '\\$1');
-  
-  // Step 2: Handle triple+ escaped backslashes
-  while (processed.includes('\\\\\\\\')){
-    processed = processed.replace(/\\\\\\\\/g, '\\\\');
-  }
-  
-  // Step 3: Fix spaces within LaTeX environments - remove trailing spaces before closing delimiters
-  processed = processed.replace(/\{([^}]*?)\s+\}/g, '{$1}');
-  processed = processed.replace(/\(\s+/g, '(');
-  processed = processed.replace(/\s+\)/g, ')');
-  
-  // Step 4: Fix common patterns that cause rendering issues
-  // Ensure proper spacing around $$ blocks
-  processed = processed.replace(/([^\s])\$\$([^\s])/g, '$1 $$ $2');
-  
-  // Step 5: Fix inline math spacing - no spaces immediately after opening $ or before closing $
-  processed = processed.replace(/\$\s+/g, '$');
-  processed = processed.replace(/\s+\$/g, '$');
-  
-  // Step 6: Ensure math blocks are on their own lines
-  processed = processed.replace(/([^\\n])\$\$\n/g, '$1\n$$\n');
-  processed = processed.replace(/\$\$\n([^\\n])/g, '$$\n\n$1');
-  
-  // Step 7: Fix broken LaTeX: remove spaces before commas/periods in fractions
-  processed = processed.replace(/\\frac\{\s*([^}]+?)\s*\}\s*\{\s*([^}]+?)\s*\}/g, '\\frac{$1}{$2}');
-  
-  // Step 8: Fix common escaping issues in array/environment content
-  // E.g., "col 1 & col 2" might become "col 1 \\& col 2" -> fix it
-  processed = processed.replace(/\\&/g, '&');
-  
-  // Step 9: Fix double dollar signs that might be escaped
+  let processed = content.replace(/\r\n?/g, '\n');
+
+  // Normalize escaped LaTeX delimiters: \[...\] and \(...\)
+  processed = processed.replace(/\\\[([\s\S]*?)\\\]/g, (_, expr) => `\n$$\n${expr.trim()}\n$$\n`);
+  processed = processed.replace(/\\\(([^\n]+?)\\\)/g, (_, expr) => `$${expr.trim()}$`);
+
+  // Fix common over-escaped LaTeX commands from JSON/stringification
+  processed = processed.replace(
+    /\\\\(?=(frac|sqrt|sum|int|lim|sin|cos|tan|log|ln|alpha|beta|gamma|delta|theta|pi|omega|leq|geq|neq|times|div|pm|mp|cdot|vec|hat|bar|dot|ddot|tilde|left|right|begin|end|text|mathrm|mathbf|partial|nabla|infty|exists|forall|in|notin|cup|cap|subset|supset|to|rightarrow|leftarrow)\b)/g,
+    '\\'
+  );
+
+  // Keep display equations on separate lines for stable rendering
+  processed = processed.replace(/([^\n])\$\$/g, '$1\n$$');
+  processed = processed.replace(/\$\$([^\n])/g, '$$\n$1');
+
+  // Clean simple inline spaces: $ a+b $ -> $a+b$
+  processed = processed.replace(/\$\s+([^$\n][^$]*?)\s+\$/g, (_, expr) => `$${expr.trim()}$`);
+
+  // Normalize accidental triple dollars and over-escaped dollars
   processed = processed.replace(/\$\$\$/g, '$$');
-  
-  // Step 10: Remove duplicate backslashes before dollar signs (common in JSON)
   processed = processed.replace(/\\\\\$/g, '$');
-  
+
+  // Avoid excessive blank lines after normalization
+  processed = processed.replace(/\n{3,}/g, '\n\n');
+
   return processed;
 }
 

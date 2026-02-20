@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, Link, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -10,11 +10,35 @@ import {
   BookOpenIcon,
   SparklesIcon
 } from '@heroicons/react/24/outline';
+import { celebrateQuizComplete, animateValue } from '../utils/gamification';
 
 const QuizResult = () => {
   const { quizId } = useParams();
   const location = useLocation();
   const result = location.state?.result;
+  const [animatedScore, setAnimatedScore] = useState(0);
+  const [animatedCorrect, setAnimatedCorrect] = useState(0);
+
+  // Trigger confetti on mount
+  useEffect(() => {
+    if (result?.score) {
+      // Slight delay for dramatic effect
+      const timer = setTimeout(() => {
+        celebrateQuizComplete(result.score);
+      }, 600);
+      return () => clearTimeout(timer);
+    }
+  }, [result]);
+
+  // Animate score count-up
+  useEffect(() => {
+    if (result?.score) {
+      animateValue(0, result.score, 1200, setAnimatedScore);
+    }
+    if (result?.correctAnswers) {
+      animateValue(0, result.correctAnswers, 1000, setAnimatedCorrect);
+    }
+  }, [result]);
 
   if (!result) {
     return (
@@ -33,7 +57,7 @@ const QuizResult = () => {
     );
   }
 
-  const { correctAnswers, totalQuestions, score, results } = result;
+  const { totalQuestions, score, results } = result;
   
   // Determine performance
   const getPerformance = () => {
@@ -68,14 +92,24 @@ const QuizResult = () => {
 
         <div className="flex items-center justify-center gap-8 my-8">
           <div>
-            <div className="text-5xl font-bold text-white">{score}%</div>
+            <motion.div 
+              className="text-5xl font-bold text-white xp-pulse-once"
+              key={animatedScore}
+            >
+              {animatedScore}%
+            </motion.div>
             <p className="text-gray-500 mt-1">Điểm số</p>
           </div>
           
           <div className="w-px h-16 bg-white/10" />
           
           <div>
-            <div className="text-5xl font-bold text-green-400">{correctAnswers}</div>
+            <motion.div 
+              className="text-5xl font-bold text-green-400 xp-pulse-once"
+              key={animatedCorrect}
+            >
+              {animatedCorrect}
+            </motion.div>
             <p className="text-gray-500 mt-1">/{totalQuestions} câu đúng</p>
           </div>
         </div>

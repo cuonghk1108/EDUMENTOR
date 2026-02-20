@@ -76,7 +76,7 @@ const QuickActionButton = ({ to, icon: Icon, label, gradient, delay }) => {
       <Link
         to={to}
         className={`flex flex-col items-center gap-3 p-5 rounded-2xl bg-gradient-to-br ${gradient} 
-          text-white shadow-lg hover:shadow-xl transition-all duration-300`}
+          text-white shadow-lg hover:shadow-xl transition-all duration-300 btn-shine hover-glow-card`}
       >
         <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
           <Icon className="w-6 h-6" />
@@ -165,12 +165,14 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="p-6 space-y-8">
+    <div className="relative p-6 space-y-8 overflow-hidden">
+      <div className="app-ambient-bg opacity-80" />
+
       {/* Hero Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 via-purple-900/50 to-gray-900 p-8 border border-white/10"
+        className="relative z-10 overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 via-purple-900/50 to-gray-900 p-8 border border-white/10 hover-glow-card"
       >
         {/* Animated grid */}
         <div className="absolute inset-0 opacity-10">
@@ -234,8 +236,8 @@ const Dashboard = () => {
             {[
               { label: 'Bài học', value: overview.totalLessons, icon: BookOpenIcon, color: 'text-purple-400' },
               { label: 'Quiz', value: overview.totalQuizzes, icon: QuestionMarkCircleIcon, color: 'text-pink-400' },
-              { label: 'Streak', value: `${overview.streakDays} ngày`, icon: FireIcon, color: 'text-orange-400' },
-              { label: 'Điểm TB', value: `${overview.averageScore}%`, icon: ChartBarIcon, color: 'text-green-400' },
+              { label: 'Streak', value: `${overview.streakDays} ngày`, icon: FireIcon, color: 'text-orange-400', pulse: overview.streakDays > 0 },
+              { label: 'Điểm TB', value: `${overview.averageScore}%`, icon: ChartBarIcon, color: 'text-green-400', pulse: overview.averageScore >= 80 },
             ].map((stat, index) => (
               <motion.div
                 key={stat.label}
@@ -244,9 +246,9 @@ const Dashboard = () => {
                 transition={{ delay: 0.4 + index * 0.1 }}
                 className="flex items-center gap-3 bg-white/5 backdrop-blur-sm rounded-xl p-3 border border-white/10"
               >
-                <stat.icon className={`w-5 h-5 ${stat.color}`} />
+                <stat.icon className={`w-5 h-5 ${stat.color} ${stat.pulse ? 'xp-pulse' : ''}`} />
                 <div>
-                  <p className="text-2xl font-bold text-white">{stat.value}</p>
+                  <p className={`text-2xl font-bold text-white ${stat.pulse ? 'xp-pulse' : ''}`}>{stat.value}</p>
                   <p className="text-xs text-gray-400">{stat.label}</p>
                 </div>
               </motion.div>
@@ -256,7 +258,7 @@ const Dashboard = () => {
       </motion.div>
 
       {/* Quick Actions Grid */}
-      <div>
+      <div className="relative z-10">
         <motion.h2
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}

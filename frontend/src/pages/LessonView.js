@@ -6,6 +6,8 @@ import { lessonAPI, ttsAPI, quizAPI, streakAPI } from '../services/api';
 import StructuredLesson from '../components/StructuredLesson';
 import CustomizePromptModal from '../components/CustomizePromptModal';
 import MathRenderer from '../components/MathRenderer';
+import { celebrateLessonComplete } from '../utils/gamification';
+import { getBaseUrl } from '../utils/apiHelpers';
 import {
   BookOpenIcon,
   CheckCircleIcon,
@@ -16,7 +18,6 @@ import {
   SparklesIcon,
   ArrowPathIcon,
   DocumentTextIcon,
-  CodeBracketIcon,
   PencilIcon,
   ChatBubbleLeftRightIcon
 } from '@heroicons/react/24/outline';
@@ -33,7 +34,7 @@ const LessonView = () => {
   const [viewMode, setViewMode] = useState('structured');
   const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false);
   const audioRef = React.useRef(null);
-  const baseUrl = process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5000';
+  const baseUrl = getBaseUrl();
 
   // Fetch lesson
   const { data: lesson, isLoading, error } = useQuery(
@@ -66,6 +67,8 @@ const LessonView = () => {
         queryClient.invalidateQueries(['lesson', lessonId]);
         queryClient.invalidateQueries('lessons');
         toast.success('Đã đánh dấu hoàn thành!');
+        // Celebrate with confetti
+        setTimeout(() => celebrateLessonComplete(), 300);
       }
     }
   );
@@ -298,7 +301,7 @@ const LessonView = () => {
         className="bg-gray-900/50 border border-white/5 rounded-2xl p-6"
       >
         {/* View Mode Tabs */}
-        {(lesson.structuredContent || lesson.latexContent) && (
+        {(lesson.structuredContent || lesson.content) && (
           <div className="flex gap-1 p-1 bg-white/5 rounded-xl mb-6 w-fit">
             {lesson.structuredContent && (
               <button
@@ -324,40 +327,12 @@ const LessonView = () => {
               <BookOpenIcon className="w-4 h-4" />
               Markdown
             </button>
-            {lesson.latexContent && (
-              <button
-                onClick={() => setViewMode('latex')}
-                className={`px-4 py-2 font-medium text-sm rounded-lg transition-all flex items-center gap-1 ${
-                  viewMode === 'latex'
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
-                    : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                <CodeBracketIcon className="w-4 h-4" />
-                LaTeX
-              </button>
-            )}
           </div>
         )}
 
         {/* Content based on view mode */}
         {viewMode === 'structured' && lesson.structuredContent ? (
           <StructuredLesson lesson={lesson} />
-        ) : viewMode === 'latex' && lesson.latexContent ? (
-          <div className="latex-content">
-            <pre className="bg-gray-950 text-gray-100 p-4 rounded-xl overflow-x-auto text-sm font-mono whitespace-pre-wrap border border-white/10">
-              {lesson.latexContent}
-            </pre>
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(lesson.latexContent);
-                toast.success('Đã copy LaTeX!');
-              }}
-              className="mt-3 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-sm text-gray-300 hover:bg-white/10 transition-colors"
-            >
-              📋 Copy LaTeX
-            </button>
-          </div>
         ) : (
           <div className="markdown-content prose prose-invert max-w-none">
             <MathRenderer content={lesson.content} />

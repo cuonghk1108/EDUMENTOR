@@ -67,7 +67,8 @@ router.post('/process-sgk', verifyToken, upload.single('file'), async (req, res)
       return res.status(400).json({ error: 'Không có file được upload' });
     }
 
-    const { title, subject, chapter, format = 'complete', customPrompt = '' } = req.body;
+    const { title, subject, chapter, customPrompt = '' } = req.body;
+    const format = 'interactive-markdown';
     const userId = req.userId;
 
     console.log('📝 Process SGK - userId:', userId, 'title:', title, 'format:', format);
@@ -99,36 +100,25 @@ router.post('/process-sgk', verifyToken, upload.single('file'), async (req, res)
       customPrompt: customPrompt || ''
     };
 
-    let lessonData = {};
+    const lessonData = {};
     
-    if (format === 'complete') {
-      // Generate cả LaTeX và JSON structured
-      const aiResult = await aiService.generateLessonComplete(textToProcess, options);
-      console.log('📋 AI Result keys:', Object.keys(aiResult));
-      lessonData = {
-        content: aiResult.content || '',
-        latexContent: aiResult.latexContent || '',
-        structuredContent: aiResult.structuredContent || null
-      };
-      console.log('📝 Lesson data:', { hasContent: !!lessonData.content, hasLatex: !!lessonData.latexContent, hasStructured: !!lessonData.structuredContent });
-    } else if (format === 'latex') {
-      const aiResult = await aiService.generateLessonLatex(textToProcess, options);
-      lessonData = {
-        content: aiResult.content,
-        latexContent: aiResult.latexContent
-      };
-    } else if (format === 'json') {
-      const aiResult = await aiService.generateLessonStructured(textToProcess, options);
-      lessonData = {
-        content: '',
-        structuredContent: aiResult.structuredContent
-      };
-    } else {
-      const aiResult = await aiService.generateLesson(textToProcess, options);
-      lessonData = {
-        content: aiResult.content
-      };
+    // Luôn generate Markdown tương tác: markdown content + structured JSON
+    const markdownResult = await aiService.generateLesson(textToProcess, options);
+    lessonData.content = markdownResult.content || '';
+
+    try {
+      const structuredResult = await aiService.generateLessonStructured(textToProcess, options);
+      lessonData.structuredContent = structuredResult.lesson || null;
+    } catch (structuredError) {
+      console.warn('⚠️ Structured generation failed, fallback to markdown only:', structuredError.message);
+      lessonData.structuredContent = null;
     }
+
+    console.log('📝 Lesson data:', {
+      format,
+      hasContent: !!lessonData.content,
+      hasStructured: !!lessonData.structuredContent
+    });
 
     // Step 3: Save to database
     console.log('💾 Step 3: Saving to database...');

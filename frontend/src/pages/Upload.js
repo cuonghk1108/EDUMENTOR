@@ -41,7 +41,7 @@ const Upload = () => {
     title: '',
     subject: 'Toán học',
     chapter: '',
-    format: 'complete',
+    format: 'interactive-markdown',
     customPrompt: ''
   });
 
@@ -582,36 +582,12 @@ const Upload = () => {
                 </div>
               </div>
 
-              {/* Format Selection */}
+              {/* Output Mode */}
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-300 mb-2">Định dạng bài giảng</label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {[
-                    { value: 'standard', label: 'Chuẩn', desc: 'Markdown đơn giản' },
-                    { value: 'latex', label: 'LaTeX', desc: 'Công thức đẹp' },
-                    { value: 'json', label: 'Cấu trúc', desc: 'Render tương tác' },
-                    { value: 'complete', label: 'Đầy đủ', desc: 'Tất cả định dạng' }
-                  ].map(opt => (
-                    <label
-                      key={opt.value}
-                      className={`cursor-pointer p-3 rounded-xl border-2 transition-all ${
-                        formData.format === opt.value
-                          ? 'border-orange-500 bg-orange-500/10'
-                          : 'border-white/10 hover:border-white/30'
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="format"
-                        value={opt.value}
-                        checked={formData.format === opt.value}
-                        onChange={handleChange}
-                        className="sr-only"
-                      />
-                      <span className="block font-medium text-white">{opt.label}</span>
-                      <span className="text-xs text-gray-500">{opt.desc}</span>
-                    </label>
-                  ))}
+                <div className="p-3 rounded-xl border border-orange-500/30 bg-orange-500/10 text-sm">
+                  <span className="font-medium text-orange-300">Markdown tương tác</span>
+                  <span className="text-gray-400"> — hệ thống tự động xuất đúng một định dạng (không xuất LaTeX).</span>
                 </div>
               </div>
             </div>
