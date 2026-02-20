@@ -66,16 +66,34 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-// Rate limiting
+// Rate limiting - Global (cho user requests)
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
   max: parseInt(process.env.RATE_LIMIT_MAX) || 100,
   message: { error: 'Quá nhiều request, vui lòng thử lại sau.' },
-  // Trust proxy khi chạy qua Cloudflare Tunnel
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => {
+    // Skip rate limiting for admin and internal routes
+    return req.path.startsWith('/api/admin') || req.path.startsWith('/api/internal');
+  }
 });
+
+// Rate limiting - Admin (more lenient)
+const adminLimiter = rateLimit({
+  windowMs: parseInt(process.env.ADMIN_RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
+  max: parseInt(process.env.ADMIN_RATE_LIMIT_MAX) || 1000, // 10x higher for admin
+  message: { error: 'Quá nhiều request, vui lòng thử lại sau.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => {
+    // Use user ID for admin rate limiting (not IP), so multiple admins sharing IP won't affect each other
+    return req.userId || req.ip;
+  }
+});
+
 app.use('/api', limiter);
+app.use('/api/admin', adminLimiter);
 
 // Trust proxy (quan trọng khi chạy qua Cloudflare Tunnel)
 app.set('trust proxy', 1);
