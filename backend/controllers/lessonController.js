@@ -2,7 +2,16 @@ const aiService = require('../services/aiService');
 const { lessonService, learningStatsService, dailyStatsService } = require('../services/firebaseService');
 
 const generateLessonForUser = async ({ userId, text, title, subject, chapter }) => {
-  const result = await aiService.generateLesson(text);
+  // Generate both markdown and structured content
+  const markdownResult = await aiService.generateLesson(text);
+
+  let structuredContent = null;
+  try {
+    const structuredResult = await aiService.generateLessonStructured(text);
+    structuredContent = structuredResult.lesson;
+  } catch (structuredError) {
+    console.warn('⚠️ Structured generation failed, fallback to markdown only:', structuredError.message);
+  }
 
   const lessonData = {
     userId,
@@ -10,7 +19,8 @@ const generateLessonForUser = async ({ userId, text, title, subject, chapter }) 
     subject: subject || 'Chung',
     chapter: chapter || '',
     originalText: text,
-    content: result.content,
+    content: markdownResult.content,
+    structuredContent: structuredContent,
     completed: false,
     audioGenerated: false,
     createdAt: new Date()
@@ -21,7 +31,7 @@ const generateLessonForUser = async ({ userId, text, title, subject, chapter }) 
 
   return {
     lesson: savedLesson,
-    usage: result.usage
+    usage: markdownResult.usage
   };
 };
 
