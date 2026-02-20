@@ -14,11 +14,14 @@ const roadmapController = require('../controllers/roadmapController');
 const careerController = require('../controllers/careerController');
 const adminController = require('../controllers/adminController');
 const customAIController = require('../controllers/customAIController');
+const taskController = require('../controllers/taskController');
+const redisController = require('../controllers/redisController');
 
 // Import middleware
 const upload = require('../middleware/upload');
 const { verifyToken } = require('../middleware/auth');
 const { verifyAdmin } = require('../middleware/adminAuth');
+const { verifyInternalToken } = require('../middleware/internalAuth');
 
 // ============================================
 // PUBLIC ROUTES
@@ -34,6 +37,12 @@ router.post('/auth/register', authController.register);
 router.post('/auth/login', authController.login);
 router.post('/auth/logout', authController.logout);
 router.post('/auth/google', authController.googleAuth);
+router.post('/auth/forgot-password', authController.forgotPassword);
+router.post('/auth/reset-password', authController.resetPassword);
+router.post('/auth/complete-profile', verifyToken, authController.completeProfile);
+
+// Internal routes for worker services
+router.post('/internal/lesson/generate', verifyInternalToken, lessonController.generateLessonInternal);
 
 // ============================================
 // PROTECTED ROUTES (Require Authentication)
@@ -157,12 +166,14 @@ router.post('/process-sgk', verifyToken, upload.single('file'), async (req, res)
 
 // Lesson Generation
 router.post('/lesson', verifyToken, lessonController.generateLesson);
+router.post('/lesson/queue', verifyToken, taskController.queueLessonGeneration);
 router.post('/lesson/latex', verifyToken, lessonController.generateLessonLatex);
 router.post('/lesson/json', verifyToken, lessonController.generateLessonStructured);
 router.post('/lesson/complete', verifyToken, lessonController.generateLessonComplete);
 router.post('/lesson/convert-latex', verifyToken, lessonController.convertToLatex);
 router.post('/lesson/:lessonId/convert-latex', verifyToken, lessonController.convertToLatex);
 router.post('/lesson/:lessonId/customize', verifyToken, lessonController.customizeLesson);
+router.get('/tasks/:taskId', verifyToken, taskController.getTaskStatus);
 router.get('/lessons/:userId', verifyToken, lessonController.getUserLessons);
 router.get('/lesson/:lessonId', verifyToken, lessonController.getLessonById);
 router.put('/lesson/:lessonId/complete', verifyToken, lessonController.markComplete);
@@ -170,13 +181,15 @@ router.put('/lesson/:lessonId/complete', verifyToken, lessonController.markCompl
 // Quiz
 router.post('/quiz', verifyToken, quizController.generateQuiz);
 router.post('/quiz/submit', verifyToken, quizController.submitQuiz);
+router.post('/quiz/regenerate', verifyToken, quizController.regenerateQuiz);
 router.get('/quizzes/:userId', verifyToken, quizController.getUserQuizzes);
-
-// Custom AI - Xử lý yêu cầu tùy chỉnh từ người dùng
-router.post('/ai/custom', verifyToken, customAIController.processCustomRequest);
 router.get('/quiz/:quizId', verifyToken, quizController.getQuizById);
 router.get('/quiz-history/:userId', verifyToken, quizController.getQuizHistory);
 router.get('/quiz-result/:quizId', verifyToken, quizController.getQuizResult);
+router.get('/quiz-regenerations/:quizId', verifyToken, quizController.getRegenerationHistory);
+
+// Custom AI - Xử lý yêu cầu tùy chỉnh từ người dùng
+router.post('/ai/custom', verifyToken, customAIController.processCustomRequest);
 
 // Chat
 router.post('/chat', verifyToken, chatController.sendMessage);
@@ -228,6 +241,14 @@ router.get('/tts/cache/:hash', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+// Redis API for authenticated users (scoped by userId)
+router.get('/redis/health', verifyToken, redisController.health);
+router.get('/redis/keys', verifyToken, redisController.listMyKeys);
+router.post('/redis/set', verifyToken, redisController.setMyValue);
+router.get('/redis/get/:key', verifyToken, redisController.getMyValue);
+router.put('/redis/expire/:key', verifyToken, redisController.setMyExpire);
+router.delete('/redis/key/:key', verifyToken, redisController.deleteMyKey);
 
 // Dashboard & Analytics
 router.get('/dashboard/:userId', verifyToken, dashboardController.getDashboard);
@@ -307,7 +328,10 @@ const {
   studySessionService, 
   audioHistoryService,
   activityLogService,
-  streakService 
+  streakService,
+  examSimulationService,
+  parentReportService,
+  studyGroupService
 } = require('../services/firebaseService');
 
 // ==================== STREAK API ====================
@@ -573,6 +597,79 @@ router.post('/activity', verifyToken, async (req, res) => {
   }
 });
 
+
+// Exam Simulation
+router.post('/exam-simulations', verifyToken, async (req, res) => {
+  try {
+    const attempt = await examSimulationService.createAttempt(req.userId, req.body);
+    await activityLogService.log(req.userId, { action: 'exam_simulation_submit', targetId: attempt.id });
+    res.json({ success: true, attempt });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get('/exam-simulations', verifyToken, async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 20;
+    const attempts = await examSimulationService.getHistory(req.userId, limit);
+    res.json({ success: true, attempts });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Parent Report
+router.post('/parent-report/generate', verifyToken, async (req, res) => {
+  try {
+    const report = await parentReportService.generateWeekly(req.userId);
+    res.json({ success: true, report });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get('/parent-report/:shareToken', async (req, res) => {
+  try {
+    const report = await parentReportService.getByToken(req.params.shareToken);
+    if (!report) return res.status(404).json({ error: 'Không tìm thấy báo cáo' });
+    res.json({ success: true, report });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Study Groups
+router.get('/study-groups', verifyToken, async (req, res) => {
+  try {
+    const groups = await studyGroupService.getAll(req.query.subject);
+    res.json({ success: true, groups });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post('/study-groups', verifyToken, async (req, res) => {
+  try {
+    const group = await studyGroupService.create(req.userId, req.body);
+    await activityLogService.log(req.userId, { action: 'study_group_create', targetId: group.id });
+    res.json({ success: true, group });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post('/study-groups/:groupId/join', verifyToken, async (req, res) => {
+  try {
+    const group = await studyGroupService.join(req.params.groupId, req.userId);
+    if (!group) return res.status(404).json({ error: 'Không tìm thấy nhóm học' });
+    await activityLogService.log(req.userId, { action: 'study_group_join', targetId: req.params.groupId });
+    res.json({ success: true, group });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // ============================================
 // ADMIN ROUTES (Require Admin Role)
 // ============================================
@@ -587,6 +684,13 @@ router.get('/admin/users/:userId', verifyToken, verifyAdmin, adminController.get
 router.put('/admin/users/:userId', verifyToken, verifyAdmin, adminController.updateUser);
 router.delete('/admin/users/:userId', verifyToken, verifyAdmin, adminController.deleteUser);
 
+// Advanced User Management
+router.post('/admin/users/:userId/block', verifyToken, verifyAdmin, adminController.toggleBlockUser);
+router.post('/admin/users/:userId/reset-password', verifyToken, verifyAdmin, adminController.resetUserPassword);
+router.delete('/admin/users/:userId/data', verifyToken, verifyAdmin, adminController.deleteAllUserData);
+router.get('/admin/users/:userId/activity', verifyToken, verifyAdmin, adminController.getUserActivityLog);
+router.put('/admin/users/:userId/role', verifyToken, verifyAdmin, adminController.changeUserRole);
+
 // Lesson Management
 router.get('/admin/lessons', verifyToken, verifyAdmin, adminController.getLessons);
 router.delete('/admin/lessons/:lessonId', verifyToken, verifyAdmin, adminController.deleteLesson);
@@ -597,7 +701,29 @@ router.delete('/admin/quizzes/:quizId', verifyToken, verifyAdmin, adminControlle
 
 // System Settings & Logs
 router.get('/admin/settings', verifyToken, verifyAdmin, adminController.getSettings);
+router.put('/admin/settings', verifyToken, verifyAdmin, adminController.updateSettings);
 router.get('/admin/logs', verifyToken, verifyAdmin, adminController.getSystemLogs);
 router.get('/admin/subjects', verifyToken, verifyAdmin, adminController.getSubjects);
+
+// Chat Management
+router.get('/admin/chats', verifyToken, verifyAdmin, adminController.getChats);
+router.delete('/admin/chats/:chatId', verifyToken, verifyAdmin, adminController.deleteChat);
+router.delete('/admin/chats/user/:userId', verifyToken, verifyAdmin, adminController.deleteUserChats);
+
+// Roadmap Management
+router.get('/admin/roadmaps', verifyToken, verifyAdmin, adminController.getRoadmaps);
+router.delete('/admin/roadmaps/:roadmapId', verifyToken, verifyAdmin, adminController.deleteRoadmap);
+
+// Database Management
+router.post('/admin/database/clean', verifyToken, verifyAdmin, adminController.cleanDatabase);
+router.get('/admin/database/stats', verifyToken, verifyAdmin, adminController.getDatabaseStats);
+
+// Redis Management
+router.get('/admin/redis/health', verifyToken, verifyAdmin, redisController.health);
+router.get('/admin/redis/keys', verifyToken, verifyAdmin, redisController.listKeys);
+router.post('/admin/redis/set', verifyToken, verifyAdmin, redisController.setValue);
+router.get('/admin/redis/get/:key', verifyToken, verifyAdmin, redisController.getValue);
+router.put('/admin/redis/expire/:key', verifyToken, verifyAdmin, redisController.setExpire);
+router.delete('/admin/redis/key/:key', verifyToken, verifyAdmin, redisController.deleteKey);
 
 module.exports = router;

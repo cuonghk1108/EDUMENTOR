@@ -38,13 +38,13 @@ ingress:
       connectTimeout: 300s
       disableChunkedEncoding: true
 
-  # Frontend - tất cả request khác đến React app
+  # Frontend - tất cả request khác đến React app (production build served by backend)
   - hostname: edumentor.io.vn
-    service: http://localhost:3000
+    service: http://localhost:5000
   
   # www redirect
   - hostname: www.edumentor.io.vn
-    service: http://localhost:3000
+    service: http://localhost:5000
 
   # Catch-all rule (bắt buộc phải có)
   - service: http_status:404

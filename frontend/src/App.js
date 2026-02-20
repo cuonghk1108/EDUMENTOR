@@ -9,6 +9,9 @@ import Layout from './components/Layout';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import CompleteProfile from './pages/CompleteProfile';
 import Dashboard from './pages/Dashboard';
 import Upload from './pages/Upload';
 import Lessons from './pages/Lessons';
@@ -42,6 +45,14 @@ const ProtectedRoute = ({ children }) => {
   
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+  
+  // Check if user needs to complete profile
+  const needsProfileCompletion = localStorage.getItem('needsProfileCompletion') === 'true';
+  const currentPath = window.location.pathname;
+  
+  if (needsProfileCompletion && currentPath !== '/complete-profile') {
+    return <Navigate to="/complete-profile" replace />;
   }
   
   return children;
@@ -84,6 +95,21 @@ function App() {
         <PublicRoute>
           <Register />
         </PublicRoute>
+      } />
+      <Route path="/forgot-password" element={
+        <PublicRoute>
+          <ForgotPassword />
+        </PublicRoute>
+      } />
+      <Route path="/reset-password" element={
+        <PublicRoute>
+          <ResetPassword />
+        </PublicRoute>
+      } />
+      <Route path="/complete-profile" element={
+        <ProtectedRoute>
+          <CompleteProfile />
+        </ProtectedRoute>
       } />
       
       {/* Protected routes */}

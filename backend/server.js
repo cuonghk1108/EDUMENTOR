@@ -13,32 +13,55 @@ const apiRoutes = require('./routes');
 // Initialize Express app
 const app = express();
 
+const getWwwOrigin = (origin) => {
+  try {
+    return `https://www.${new URL(origin).hostname}`;
+  } catch (error) {
+    return null;
+  }
+};
+
 // Security middleware
 app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" }
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+  contentSecurityPolicy: false
 }));
 
 // CORS configuration
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:3001',
+  'http://localhost:5000', // Add same origin
   'http://127.0.0.1:3000',
   'http://127.0.0.1:3001',
+  'http://127.0.0.1:5000', // Add same origin
   'https://edumentor.io.vn',
   'https://www.edumentor.io.vn',
   process.env.FRONTEND_URL,
   // Thêm các domain production (có thể set trong .env)
   process.env.PRODUCTION_URL,
-  process.env.PRODUCTION_URL ? `https://www.${new URL(process.env.PRODUCTION_URL).hostname}` : null
+  process.env.PRODUCTION_URL ? getWwwOrigin(process.env.PRODUCTION_URL) : null
 ].filter(Boolean);
 
 const corsOptions = {
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // Allow non-browser requests
-    if (allowedOrigins.includes(origin)) return callback(null, true);
+    // Allow requests with no origin (same-origin, mobile apps, curl, Postman, etc.)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    // Log for debugging
+    console.log('CORS blocked origin:', origin);
     return callback(new Error('Not allowed by CORS'));
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'x-forwarded-proto', 'x-forwarded-host'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  optionsSuccessStatus: 200
 };
 
 app.use(cors(corsOptions));

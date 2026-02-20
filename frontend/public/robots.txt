@@ -1,0 +1,22 @@
+# Edumentor - Robots.txt
+# Allow all search engines to crawl the site
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://edumentor.io.vn/sitemap.xml
+
+# Disallow admin and API endpoints
+Disallow: /api/
+Disallow: /admin/
+
+# Allow all other pages
+Allow: /login
+Allow: /register
+Allow: /dashboard
+Allow: /lessons
+Allow: /quiz
+Allow: /chat
+Allow: /roadmap
+Allow: /career

@@ -30,9 +30,19 @@ const fileFilter = (req, file, cb) => {
     'image/gif',
     'image/bmp',
     'image/tiff',
+    'image/x-tiff',
     'image/webp',
-    'application/pdf'
+    'image/heic',
+    'image/heif',
+    'application/pdf',
+    'application/x-pdf',
+    'application/octet-stream'
   ];
+
+  const allowedExts = [
+    '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tif', '.tiff', '.webp', '.heic', '.heif', '.pdf'
+  ];
+  const fileExt = path.extname(file.originalname || '').toLowerCase();
 
   // Log file info for debugging (hữu ích khi debug qua tunnel)
   console.log('📁 Upload file:', {
@@ -41,11 +51,11 @@ const fileFilter = (req, file, cb) => {
     fieldname: file.fieldname
   });
 
-  if (allowedTypes.includes(file.mimetype)) {
+  if (allowedTypes.includes(file.mimetype) || allowedExts.includes(fileExt)) {
     cb(null, true);
   } else {
     console.warn('❌ File type rejected:', file.mimetype);
-    cb(new Error(`File type not allowed. Allowed types: ${allowedTypes.join(', ')}`), false);
+    cb(new Error(`File type not allowed. Allowed extensions: ${allowedExts.join(', ')}`), false);
   }
 };
 

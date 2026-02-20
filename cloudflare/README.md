@@ -58,8 +58,10 @@ cloudflared tunnel --config D:\AII\cloudflare\config-production.yml run edumento
 
 **Cách 2: Chạy tất cả bằng script**
 ```powershell
-D:\AII\cloudflare\start-all.bat
+D:\AII\start.bat
 ```
+
+`start.bat` sẽ chạy localhost + Cloudflare Tunnel + Celery.
 
 ## Cài đặt Tunnel như Windows Service (Chạy tự động)
 

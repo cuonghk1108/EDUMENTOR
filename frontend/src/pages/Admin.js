@@ -26,7 +26,10 @@ import {
   ClockIcon,
   UserGroupIcon,
   SparklesIcon,
-  ShieldCheckIcon
+  ShieldCheckIcon,
+  MapIcon,
+  DocumentTextIcon,
+  CircleStackIcon
 } from '@heroicons/react/24/outline';
 
 // Tab Components
@@ -35,6 +38,10 @@ const tabs = [
   { id: 'users', name: 'Người dùng', icon: UsersIcon },
   { id: 'lessons', name: 'Bài học', icon: BookOpenIcon },
   { id: 'quizzes', name: 'Quiz', icon: ClipboardDocumentListIcon },
+  { id: 'chats', name: 'Chat History', icon: ChatBubbleLeftRightIcon },
+  { id: 'roadmaps', name: 'Roadmaps', icon: MapIcon },
+  { id: 'logs', name: 'System Logs', icon: DocumentTextIcon },
+  { id: 'database', name: 'Database', icon: CircleStackIcon },
   { id: 'settings', name: 'Cài đặt', icon: Cog6ToothIcon },
 ];
 
@@ -263,6 +270,59 @@ const UsersTab = () => {
     }
   );
 
+  const blockMutation = useMutation(
+    ({ userId, isBlocked }) => adminAPI.blockUser(userId, isBlocked),
+    {
+      onSuccess: (response) => {
+        toast.success(response?.data?.message || 'Cập nhật trạng thái thành công');
+        queryClient.invalidateQueries('adminUsers');
+        queryClient.invalidateQueries(['adminUserDetails', selectedUser]);
+      },
+      onError: (error) => {
+        toast.error(error.response?.data?.error || 'Không thể cập nhật trạng thái');
+      }
+    }
+  );
+
+  const resetPasswordMutation = useMutation(
+    ({ userId, newPassword }) => adminAPI.resetUserPassword(userId, newPassword),
+    {
+      onSuccess: (response) => {
+        toast.success(response?.data?.message || 'Đã reset mật khẩu');
+      },
+      onError: (error) => {
+        toast.error(error.response?.data?.error || 'Không thể reset mật khẩu');
+      }
+    }
+  );
+
+  const deleteUserDataMutation = useMutation(
+    (userId) => adminAPI.deleteAllUserData(userId),
+    {
+      onSuccess: (response) => {
+        toast.success(response?.data?.message || 'Đã xóa dữ liệu người dùng');
+        queryClient.invalidateQueries(['adminUserDetails', selectedUser]);
+      },
+      onError: (error) => {
+        toast.error(error.response?.data?.error || 'Không thể xóa dữ liệu người dùng');
+      }
+    }
+  );
+
+  const changeRoleMutation = useMutation(
+    ({ userId, role }) => adminAPI.changeUserRole(userId, role),
+    {
+      onSuccess: (response) => {
+        toast.success(response?.data?.message || 'Đã thay đổi quyền');
+        queryClient.invalidateQueries('adminUsers');
+        queryClient.invalidateQueries(['adminUserDetails', selectedUser]);
+      },
+      onError: (error) => {
+        toast.error(error.response?.data?.error || 'Không thể đổi quyền');
+      }
+    }
+  );
+
   if (isLoading) return <LoadingSpinner />;
   if (error) return <ErrorMessage message={error.message} />;
 
@@ -387,6 +447,16 @@ const UsersTab = () => {
             isLoading={detailsLoading}
             onClose={() => setSelectedUser(null)}
             onUpdate={(data) => updateMutation.mutate({ userId: selectedUser, data })}
+            onToggleBlock={(isBlocked) => blockMutation.mutate({ userId: selectedUser, isBlocked })}
+            onResetPassword={(newPassword) => resetPasswordMutation.mutate({ userId: selectedUser, newPassword })}
+            onDeleteAllData={() => deleteUserDataMutation.mutate(selectedUser)}
+            onChangeRole={(role) => changeRoleMutation.mutate({ userId: selectedUser, role })}
+            isActionLoading={
+              blockMutation.isLoading ||
+              resetPasswordMutation.isLoading ||
+              deleteUserDataMutation.isLoading ||
+              changeRoleMutation.isLoading
+            }
           />
         )}
       </AnimatePresence>
@@ -411,14 +481,32 @@ const UsersTab = () => {
 };
 
 // User Details Modal - Dark Theme
-const UserDetailsModal = ({ userId, userDetails, isLoading, onClose, onUpdate }) => {
+const UserDetailsModal = ({
+  userId,
+  userDetails,
+  isLoading,
+  onClose,
+  onUpdate,
+  onToggleBlock,
+  onResetPassword,
+  onDeleteAllData,
+  onChangeRole,
+  isActionLoading
+}) => {
   const [editMode, setEditMode] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     role: 'user',
     isBlocked: false
   });
+
+  const { data: activityData } = useQuery(
+    ['adminUserActivity', userId],
+    () => adminAPI.getUserActivityLog(userId, 10),
+    { enabled: !!userId }
+  );
 
   React.useEffect(() => {
     if (userDetails?.user) {
@@ -568,6 +656,82 @@ const UserDetailsModal = ({ userId, userDetails, isLoading, onClose, onUpdate })
               <div className="p-4 bg-orange-500/10 rounded-xl border border-orange-500/20 text-center">
                 <div className="text-2xl font-bold text-orange-400">{userDetails?.stats?.avgScore || 0}%</div>
                 <div className="text-xs text-gray-400 mt-1">Điểm TB</div>
+              </div>
+            </div>
+
+            {/* Advanced Actions */}
+            <div className="bg-white/5 rounded-2xl border border-white/10 p-4 space-y-4">
+              <h5 className="font-medium text-white">Can thiệp nâng cao</h5>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <button
+                  onClick={() => onToggleBlock(!userDetails?.user?.isBlocked)}
+                  disabled={isActionLoading || userDetails?.user?.role === 'admin'}
+                  className={`px-4 py-2.5 rounded-xl font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                    userDetails?.user?.isBlocked
+                      ? 'bg-green-500/20 text-green-300 border border-green-500/30 hover:bg-green-500/30'
+                      : 'bg-red-500/20 text-red-300 border border-red-500/30 hover:bg-red-500/30'
+                  }`}
+                >
+                  {userDetails?.user?.isBlocked ? 'Bỏ chặn tài khoản' : 'Chặn tài khoản'}
+                </button>
+
+                <button
+                  onClick={() => {
+                    const nextRole = userDetails?.user?.role === 'admin' ? 'user' : 'admin';
+                    onChangeRole(nextRole);
+                  }}
+                  disabled={isActionLoading}
+                  className="px-4 py-2.5 rounded-xl font-medium bg-purple-500/20 text-purple-300 border border-purple-500/30 hover:bg-purple-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {userDetails?.user?.role === 'admin' ? 'Hạ quyền về user' : 'Nâng quyền admin'}
+                </button>
+              </div>
+
+              <div className="flex flex-col md:flex-row gap-3">
+                <input
+                  type="text"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Mật khẩu mới (>= 6 ký tự)"
+                  className="flex-1 px-4 py-2.5 bg-gray-900 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50"
+                />
+                <button
+                  onClick={() => {
+                    if (newPassword.length < 6) return toast.error('Mật khẩu phải >= 6 ký tự');
+                    onResetPassword(newPassword);
+                    setNewPassword('');
+                  }}
+                  disabled={isActionLoading}
+                  className="px-4 py-2.5 rounded-xl font-medium bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Reset mật khẩu
+                </button>
+              </div>
+
+              <button
+                onClick={onDeleteAllData}
+                disabled={isActionLoading}
+                className="w-full px-4 py-2.5 rounded-xl font-medium bg-rose-500/20 text-rose-300 border border-rose-500/30 hover:bg-rose-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Xóa toàn bộ dữ liệu user (lessons/quizzes/chats/roadmaps)
+              </button>
+            </div>
+
+            {/* User Activity Logs */}
+            <div className="bg-white/5 rounded-2xl border border-white/10 p-4">
+              <h5 className="font-medium text-white mb-3">Hoạt động gần đây</h5>
+              <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                {(activityData?.data?.logs || []).length === 0 ? (
+                  <p className="text-sm text-gray-500">Chưa có log hoạt động</p>
+                ) : (
+                  (activityData?.data?.logs || []).map((log, index) => (
+                    <div key={`${log.id || log._id || index}`} className="p-3 bg-gray-900/60 rounded-xl border border-white/5">
+                      <p className="text-sm text-white">{log.type || log.action || 'activity'}</p>
+                      <p className="text-xs text-gray-500 mt-1">{new Date(log.createdAt).toLocaleString('vi-VN')}</p>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
 
@@ -1043,6 +1207,468 @@ const ErrorMessage = ({ message }) => (
   </div>
 );
 
+// Chats Tab - Dark Theme
+const ChatsTab = () => {
+  const queryClient = useQueryClient();
+  const [page, setPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+
+  const { data, isLoading } = useQuery(['adminChats', page, searchQuery], () => 
+    adminAPI.getChats({ page, limit: 20, userId: searchQuery })
+  );
+
+  const deleteMutation = useMutation(adminAPI.deleteChat, {
+    onSuccess: () => {
+      queryClient.invalidateQueries('adminChats');
+      toast.success('Chat đã được xóa');
+      setDeleteConfirm(null);
+    }
+  });
+
+  if (isLoading) return <LoadingSpinner />;
+
+  const chats = data?.data?.chats || [];
+  const pagination = data?.data?.pagination || {};
+
+  return (
+    <div className="space-y-6">
+      {/* Search Bar */}
+      <div className="flex gap-4">
+        <div className="flex-1 relative">
+          <MagnifyingGlassIcon className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
+          <input
+            type="text"
+            placeholder="Tìm theo User ID hoặc Email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-12 pr-4 py-3 bg-gray-900 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+          />
+        </div>
+      </div>
+
+      {/* Chats Table */}
+      <div className="bg-gray-900 rounded-2xl border border-white/10 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-white/5">
+              <tr>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-400">User</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-400">Nội dung</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-400">Ngày tạo</th>
+                <th className="px-6 py-4 text-right text-sm font-semibold text-gray-400">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {chats.map((chat) => (
+                <tr key={chat.id} className="hover:bg-white/5 transition-colors">
+                  <td className="px-6 py-4">
+                    <div>
+                      <p className="text-white font-medium">{chat.userName}</p>
+                      <p className="text-sm text-gray-500">{chat.userEmail}</p>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <p className="text-gray-400 text-sm truncate max-w-md">
+                      {chat.messages?.[0]?.content || 'No content'}
+                    </p>
+                  </td>
+                  <td className="px-6 py-4">
+                    <p className="text-gray-400 text-sm">
+                      {new Date(chat.createdAt).toLocaleString('vi-VN')}
+                    </p>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => setDeleteConfirm(chat)}
+                        className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
+                      >
+                        <TrashIcon className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        {pagination.pages > 1 && (
+          <div className="px-6 py-4 border-t border-white/5 flex items-center justify-between">
+            <p className="text-sm text-gray-500">
+              Trang {pagination.page} / {pagination.pages} - Tổng {pagination.total}
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Trước
+              </button>
+              <button
+                onClick={() => setPage(p => Math.min(pagination.pages, p + 1))}
+                disabled={page === pagination.pages}
+                className="px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Sau
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Delete Confirmation */}
+      <AnimatePresence>
+        {deleteConfirm && (
+          <DeleteModal
+            title="Xóa Chat"
+            message={`Bạn có chắc muốn xóa chat này?`}
+            onConfirm={() => deleteMutation.mutate(deleteConfirm.id)}
+            onCancel={() => setDeleteConfirm(null)}
+            isLoading={deleteMutation.isLoading}
+          />
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// Roadmaps Tab - Dark Theme
+const RoadmapsTab = () => {
+  const queryClient = useQueryClient();
+  const [page, setPage] = useState(1);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+
+  const { data, isLoading } = useQuery(['adminRoadmaps', page], () => 
+    adminAPI.getRoadmaps({ page, limit: 20 })
+  );
+
+  const deleteMutation = useMutation(adminAPI.deleteRoadmap, {
+    onSuccess: () => {
+      queryClient.invalidateQueries('adminRoadmaps');
+      toast.success('Roadmap đã được xóa');
+      setDeleteConfirm(null);
+    }
+  });
+
+  if (isLoading) return <LoadingSpinner />;
+
+  const roadmaps = data?.data?.roadmaps || [];
+  const pagination = data?.data?.pagination || {};
+
+  return (
+    <div className="space-y-6">
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <StatCard
+          title="Tổng Roadmaps"
+          value={pagination.total || 0}
+          icon={MapIcon}
+          color="purple"
+        />
+      </div>
+
+      {/* Roadmaps Table */}
+      <div className="bg-gray-900 rounded-2xl border border-white/10 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-white/5">
+              <tr>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-400">User</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-400">Career</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-400">Timeline</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-400">Ngày tạo</th>
+                <th className="px-6 py-4 text-right text-sm font-semibold text-gray-400">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {roadmaps.map((roadmap) => (
+                <tr key={roadmap.id} className="hover:bg-white/5 transition-colors">
+                  <td className="px-6 py-4">
+                    <div>
+                      <p className="text-white font-medium">{roadmap.userName}</p>
+                      <p className="text-sm text-gray-500">{roadmap.userEmail}</p>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <p className="text-gray-300">{roadmap.career || 'N/A'}</p>
+                  </td>
+                  <td className="px-6 py-4">
+                    <p className="text-gray-400 text-sm">{roadmap.timeline || 'N/A'}</p>
+                  </td>
+                  <td className="px-6 py-4">
+                    <p className="text-gray-400 text-sm">
+                      {new Date(roadmap.createdAt).toLocaleString('vi-VN')}
+                    </p>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => setDeleteConfirm(roadmap)}
+                        className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
+                      >
+                        <TrashIcon className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        {pagination.pages > 1 && (
+          <div className="px-6 py-4 border-t border-white/5 flex items-center justify-between">
+            <p className="text-sm text-gray-500">
+              Trang {pagination.page} / {pagination.pages}
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Trước
+              </button>
+              <button
+                onClick={() => setPage(p => Math.min(pagination.pages, p + 1))}
+                disabled={page === pagination.pages}
+                className="px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Sau
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Delete Confirmation */}
+      <AnimatePresence>
+        {deleteConfirm && (
+          <DeleteModal
+            title="Xóa Roadmap"
+            message="Bạn có chắc muốn xóa roadmap này?"
+            onConfirm={() => deleteMutation.mutate(deleteConfirm.id)}
+            onCancel={() => setDeleteConfirm(null)}
+            isLoading={deleteMutation.isLoading}
+          />
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// System Logs Tab - Dark Theme
+const LogsTab = () => {
+  const [page, setPage] = useState(1);
+  const [typeFilter, setTypeFilter] = useState('');
+
+  const { data, isLoading } = useQuery(['adminLogs', page, typeFilter], () => 
+    adminAPI.getLogs({ page, limit: 50, type: typeFilter })
+  );
+
+  if (isLoading) return <LoadingSpinner />;
+
+  const logs = data?.data?.logs || [];
+  const pagination = data?.data?.pagination || {};
+
+  const typeColors = {
+    info: 'text-blue-400 bg-blue-500/20',
+    warning: 'text-yellow-400 bg-yellow-500/20',
+    error: 'text-red-400 bg-red-500/20',
+    success: 'text-green-400 bg-green-500/20'
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Filter */}
+      <div className="flex gap-4">
+        <select
+          value={typeFilter}
+          onChange={(e) => setTypeFilter(e.target.value)}
+          className="px-4 py-3 bg-gray-900 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+        >
+          <option value="">Tất cả loại</option>
+          <option value="info">Info</option>
+          <option value="warning">Warning</option>
+          <option value="error">Error</option>
+          <option value="success">Success</option>
+        </select>
+      </div>
+
+      {/* Logs List */}
+      <div className="bg-gray-900 rounded-2xl border border-white/10 overflow-hidden">
+        <div className="divide-y divide-white/5 max-h-[600px] overflow-y-auto">
+          {logs.map((log, index) => (
+            <div key={index} className="p-4 hover:bg-white/5 transition-colors">
+              <div className="flex items-start gap-4">
+                <span className={`px-2 py-1 text-xs font-medium rounded-lg ${typeColors[log.type] || typeColors.info}`}>
+                  {log.type || 'info'}
+                </span>
+                <div className="flex-1">
+                  <p className="text-white font-medium">{log.message || log.action}</p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    User: {log.userId} - {new Date(log.createdAt).toLocaleString('vi-VN')}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Pagination */}
+        {pagination.pages > 1 && (
+          <div className="px-6 py-4 border-t border-white/5 flex items-center justify-between">
+            <p className="text-sm text-gray-500">
+              Trang {pagination.page} / {pagination.pages}
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Trước
+              </button>
+              <button
+                onClick={() => setPage(p => Math.min(pagination.pages, p + 1))}
+                disabled={page === pagination.pages}
+                className="px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Sau
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Database Tab - Dark Theme
+const DatabaseTab = () => {
+  const queryClient = useQueryClient();
+  const [cleanDays, setCleanDays] = useState(90);
+
+  const { data: dbStats, isLoading } = useQuery('adminDatabaseStats', adminAPI.getDatabaseStats);
+
+  const cleanMutation = useMutation(adminAPI.cleanDatabase, {
+    onSuccess: (data) => {
+      queryClient.invalidateQueries('adminDatabaseStats');
+      toast.success(`Đã xóa ${data.data.deletedCount} bản ghi cũ`);
+    }
+  });
+
+  if (isLoading) return <LoadingSpinner />;
+
+  const stats = dbStats?.data?.stats || {};
+  const collections = stats.collections || {};
+
+  return (
+    <div className="space-y-6">
+      {/* Database Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <StatCard
+          title="Users"
+          value={collections.users || 0}
+          icon={UsersIcon}
+          color="blue"
+        />
+        <StatCard
+          title="Lessons"
+          value={collections.lessons || 0}
+          icon={BookOpenIcon}
+          color="green"
+        />
+        <StatCard
+          title="Quizzes"
+          value={collections.quizzes || 0}
+          icon={ClipboardDocumentListIcon}
+          color="purple"
+        />
+        <StatCard
+          title="Chats"
+          value={collections.chats || 0}
+          icon={ChatBubbleLeftRightIcon}
+          color="orange"
+        />
+      </div>
+
+      {/* Additional Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <StatCard
+          title="Roadmaps"
+          value={collections.roadmaps || 0}
+          icon={MapIcon}
+          color="cyan"
+        />
+        <StatCard
+          title="Activity Logs"
+          value={collections.activityLogs || 0}
+          icon={DocumentTextIcon}
+          color="blue"
+        />
+        <StatCard
+          title="Learning Stats"
+          value={collections.learningStats || 0}
+          icon={ChartBarIcon}
+          color="green"
+        />
+      </div>
+
+      {/* System Info */}
+      <div className="bg-gray-900 rounded-2xl border border-white/10 p-6">
+        <h3 className="text-lg font-semibold text-white mb-4">System Information</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <p className="text-sm text-gray-500">Uptime</p>
+            <p className="text-white font-mono">
+              {Math.floor((stats.uptime || 0) / 3600)}h {Math.floor(((stats.uptime || 0) % 3600) / 60)}m
+            </p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Memory Usage</p>
+            <p className="text-white font-mono">
+              {((stats.memory?.heapUsed || 0) / 1024 / 1024).toFixed(2)} MB
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Database Cleanup */}
+      <div className="bg-gray-900 rounded-2xl border border-white/10 p-6">
+        <h3 className="text-lg font-semibold text-white mb-4">Database Cleanup</h3>
+        <p className="text-gray-400 text-sm mb-4">
+          Xóa dữ liệu cũ để tối ưu database (activity logs, failed audio, v.v.)
+        </p>
+        <div className="flex items-center gap-4">
+          <input
+            type="number"
+            value={cleanDays}
+            onChange={(e) => setCleanDays(parseInt(e.target.value))}
+            min="30"
+            max="365"
+            className="w-32 px-4 py-2 bg-gray-800 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+          />
+          <span className="text-gray-400">ngày</span>
+          <button
+            onClick={() => cleanMutation.mutate(cleanDays)}
+            disabled={cleanMutation.isLoading}
+            className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-purple-500/25 transition-all flex items-center gap-2 disabled:opacity-50"
+          >
+            {cleanMutation.isLoading && <ArrowPathIcon className="w-4 h-4 animate-spin" />}
+            Clean Database
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Main Admin Page - Dark Theme
 const Admin = () => {
   const { user } = useAuth();
@@ -1087,6 +1713,14 @@ const Admin = () => {
         return <LessonsTab />;
       case 'quizzes':
         return <QuizzesTab />;
+      case 'chats':
+        return <ChatsTab />;
+      case 'roadmaps':
+        return <RoadmapsTab />;
+      case 'logs':
+        return <LogsTab />;
+      case 'database':
+        return <DatabaseTab />;
       case 'settings':
         return <SettingsTab />;
       default:

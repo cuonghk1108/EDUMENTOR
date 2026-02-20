@@ -49,7 +49,6 @@ const Chat = () => {
       const tempWithImages = prev.filter(m => m.id?.startsWith('temp-') && m.imagePreview);
       
       // Merge: history first, then any remaining temp messages with images
-      const historyIds = new Set(history.map(h => h.id));
       const remainingTemp = tempWithImages.filter(t => {
         // Check if this temp message content exists in history
         return !history.some(h => h.content === t.content && h.role === 'user');

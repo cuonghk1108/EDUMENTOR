@@ -97,7 +97,7 @@ export const AuthProvider = ({ children }) => {
         // ID token flow
         response = await api.post('/auth/google', { credential });
       }
-      const { user, token } = response.data;
+      const { user, token, needsProfileCompletion } = response.data;
       
       // Save to state and localStorage
       setUser(user);
@@ -105,10 +105,17 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
       
+      // Save profile completion flag
+      if (needsProfileCompletion) {
+        localStorage.setItem('needsProfileCompletion', 'true');
+      } else {
+        localStorage.removeItem('needsProfileCompletion');
+      }
+      
       // Set auth header
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       
-      return { success: true, user };
+      return { success: true, user, needsProfileCompletion };
     } catch (error) {
       const message = error.response?.data?.error || 'Đăng nhập Google thất bại';
       return { success: false, error: message };
@@ -147,6 +154,23 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Complete profile after Google OAuth (new users)
+  const completeProfile = async (data) => {
+    try {
+      const response = await api.post('/auth/complete-profile', data);
+      const updatedUser = response.data.user;
+      
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      localStorage.removeItem('needsProfileCompletion');
+      
+      return { success: true, user: updatedUser };
+    } catch (error) {
+      const message = error.response?.data?.error || 'Cập nhật thất bại';
+      return { success: false, error: message };
+    }
+  };
+
   const value = {
     user,
     token,
@@ -156,6 +180,7 @@ export const AuthProvider = ({ children }) => {
     googleLogin,
     logout,
     updateProfile,
+    completeProfile,
     isAuthenticated: !!user
   };
 

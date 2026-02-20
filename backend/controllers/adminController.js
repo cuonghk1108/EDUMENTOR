@@ -345,6 +345,207 @@ exports.deleteUser = async (req, res) => {
   }
 };
 
+/**
+ * Block/Unblock user
+ */
+exports.toggleBlockUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { isBlocked } = req.body;
+
+    const user = await userService.getById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'Không tìm thấy người dùng' });
+    }
+
+    if (user.role === 'admin') {
+      return res.status(403).json({ error: 'Không thể block admin' });
+    }
+
+    await userService.update(userId, { 
+      isBlocked,
+      blockedAt: isBlocked ? new Date() : null 
+    });
+
+    await activityLogService.log(req.userId, {
+      type: isBlocked ? 'admin_block_user' : 'admin_unblock_user',
+      targetUserId: userId
+    });
+
+    res.json({
+      success: true,
+      message: isBlocked ? 'Đã chặn người dùng' : 'Đã bỏ chặn người dùng'
+    });
+  } catch (error) {
+    console.error('Toggle block user error:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/**
+ * Reset user password (admin generates new password)
+ */
+exports.resetUserPassword = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { newPassword } = req.body;
+
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ error: 'Mật khẩu phải có ít nhất 6 ký tự' });
+    }
+
+    const user = await userService.getById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'Không tìm thấy người dùng' });
+    }
+
+    const bcrypt = require('bcrypt');
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await userService.update(userId, { 
+      password: hashedPassword,
+      passwordChangedAt: new Date()
+    });
+
+    await activityLogService.log(req.userId, {
+      type: 'admin_reset_user_password',
+      targetUserId: userId
+    });
+
+    res.json({
+      success: true,
+      message: 'Đã reset mật khẩu người dùng',
+      newPassword // Send back to admin
+    });
+  } catch (error) {
+    console.error('Reset user password error:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/**
+ * Delete all user data (lessons, quizzes, chats, roadmaps)
+ */
+exports.deleteAllUserData = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await userService.getById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'Không tìm thấy người dùng' });
+    }
+
+    // Get all user data
+    const [lessons, quizzes, chats, roadmaps, stats] = await Promise.all([
+      lessonService.getByUserId(userId),
+      quizService.getByUserId(userId),
+      chatHistoryService.getByUserId(userId),
+      roadmapService.getByUserId(userId),
+      learningStatsService.getByUserId(userId)
+    ]);
+
+    // Delete all data
+    await Promise.all([
+      ...lessons.map(l => lessonService.delete(l.id)),
+      ...quizzes.map(q => quizService.delete(q.id)),
+      ...chats.map(c => chatHistoryService.delete(c.id)),
+      ...roadmaps.map(r => roadmapService.delete(r.id)),
+      stats?.id ? learningStatsService.delete(stats.id) : Promise.resolve()
+    ]);
+
+    const totalDeleted = lessons.length + quizzes.length + chats.length + roadmaps.length;
+
+    await activityLogService.log(req.userId, {
+      type: 'admin_delete_all_user_data',
+      targetUserId: userId,
+      deletedCount: totalDeleted
+    });
+
+    res.json({
+      success: true,
+      message: 'Đã xóa toàn bộ dữ liệu người dùng',
+      deleted: {
+        lessons: lessons.length,
+        quizzes: quizzes.length,
+        chats: chats.length,
+        roadmaps: roadmaps.length,
+        total: totalDeleted
+      }
+    });
+  } catch (error) {
+    console.error('Delete all user data error:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/**
+ * Get user activity log
+ */
+exports.getUserActivityLog = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { limit = 50 } = req.query;
+
+    const user = await userService.getById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'Không tìm thấy người dùng' });
+    }
+
+    let logs = await activityLogService.getAll();
+    logs = logs.filter(l => l.userId === userId);
+    logs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    logs = logs.slice(0, parseInt(limit));
+
+    res.json({
+      success: true,
+      logs,
+      total: logs.length
+    });
+  } catch (error) {
+    console.error('Get user activity log error:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/**
+ * Change user role (user <-> admin)
+ */
+exports.changeUserRole = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { role } = req.body;
+
+    if (!['user', 'admin'].includes(role)) {
+      return res.status(400).json({ error: 'Role không hợp lệ' });
+    }
+
+    const user = await userService.getById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'Không tìm thấy người dùng' });
+    }
+
+    await userService.update(userId, { 
+      role,
+      roleChangedAt: new Date()
+    });
+
+    await activityLogService.log(req.userId, {
+      type: 'admin_change_user_role',
+      targetUserId: userId,
+      oldRole: user.role,
+      newRole: role
+    });
+
+    res.json({
+      success: true,
+      message: `Đã thay đổi role thành ${role}`
+    });
+  } catch (error) {
+    console.error('Change user role error:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 // ============================================
 // LESSON MANAGEMENT
 // ============================================
@@ -613,6 +814,269 @@ exports.getSubjects = async (req, res) => {
     });
   } catch (error) {
     console.error('Get subjects error:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// ============================================
+// CHAT HISTORY MANAGEMENT
+// ============================================
+
+/**
+ * Get all chat histories
+ */
+exports.getChats = async (req, res) => {
+  try {
+    const { page = 1, limit = 50, userId = '' } = req.query;
+
+    let chats = await chatHistoryService.getAll();
+
+    // Filter by userId if provided
+    if (userId) {
+      chats = chats.filter(c => c.userId === userId);
+    }
+
+    // Sort by date (newest first)
+    chats.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    // Get user info for each chat
+    const chatsWithUsers = await Promise.all(chats.map(async (chat) => {
+      const user = await userService.getById(chat.userId);
+      return {
+        ...chat,
+        userName: user?.name || 'Unknown',
+        userEmail: user?.email || 'N/A'
+      };
+    }));
+
+    // Paginate
+    const total = chatsWithUsers.length;
+    const startIndex = (page - 1) * limit;
+    const paginatedChats = chatsWithUsers.slice(startIndex, startIndex + parseInt(limit));
+
+    res.json({
+      success: true,
+      chats: paginatedChats,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Get chats error:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/**
+ * Delete a chat
+ */
+exports.deleteChat = async (req, res) => {
+  try {
+    const { chatId } = req.params;
+    await chatHistoryService.delete(chatId);
+    
+    res.json({
+      success: true,
+      message: 'Chat deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete chat error:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/**
+ * Delete all chats of a user
+ */
+exports.deleteUserChats = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const chats = await chatHistoryService.getByUserId(userId);
+    
+    await Promise.all(chats.map(chat => chatHistoryService.delete(chat.id)));
+    
+    res.json({
+      success: true,
+      message: `Deleted ${chats.length} chats`,
+      count: chats.length
+    });
+  } catch (error) {
+    console.error('Delete user chats error:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// ============================================
+// ROADMAP MANAGEMENT
+// ============================================
+
+/**
+ * Get all roadmaps
+ */
+exports.getRoadmaps = async (req, res) => {
+  try {
+    const { page = 1, limit = 50, userId = '' } = req.query;
+
+    let roadmaps = await roadmapService.getAll();
+
+    // Filter by userId if provided
+    if (userId) {
+      roadmaps = roadmaps.filter(r => r.userId === userId);
+    }
+
+    // Sort by date (newest first)
+    roadmaps.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    // Get user info for each roadmap
+    const roadmapsWithUsers = await Promise.all(roadmaps.map(async (roadmap) => {
+      const user = await userService.getById(roadmap.userId);
+      return {
+        ...roadmap,
+        userName: user?.name || 'Unknown',
+        userEmail: user?.email || 'N/A'
+      };
+    }));
+
+    // Paginate
+    const total = roadmapsWithUsers.length;
+    const startIndex = (page - 1) * limit;
+    const paginatedRoadmaps = roadmapsWithUsers.slice(startIndex, startIndex + parseInt(limit));
+
+    res.json({
+      success: true,
+      roadmaps: paginatedRoadmaps,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Get roadmaps error:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/**
+ * Delete a roadmap
+ */
+exports.deleteRoadmap = async (req, res) => {
+  try {
+    const { roadmapId } = req.params;
+    await roadmapService.delete(roadmapId);
+    
+    res.json({
+      success: true,
+      message: 'Roadmap deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete roadmap error:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// ============================================
+// DATABASE MANAGEMENT
+// ============================================
+
+/**
+ * Clean old data
+ */
+exports.cleanDatabase = async (req, res) => {
+  try {
+    const { days = 90 } = req.body; // Delete data older than X days
+    const cutoffDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+    let deletedCount = 0;
+
+    // Clean old activity logs
+    const logs = await activityLogService.getAll();
+    const oldLogs = logs.filter(l => new Date(l.createdAt) < cutoffDate);
+    await Promise.all(oldLogs.map(l => activityLogService.delete(l.id)));
+    deletedCount += oldLogs.length;
+
+    // Clean old audio history (optional, chỉ xóa những thất bại)
+    const audioHistory = await audioHistoryService.getAll();
+    const failedAudio = audioHistory.filter(a => a.status === 'failed' && new Date(a.createdAt) < cutoffDate);
+    await Promise.all(failedAudio.map(a => audioHistoryService.delete(a.id)));
+    deletedCount += failedAudio.length;
+
+    res.json({
+      success: true,
+      message: `Cleaned ${deletedCount} old records`,
+      deletedCount
+    });
+  } catch (error) {
+    console.error('Clean database error:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/**
+ * Get database stats
+ */
+exports.getDatabaseStats = async (req, res) => {
+  try {
+    const [users, lessons, quizzes, chats, roadmaps, logs, audioHistory, learningStats] = await Promise.all([
+      userService.getAll(),
+      lessonService.getAll(),
+      quizService.getAll(),
+      chatHistoryService.getAll(),
+      roadmapService.getAll(),
+      activityLogService.getAll(),
+      audioHistoryService.getAll(),
+      learningStatsService.getAll()
+    ]);
+
+    const stats = {
+      collections: {
+        users: users.length,
+        lessons: lessons.length,
+        quizzes: quizzes.length,
+        chats: chats.length,
+        roadmaps: roadmaps.length,
+        activityLogs: logs.length,
+        audioHistory: audioHistory.length,
+        learningStats: learningStats.length
+      },
+      memory: process.memoryUsage(),
+      uptime: process.uptime()
+    };
+
+    res.json({
+      success: true,
+      stats
+    });
+  } catch (error) {
+    console.error('Get database stats error:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// ============================================
+// SYSTEM SETTINGS
+// ============================================
+
+/**
+ * Update system settings
+ */
+exports.updateSettings = async (req, res) => {
+  try {
+    const settings = req.body;
+    
+    // In production, save to database
+    // For now, just return success
+    res.json({
+      success: true,
+      message: 'Settings updated successfully',
+      settings
+    });
+  } catch (error) {
+    console.error('Update settings error:', error);
     res.status(500).json({ error: error.message });
   }
 };

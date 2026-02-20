@@ -2,23 +2,24 @@ const aiService = require('../services/aiService');
 const { quizService, learningStatsService } = require('../services/firebaseService');
 
 /**
- * Generate quiz from text content
+ * Generate quiz from text content (20 questions)
  */
 exports.generateQuiz = async (req, res) => {
   try {
-    const { text, count, topic, lessonId } = req.body;
+    const { text, topic, lessonId } = req.body;
     const userId = req.userId;
 
     if (!text) {
       return res.status(400).json({ error: 'Vui lòng cung cấp nội dung' });
     }
 
-    const questionCount = parseInt(count) || 5;
+    // Always generate 20 questions
+    const questionCount = 20;
 
     // Generate quiz using AI
     const result = await aiService.generateQuiz(text, questionCount);
 
-    // Save quiz to database
+    // Save quiz to database with regeneration tracking
     const quizData = {
       userId,
       lessonId: lessonId || null,
@@ -33,6 +34,8 @@ exports.generateQuiz = async (req, res) => {
     res.json({
       success: true,
       quiz: savedQuiz,
+      version: 1,
+      totalRegenerations: 1,
       usage: result.usage
     });
   } catch (error) {
@@ -222,3 +225,107 @@ exports.getQuizResult = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+/**
+ * Regenerate quiz with 20 new questions (different from previous versions)
+ */
+exports.regenerateQuiz = async (req, res) => {
+  try {
+    const { quizId, text } = req.body;
+    const userId = req.userId;
+
+    if (!quizId || !text) {
+      return res.status(400).json({ error: 'Vui lòng cung cấp quizId và nội dung' });
+    }
+
+    // Get existing quiz
+    const quiz = await quizService.getById(quizId);
+    if (!quiz) {
+      return res.status(404).json({ error: 'Không tìm thấy quiz' });
+    }
+
+    // Verify ownership
+    if (quiz.userId !== userId) {
+      return res.status(403).json({ error: 'Không có quyền truy cập quiz này' });
+    }
+
+    // Generate 20 new questions
+    const result = await aiService.generateQuiz(text, 20);
+
+    // Get regeneration history to ensure uniqueness
+    const history = await quizService.getRegenerationHistory(quizId);
+    
+    // Check if new questions are different from previous versions
+    const newQuestionTexts = new Set(result.quiz.questions.map(q => q.question));
+    let isDifferent = true;
+
+    if (history && history.regenerations) {
+      for (const regen of history.regenerations) {
+        const oldQuestionTexts = new Set(regen.questions.map(q => q.question));
+        const intersection = new Set([...newQuestionTexts].filter(x => oldQuestionTexts.has(x)));
+        
+        // If more than 30% of questions are the same, regenerate again
+        if (intersection.size > result.quiz.questions.length * 0.3) {
+          isDifferent = false;
+          break;
+        }
+      }
+    }
+
+    // If questions are too similar to previous versions, try again
+    if (!isDifferent) {
+      const retryResult = await aiService.generateQuiz(
+        `${text}\n\n[YÊU CẦU THÊM]: Tạo câu hỏi HOÀN TOÀN KHÁC với các câu hỏi trước đó, đặc biệt về cách phát biểu và nội dung cụ thể.`,
+        20
+      );
+      result.quiz = retryResult.quiz;
+    }
+
+    // Add new regeneration to quiz
+    const updatedQuiz = await quizService.addRegeneration(quizId, result.quiz.questions);
+
+    res.json({
+      success: true,
+      quiz: updatedQuiz,
+      version: updatedQuiz.currentVersion,
+      totalRegenerations: updatedQuiz.regenerations?.length || 1,
+      message: `Tạo thành công ${result.quiz.questions.length} câu hỏi mới (phiên bản ${updatedQuiz.currentVersion})`,
+      usage: result.usage
+    });
+  } catch (error) {
+    console.error('Regenerate quiz error:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/**
+ * Get quiz regeneration history
+ */
+exports.getRegenerationHistory = async (req, res) => {
+  try {
+    const { quizId } = req.params;
+    const userId = req.userId;
+
+    // Get quiz and verify ownership
+    const quiz = await quizService.getById(quizId);
+    if (!quiz) {
+      return res.status(404).json({ error: 'Không tìm thấy quiz' });
+    }
+
+    if (quiz.userId !== userId) {
+      return res.status(403).json({ error: 'Không có quyền truy cập quiz này' });
+    }
+
+    const history = await quizService.getRegenerationHistory(quizId);
+
+    res.json({
+      success: true,
+      history,
+      currentVersion: quiz.currentVersion || 1
+    });
+  } catch (error) {
+    console.error('Get regeneration history error:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+

@@ -1,6 +1,30 @@
 const aiService = require('../services/aiService');
 const { lessonService, learningStatsService } = require('../services/firebaseService');
 
+const generateLessonForUser = async ({ userId, text, title, subject, chapter }) => {
+  const result = await aiService.generateLesson(text);
+
+  const lessonData = {
+    userId,
+    title: title || 'Bài học mới',
+    subject: subject || 'Chung',
+    chapter: chapter || '',
+    originalText: text,
+    content: result.content,
+    completed: false,
+    audioGenerated: false,
+    createdAt: new Date()
+  };
+
+  const savedLesson = await lessonService.create(lessonData);
+  await learningStatsService.incrementLessonCount(userId);
+
+  return {
+    lesson: savedLesson,
+    usage: result.usage
+  };
+};
+
 /**
  * Generate lesson from text content
  */
@@ -13,35 +37,41 @@ exports.generateLesson = async (req, res) => {
       return res.status(400).json({ error: 'Vui lòng cung cấp nội dung' });
     }
 
-    // Generate lesson using AI
-    const result = await aiService.generateLesson(text);
-
-    // Save lesson to database
-    const lessonData = {
-      userId,
-      title: title || 'Bài học mới',
-      subject: subject || 'Chung',
-      chapter: chapter || '',
-      originalText: text,
-      content: result.content,
-      completed: false,
-      audioGenerated: false,
-      createdAt: new Date()
-    };
-
-    const savedLesson = await lessonService.create(lessonData);
-
-    // Update learning stats
-    await learningStatsService.incrementLessonCount(userId);
+    const generated = await generateLessonForUser({ userId, text, title, subject, chapter });
 
     res.json({
       success: true,
-      lesson: savedLesson,
-      usage: result.usage
+      lesson: generated.lesson,
+      usage: generated.usage
     });
   } catch (error) {
     console.error('Generate lesson error:', error);
     res.status(500).json({ error: error.message });
+  }
+};
+
+exports.generateLessonInternal = async (req, res) => {
+  try {
+    const { userId, text, title, subject, chapter } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'Thiếu userId' });
+    }
+
+    if (!text || !text.trim()) {
+      return res.status(400).json({ error: 'Vui lòng cung cấp nội dung' });
+    }
+
+    const generated = await generateLessonForUser({ userId, text, title, subject, chapter });
+
+    return res.json({
+      success: true,
+      lesson: generated.lesson,
+      usage: generated.usage
+    });
+  } catch (error) {
+    console.error('Generate lesson internal error:', error);
+    return res.status(500).json({ error: error.message });
   }
 };
 

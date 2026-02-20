@@ -75,7 +75,12 @@ const Login = () => {
         
         if (result.success) {
           toast.success('Đăng nhập Google thành công!');
-          navigate('/dashboard');
+          // Redirect to complete profile if needed
+          if (result.needsProfileCompletion) {
+            navigate('/complete-profile');
+          } else {
+            navigate('/dashboard');
+          }
         } else {
           toast.error(result.error);
         }
@@ -86,6 +91,21 @@ const Login = () => {
     },
     onError: () => {
       toast.error('Đăng nhập Google thất bại');
+      setGoogleLoading(false);
+    },
+    onNonOAuthError: (error) => {
+      setGoogleLoading(false);
+      if (error?.type === 'popup_failed_to_open') {
+        toast.error('Trình duyệt đã chặn popup Google. Hãy cho phép popup và thử lại.');
+        return;
+      }
+
+      if (error?.type === 'popup_closed') {
+        toast.error('Popup Google đã bị đóng trước khi đăng nhập hoàn tất.');
+        return;
+      }
+
+      toast.error('Không thể mở đăng nhập Google. Vui lòng thử lại.');
     }
   });
 
@@ -173,6 +193,11 @@ const Login = () => {
                     {showPassword ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
                   </button>
                 </div>
+                <div className="mt-2 text-right">
+                  <Link to="/forgot-password" className="text-sm text-primary-400 hover:text-primary-300 transition-colors">
+                    Quên mật khẩu?
+                  </Link>
+                </div>
               </div>
 
               <button
@@ -207,7 +232,10 @@ const Login = () => {
             {/* Google Login Button */}
             <motion.button
               type="button"
-              onClick={() => handleGoogleLogin()}
+              onClick={() => {
+                setGoogleLoading(true);
+                handleGoogleLogin();
+              }}
               disabled={googleLoading}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}

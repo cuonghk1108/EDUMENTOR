@@ -95,6 +95,21 @@ const Register = () => {
     },
     onError: () => {
       toast.error('Đăng ký Google thất bại');
+      setGoogleLoading(false);
+    },
+    onNonOAuthError: (error) => {
+      setGoogleLoading(false);
+      if (error?.type === 'popup_failed_to_open') {
+        toast.error('Trình duyệt đã chặn popup Google. Hãy cho phép popup và thử lại.');
+        return;
+      }
+
+      if (error?.type === 'popup_closed') {
+        toast.error('Popup Google đã bị đóng trước khi đăng ký hoàn tất.');
+        return;
+      }
+
+      toast.error('Không thể mở đăng ký Google. Vui lòng thử lại.');
     }
   });
 
@@ -214,7 +229,10 @@ const Register = () => {
               {/* Google Register Button */}
               <motion.button
                 type="button"
-                onClick={() => handleGoogleRegister()}
+                onClick={() => {
+                  setGoogleLoading(true);
+                  handleGoogleRegister();
+                }}
                 disabled={googleLoading}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}

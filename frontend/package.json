@@ -10,6 +10,8 @@
     "axios": "^1.6.2",
     "framer-motion": "^10.16.16",
     "katex": "^0.16.28",
+    "mathjax": "^4.1.1",
+    "mathjs": "^15.1.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hot-toast": "^2.4.1",

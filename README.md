@@ -1,455 +1,200 @@
-﻿﻿# 🎓 EDUMENTOR - Nền Tảng Học Tập AI Toàn Diện
+﻿﻿# 🎓 EDUMENTOR - Gia Sư AI Cho Học Sinh THPT
 
 <div align="center">
 
-**Gia sư AI cá nhân hóa dành cho học sinh THPT Việt Nam**
+**Học Tập Thông Minh Với Công Nghệ AI**
 
-[![React](https://img.shields.io/badge/React-18.x-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://reactjs.org/)
-[![Node.js](https://img.shields.io/badge/Node.js-18.x-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
-[![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.x-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![Grok AI](https://img.shields.io/badge/Grok_AI-xAI-000000?style=for-the-badge&logo=x&logoColor=white)](https://x.ai/)
-[![Google OAuth](https://img.shields.io/badge/Google-OAuth-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://console.cloud.google.com/)
-[![Cloudflare](https://img.shields.io/badge/Cloudflare-Tunnel-F38020?style=for-the-badge&logo=cloudflare&logoColor=white)](https://www.cloudflare.com/)
+*Bài giảng tương tác • Quiz thông minh • Giải bài tập 24/7 • Hướng nghiệp cá nhân*
 
-**🚀 Version 1.1.0 (Unified) · 📅 2026 · 👨‍💻 cuongdev1108**
+**🚀 Phiên Bản 1.1.0 · 📅 2026**
 
-🔗 **Live:** https://edumentor.io.vn
-
-[Tính năng](#-tính-năng-chính) · [Cài đặt](#-cài-đặt) · [Google OAuth](#-thiết-lập-google-oauth) · [Cloudflare Tunnel](#-cloudflare-tunnel-setup) · [API](#-api-documentation)
+🔗 **Truy cập ngay:** https://edumentor.io.vn
 
 </div>
 
 ---
 
-## 📋 Mục Lục
+## � Mục Lục
 
-- [Giới thiệu](#-giới-thiệu)
-- [Tính năng chính](#-tính-năng-chính)
-- [Công nghệ sử dụng](#-công-nghệ-sử-dụng)
-- [Kiến trúc hệ thống](#-kiến-trúc-hệ-thống)
-- [Cài đặt](#-cài-đặt)
-  - [Local development](#local-development)
-  - [Production (Unified server)](#production-unified-server)
-- [Biến môi trường](#️-biến-môi-trường)
-- [Thiết lập Google OAuth](#-thiết-lập-google-oauth)
-- [Cloudflare Tunnel Setup](#-cloudflare-tunnel-setup)
-- [API Documentation](#-api-documentation)
-- [Cấu trúc thư mục](#-cấu-trúc-thư-mục)
-- [Admin Setup](#-admin-setup)
-- [Roadmap](#-roadmap)
-- [Bản quyền](#-bản-quyền)
+- [EDUMENTOR là gì?](#-edumentor-là-gì)
+- [Những tính năng hữu ích](#-những-tính-năng-hữu-ích)
+- [Cách sử dụng cơ bản](#-cách-sử-dụng-cơ-bản)
+- [Các câu hỏi thường gặp](#-các-câu-hỏi-thường-gặp)
+- [Liên hệ & Hỗ trợ](#-liên-hệ--hỗ-trợ)
 
 ---
 
-## 🎯 Giới Thiệu
+## 🤖 EDUMENTOR là gì?
 
-**EDUMENTOR** là nền tảng học tập thông minh "tất-cả-trong-một" dành cho học sinh THPT Việt Nam, sử dụng Grok AI để:
+**EDUMENTOR** là một gia sư AI giúp em học tập hiệu quả hơn. Thay vì chỉ đọc sách giáo khoa khô khan, em sẽ:
 
-- Chuyển đổi sách giáo khoa thành **bài giảng tương tác** (Markdown / LaTeX / JSON có cấu trúc).
-- Tự động tạo **quiz trắc nghiệm** kèm giải thích chi tiết.
-- Tạo **audio bài giảng** chất lượng cao với Murf.ai.
-- Cung cấp **chatbot hỏi đáp 24/7** về kiến thức trong chương trình.
-- Gợi ý **lộ trình học tập & hướng nghiệp** cá nhân hóa.
+✅ **Học qua bài giảng tương tác** – Mỗi bài học được thiết kế với:
+- Nội dung dễ hiểu và sinh động
+- Công thức toán học hiển thị rõ ràng
+- Ví dụ minh họa cấp tuyến
+- Phần ghi chú tương tác để em chú thích
 
----
+✅ **Kiểm tra kiến thức qua quiz thông minh** – Hệ thống tự sinh:
+- Các câu hỏi đa dạng
+- Giải thích chi tiết cho từng câu
+- Phân tích điểm yếu cần cải thiện
 
-## ✨ Tính Năng Chính
+✅ **Nghe bài giảng bằng giọng AI** – Tạo không gian học linh hoạt:
+- Nghe trên đường đi, chạy bộ, rửa bát
+- Giọng đọc tự nhiên và rõ ràng
+- Tốc độ điều chỉnh được theo ý muốn
 
-### 🔐 Xác Thực & Tài Khoản
+✅ **Hỏi đáp 24/7 với chatbot AI** – Không cần chờ thầy cô:
+- Gửi câu hỏi bất kỳ lúc nào
+- Nhận giải thích từng bước
+- Hỗ trợ giải bài tập
 
-- Đăng ký / đăng nhập bằng email + mật khẩu (JWT).
-- **Đăng nhập Google (Google OAuth)**:
-  - Đăng nhập một chạm qua tài khoản Google.
-  - Đồng bộ tên, email, avatar về tài khoản EDUMENTOR.
-  - Hoạt động trên cả localhost và domain production.
-
-### 📤 Upload & OCR
-
-- Upload ảnh hoặc PDF sách giáo khoa.
-- OCR tiếng Việt, hỗ trợ công thức Toán học.
-- Chuẩn hóa nội dung để dùng cho tạo bài giảng & quiz.
-
-### 📖 Bài Giảng AI
-
-- Tạo bài giảng tự động bằng Grok AI.
-- Hỗ trợ nhiều định dạng:
-  - Markdown đọc dễ.
-  - LaTeX hiển thị bằng Math renderer.
-  - JSON có cấu trúc cho component StructuredLesson.
-- Tóm tắt, ví dụ minh họa, lỗi thường gặp.
-
-### 📝 Quiz & Đánh Giá
-
-- Sinh quiz tự động từ bài giảng.
-- Nhiều mức độ khó, nhiều dạng câu hỏi.
-- Giải thích chi tiết cho từng câu.
-- Phân tích kết quả, gợi ý điểm yếu cần cải thiện.
-
-### 🔊 Text-to-Speech (Murf.ai)
-
-- Tạo audio cho toàn bài hoặc từng section.
-- Giọng đọc tự nhiên (MultiNative / Gen2).
-- Cơ chế cache audio để tiết kiệm chi phí.
-
-### 💬 Chatbot Hỏi Đáp
-
-- Chatbot AI dùng Grok để giải thích kiến thức.
-- Hiểu ngữ cảnh cuộc trò chuyện.
-- Hỗ trợ giải bài tập từng bước (step-by-step).
-
-### 🗺️ Lộ Trình & Hướng Nghiệp
-
-- Lộ trình học tập theo mục tiêu (môn, điểm mong muốn).
-- Tra cứu điểm chuẩn Đại học 2025.
-- Gợi ý ngành nghề theo sở thích và năng lực.
+✅ **Lộ trình học tập cá nhân** – Không bị "một đơn vị cắt" như ở trường:
+- Gợi ý học theo mục tiêu của em
+- Theo dõi tiến độ của em
+- Đề xuất từng bước tiếp theo
 
 ---
 
-## 🛠 Công Nghệ Sử Dụng
+## ✨ Những Tính Năng Hữu Ích
 
-### Frontend (web)
+### 📖 Bài Giảng Tương Tác
+- **Nội dung được AI chuẩn bị** – Từ sách giáo khoa, EDUMENTOR tạo ra bài giảng chi tiết với:
+  - Lý thuyết dễ hiểu
+  - Công thức toán học hiển thị đẹp
+  - Ví dụ thực tế minh họa
+  - Các bài tập luyện tập
+- **Ghi chú tương tác** – Em có thể:
+  - Đánh dấu những điểm quan trọng
+  - Viết ghi chú cá nhân
+  - Xem tiến độ học của mình
 
-- React 18, React Router 6.
-- TailwindCSS.
-- React Query, Axios.
-- @react-oauth/google (Google OAuth).
-- React Hot Toast, Heroicons.
+### 📝 Quiz & Kiểm Tra Kiến Thức
+- **Quiz tự động sinh ra** từ bài giảng
+- **Đa dạng hình thức** – Trắc nghiệm, tự luận, điền chuỗi
+- **Giải thích chi tiết** – Sau mỗi câu, em sẽ hiểu mình sai tại sao
+- **Phản hồi ngay lập tức** – Biết điểm yếu để cải thiện
 
-### Backend
+### 🔊 Nghe Bài Giảng Bất Kỳ Lúc Nào
+- **Giọng AI tự nhiên** – Nghe như thầy cô giảng bài
+- **Linh hoạt** – Em có thể:
+  - Nghe lại từng phần khó
+  - Tua tới tua lại
+  - Điều chỉnh tốc độ nói
+- **Học mọi nơi** – Trong xe, ở nhà, trước khi ngủ
 
-- Node.js 18, Express.js.
-- NeDB (database file-based nhẹ).
-- JWT, bcrypt.
-- Multer (upload), Tesseract.js (OCR).
+### 💬 Chatbot Hỏi Đáp 24/7
+- **Luôn sẵn sàng** – Không phải chờ thầy cô
+- **Giải thích rõ ràng** – Không chỉ đáp án, mà còn cách giải
+- **Giải bài tập từng bước** – Hướng dẫn cách làm
+- **Support đa ngôn ngữ** – Hỏi bằng dễ yêu ✌️
 
-### AI & Dịch Vụ Ngoài
+### 🗺️ Lộ Trình Học Tập Cá Nhân
+- **Không "một khuôn mẫu" cho tất cả** – Mỗi em tự chọn mục tiêu:
+  - Luyện tập môn yếu
+  - Chuẩn bị cho kỳ thi
+  - Học chủ đề nào đó
+- **Gợi ý thông minh** – AI gợi ý bạn nên học gì tiếp
+- **Tra cứu thông tin ĐH** – Xem điểm chuẩn các trường, ngành
+- **Hướng nghiệp** – Tìm ngành phù hợp với điểm mạnh của em
 
-- Grok AI (xAI) – tạo bài giảng, quiz, chatbot.
-- Murf.ai – Text-to-Speech.
-- Cloudflare Tunnel – expose server ra internet.
-
-### Mobile (đang phát triển)
-
-- React Native (Expo) trong thư mục `mobile/`.
-- Dùng chung API với backend hiện tại.
-
----
-
-## 🏗 Kiến Trúc Hệ Thống
-
-### Dev Mode (2 server)
-
-- Frontend: React dev server (`frontend`, port 3000).
-- Backend: Express server (`backend`, port 5000).
-- Frontend gọi API qua `http://localhost:5000/api`.
-
-### Production (Unified Server)
-
-- `frontend` được build vào `frontend/build`.
-- `backend/server.js`:
-  - Serve toàn bộ file tĩnh từ `frontend/build`.
-  - Tất cả route không phải `/api/*` trả về `index.html` (SPA routing).
-  - API chạy dưới prefix `/api`.
-- Chỉ cần mở **một port**: 5000.
-
-Sơ đồ đơn giản:
-
-```text
-Browser ──► Cloudflare Tunnel (edumentor.io.vn) ──► Backend (port 5000)
-                                 ├── Serve React build
-                                 └── /api/... (REST API)
-```
+### 🔐 Tài Khoản Cá Nhân
+- **Đăng nhập dễ** – Email + mật khẩu hoặc Google
+- **Lưu progress** – Em có thể:
+  - Đi học, về tiếp tục từ chỗ cũ
+  - Xem lại những bài đã làm
+  - Theo dõi tiến độ qua thời gian
 
 ---
 
-## 📦 Cài Đặt
+## � Cách Sử Dụng Cơ Bản
 
-### Yêu cầu
+### 1️⃣ **Tạo Tài Khoản**
+- Vào **edumentor.io.vn**
+- Chọn **Đăng ký**
+- Điền email, mất khẩu hoặc dùng Google
+- Xong! Bắt đầu học tập
 
-- Node.js ≥ 18
-- npm ≥ 9
-- Windows (các script .bat tối ưu cho Windows)
+### 2️⃣ **Chọn Môn Học & Chủ Đề**
+- Lần đầu tiên, em sẽ được chọn môn học quan tâm
+- EDUMENTOR sẽ gợi ý bài giảng phù hợp
+- Em cũng có thể tìm kiếm chủ đề cụ thể
 
-### Local Development
+### 3️⃣ **Học Bài Giảng**
+- Đọc nội dung **từng phần**
+- **Bấm ghi chú** khi thấy điều gì quan trọng
+- **Nghe audio** phần khó để hiểu rõ hơn
+- Mở **công thức** để xem chi tiết
 
-1. Clone repo:
+### 4️⃣ **Làm Quiz & Kiểm Tra**
+- Sau mỗi bài giảng, em làm quiz
+- **Chọn đáp án** và **nộp bài**
+- Nếu sai, **xem giải thích** để hiểu
+- Điểm số sẽ lưu lại trong lịch sử
 
-   ```bash
-   git clone https://github.com/cuongdev1108/AI-Tutor.git
-   cd AI-Tutor
-   ```
+### 5️⃣ **Hỏi Chatbot Khi Cần**
+- Click vào **biểu tượng chat** ở góc màn hình
+- **Gõ câu hỏi** bất kỳ lúc nào
+- Chatbot sẽ **trả lời chi tiết từng bước**
 
-2. Cài đặt backend:
-
-   ```bash
-   cd backend
-   npm install
-   ```
-
-3. Cài đặt frontend:
-
-   ```bash
-   cd ../frontend
-   npm install
-   ```
-
-4. Tạo file môi trường từ template (backend):
-
-   ```bash
-   cd ../backend
-   copy .env.example .env   # hoặc tự tạo nếu chưa có
-   ```
-
-5. Chạy dev (2 cửa sổ riêng):
-
-   ```bash
-   # Terminal 1 - backend
-   cd backend
-   npm start
-
-   # Terminal 2 - frontend
-   cd frontend
-   npm start
-   ```
-
-### Production (Unified Server)
-
-1. Build frontend:
-
-   ```bash
-   cd frontend
-   npm run build
-   ```
-
-2. Chạy backend serve luôn frontend build:
-
-   ```bash
-   cd ../backend
-   npm start
-   ```
-
-3. Truy cập:
-
-- Web + API: http://localhost:5000
-
-Nếu dùng Cloudflare Tunnel, port 5000 sẽ được map ra domain.
+### 6️⃣ **Xem Lộ Trình Cá Nhân**
+- Trong tab **Lộ Trình**, em sẽ thấy:
+  - Bài đã học, bài tiếp theo
+  - Thời gian dự kiến học
+  - Mục tiêu cuối cùng
+  - Gợi ý hướng nghiệp
 
 ---
 
-## ⚙️ Biến Môi Trường
+## ❓ Các Câu Hỏi Thường Gặp
 
-### Backend – `backend/.env`
+**🤔 Có phải trả tiền không?**
+> Hiện tại EDUMENTOR là dự án thí điểm, em có thể sử dụng **miễn phí**. Trong tương lai, có thể có bản Premium với nhiều tính năng hơn, nhưng bản cơ bản sẽ luôn miễn phí.
 
-```env
-PORT=5000
-NODE_ENV=development
+**📱 Có app trên điện thoại không?**
+> App mobile đang được phát triển. Hiện em vẫn có thể mở EDUMENTOR trên trình duyệt điện thoại (Chrome, Safari, ...) và sẽ tương đối thuận tiện.
 
-# JWT
-JWT_SECRET=your_super_secret_jwt_key
-JWT_EXPIRES_IN=7d
+**🌐 Cần internet không?**
+> Có, EDUMENTOR cần kết nối internet để hoạt động. Em có thể không cần "data nhiều" (không stream video), chỉ cần load trang và chat.
 
-# Grok AI (xAI)
-XAI_API_KEY=your_xai_api_key
-XAI_MODEL=grok-beta
+**🎓 Có hỗ trợ tất cả môn học không?**
+> Hiện tại EDUMENTOR hỗ trợ các môn trong chương trình THPT: Toán, Lý, Hóa, Sinh. Các môn khác như Văn, Sử, Địa, Kinh tế sẽ được thêm dần.
 
-# Murf.ai
-MURF_API_KEY=your_murf_api_key
+**💬 Chatbot có hiểu "meme" hay tiếng lóng không?**
+> Chatbot AI được huấn luyện để hiểu tiếng Việt tự nhiên. Em có thể gõ "lóng" nhưng nó sẽ giải thích theo kiến thức chính thống (vì mục đích là học tập).
 
-# Google OAuth (phải trùng với frontend)
-GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
+**🔒 Dữ liệu của em có an toàn không?**
+> Em đăng nhập bằng tài khoản cá nhân, dữ liệu được mã hóa. EDUMENTOR **không bán dữ liệu** cho bên thứ ba. Thầy cô chỉ có thể xem progress của em nếu thầy cô được cấp quyền quản lý lớp.
 
-# CORS
-FRONTEND_URL=http://localhost:3000
-PRODUCTION_URL=https://edumentor.io.vn
-
-# Upload
-UPLOAD_DIR=./uploads
-MAX_FILE_SIZE=10485760
-```
-
-### Frontend – `frontend/.env`
-
-```env
-# Dev: gọi trực tiếp server backend
-REACT_APP_API_URL=http://localhost:5000/api
-
-# Production (qua unified backend / Cloudflare)
-# Có thể set thành /api để relative theo domain
-# REACT_APP_API_URL=/api
-
-# Google OAuth
-REACT_APP_GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
-```
+**🐛 Nếu gặp lỗi thì sao?**
+> Em có thể báo lỗi trong ứng dụng (nút "Báo cáo lỗi") hoặc liên hệ team EDUMENTOR qua email. **Support sẽ phản hồi trong 24 giờ**. 
 
 ---
 
-## 🔐 Thiết Lập Google OAuth
+## 📞 Liên Hệ & Hỗ Trợ
 
-1. Vào Google Cloud Console → APIs & Services → Credentials.
-2. Tạo **OAuth 2.0 Client ID** loại **Web application**.
-3. Phần **Authorized JavaScript origins**:
-   - `http://localhost:3000` (dev frontend)
-   - `http://localhost:5000` (unified local)
-   - `https://edumentor.io.vn` (production)
-4. Phần **Authorized redirect URIs**:
-   - Có thể dùng cùng origin, vì thư viện @react-oauth/google dùng popup/redirect nội bộ.
-5. Copy **Client ID** dán vào:
-   - Backend: biến `GOOGLE_CLIENT_ID`.
-   - Frontend: biến `REACT_APP_GOOGLE_CLIENT_ID`.
-6. Build lại frontend (`npm run build`) nếu chạy production.
+**Website:** https://edumentor.io.vn
+
+**Email:** support@edumentor.io.vn
+
+**Feedback & Suggestions:** Bấm nút "Phản hồi" trong ứng dụng
+
+Cảm ơn em đã sử dụng EDUMENTOR! 🌟 Mỗi góp ý của em sẽ giúp em học tập tốt hơn.
 
 ---
 
-## 🌐 Cloudflare Tunnel Setup
+<div align="center">
 
-Ví dụ cấu hình tối giản để expose unified backend (port 5000):
+**EDUMENTOR – Học thông minh, giỏi hơn mỗi ngày! 🚀**
 
-```yaml
-tunnel: <YOUR_TUNNEL_ID>
-credentials-file: C:\Users\<USER>\.cloudflared\<TUNNEL_ID>.json
+Nếu EDUMENTOR giúp em học tập tốt hơn, hãy chia sẻ với bạn bè nhé! 💪
 
-ingress:
-  - hostname: edumentor.io.vn
-    service: http://localhost:5000
-
-  - service: http_status:404
-```
-
-Chạy:
-
-```bash
-cloudflared tunnel --config cloudflare/config.yml run
-```
-
-Lúc này toàn bộ web + API đều qua https://edumentor.io.vn.
+</div>
 
 ---
 
-## 📚 API Documentation
-
-Base URL (dev): `http://localhost:5000/api`
-
-Sử dụng JWT Bearer trong header:
-
-```http
-Authorization: Bearer <token>
-```
-
-### Auth
-
-- `POST /auth/register` – Đăng ký.
-- `POST /auth/login` – Đăng nhập.
-- `POST /auth/google` – Đăng nhập / đăng ký bằng Google.
-
-### Lessons
-
-- `GET /lessons` – Danh sách bài học.
-- `GET /lessons/:id` – Chi tiết bài học.
-- `POST /lessons` – Tạo bài học.
-
-### Quiz
-
-- `POST /quiz/generate` – Sinh quiz từ nội dung.
-- `POST /quiz/:id/submit` – Nộp bài, chấm điểm.
-
-### Chat
-
-- `POST /chat` – Gửi câu hỏi cho chatbot.
-
-### TTS
-
-- `POST /tts` – Tạo audio từ text.
-
-### Career
-
-- `GET /career/diem-chuan` – Tra cứu điểm chuẩn.
-
-*(Xem chi tiết thêm trong mã nguồn controllers nếu cần.)*
-
----
-
-## 📁 Cấu Trúc Thư Mục
-
-```text
-.
-├── backend/
-│   ├── controllers/
-│   ├── routes/
-│   ├── services/
-│   ├── middleware/
-│   ├── database/
-│   ├── uploads/
-│   ├── server.js
-│   └── .env
-│
-├── frontend/
-│   ├── public/
-│   ├── src/
-│   │   ├── pages/
-│   │   ├── components/
-│   │   ├── context/
-│   │   ├── services/
-│   │   ├── App.js
-│   │   └── index.js
-│   └── .env
-│
-├── mobile/        # Ứng dụng React Native (đang phát triển)
-├── cloudflare/    # Cấu hình tunnel
-└── README.md
-```
-
----
-
-## 👨‍💼 Admin Setup
-
-Tạo tài khoản admin đầu tiên:
-
-```bash
-cd backend
-node create-admin.js
-```
-
-Mặc định:
-
-- Email: `admin@edumentor.io.vn`
-- Password: `Admin@123456`
-
-Sau đó đăng nhập và truy cập `/admin` trên web.
-
----
-
-## 📊 Roadmap
-
-### Đã hoàn thành
-
-- [x] OCR + bài giảng AI từ SGK.
-- [x] Quiz tự động + phân tích kết quả.
-- [x] TTS với Murf.ai + cache audio.
-- [x] Chatbot hỏi đáp 24/7.
-- [x] Đăng nhập Google OAuth.
-- [x] Hợp nhất backend + frontend (unified server).
-- [x] Cloudflare Tunnel + domain edumentor.io.vn.
-
-### Đang phát triển
-
-- [ ] Ứng dụng mobile (React Native).
-- [ ] Gamification (badge, streak, leaderboard).
-- [ ] PWA & offline mode.
-
----
-
-## 📄 Bản Quyền
+## 📄 Thông Tin Pháp Lý
 
 MIT License © 2026 **cuongdev1108**
 
-Được phép sử dụng, sửa đổi, phân phối cho mục đích học tập và phát triển sản phẩm, với điều kiện giữ lại thông tin bản quyền.
-
----
-
-<div align="center">
-
-**EDUMENTOR – Học thông minh hơn với AI**
-
-Nếu dự án hữu ích, hãy cho một ⭐ để ủng hộ.
-
-</div>
+Nền tảng được phát triển nhằm hỗ trợ giáo dục miễn phí cho học sinh THPT Việt Nam.

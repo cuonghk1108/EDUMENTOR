@@ -32,6 +32,12 @@ const db = {
   activityLog: Datastore.create({ filename: path.join(dataDir, 'activity_log.db'), autoload: true }),
   // Streak tracking database
   streaks: Datastore.create({ filename: path.join(dataDir, 'streaks.db'), autoload: true }),
+  studyPlanner: Datastore.create({ filename: path.join(dataDir, 'study_planner.db'), autoload: true }),
+  flashcards: Datastore.create({ filename: path.join(dataDir, 'flashcards.db'), autoload: true }),
+  focusSessions: Datastore.create({ filename: path.join(dataDir, 'focus_sessions.db'), autoload: true }),
+  examSimulations: Datastore.create({ filename: path.join(dataDir, 'exam_simulations.db'), autoload: true }),
+  parentReports: Datastore.create({ filename: path.join(dataDir, 'parent_reports.db'), autoload: true }),
+  studyGroups: Datastore.create({ filename: path.join(dataDir, 'study_groups.db'), autoload: true }),
 };
 
 // Create indexes
@@ -48,6 +54,14 @@ db.studySessions.ensureIndex({ fieldName: 'userId' });
 db.audioHistory.ensureIndex({ fieldName: 'userId' });
 db.activityLog.ensureIndex({ fieldName: 'userId' });
 db.streaks.ensureIndex({ fieldName: 'userId', unique: true });
+db.studyPlanner.ensureIndex({ fieldName: 'userId' });
+db.flashcards.ensureIndex({ fieldName: 'userId' });
+db.flashcards.ensureIndex({ fieldName: 'dueDate' });
+db.focusSessions.ensureIndex({ fieldName: 'userId' });
+db.examSimulations.ensureIndex({ fieldName: 'userId' });
+db.parentReports.ensureIndex({ fieldName: 'userId' });
+db.parentReports.ensureIndex({ fieldName: 'shareToken', unique: true, sparse: true });
+db.studyGroups.ensureIndex({ fieldName: 'ownerId' });
 
 console.log('💾 Database initialized - Data stored in:', dataDir);
 
@@ -136,7 +150,17 @@ const lessonService = {
 // ==================== QUIZ SERVICE ====================
 const quizService = {
   async create(quizData) {
-    const doc = await db.quizzes.insert({ ...quizData, createdAt: new Date() });
+    // Initialize regeneration tracking
+    const doc = await db.quizzes.insert({ 
+      ...quizData, 
+      createdAt: new Date(),
+      regenerations: [{
+        version: 1,
+        questions: quizData.questions,
+        generatedAt: new Date()
+      }],
+      currentVersion: 1
+    });
     return { id: doc._id, ...doc };
   },
 
@@ -159,6 +183,50 @@ const quizService = {
     await this.update(quizId, { result, submittedAt: new Date() });
     await learningStatsService.updateFromQuiz(userId, result);
     return result;
+  },
+
+  // Add new regeneration with new questions
+  async addRegeneration(quizId, newQuestions) {
+    const quiz = await this.getById(quizId);
+    if (!quiz) {
+      throw new Error('Quiz không tồn tại');
+    }
+
+    const newVersion = (quiz.currentVersion || 1) + 1;
+    const regenerations = quiz.regenerations || [];
+    
+    regenerations.push({
+      version: newVersion,
+      questions: newQuestions,
+      generatedAt: new Date()
+    });
+
+    await this.update(quizId, {
+      questions: newQuestions,
+      regenerations: regenerations,
+      currentVersion: newVersion,
+      lastRegeneratedAt: new Date()
+    });
+
+    return this.getById(quizId);
+  },
+
+  // Get all regeneration versions
+  async getRegenerationHistory(quizId) {
+    const quiz = await this.getById(quizId);
+    if (!quiz) return null;
+    
+    return {
+      quizId,
+      topic: quiz.topic,
+      totalRegenerations: quiz.regenerations?.length || 0,
+      regenerations: (quiz.regenerations || []).map((regen, idx) => ({
+        version: regen.version,
+        questionCount: regen.questions.length,
+        generatedAt: regen.generatedAt,
+        questions: regen.questions
+      }))
+    };
   },
 
   // Get completed quizzes with results
@@ -325,6 +393,10 @@ const learningStatsService = {
     });
     
     return this.getByUserId(userId);
+  },
+
+  async delete(id) {
+    return db.learningStats.remove({ _id: id });
   }
 };
 
@@ -846,6 +918,272 @@ const streakService = {
   }
 };
 
+// ==================== STUDY PLANNER SERVICE ====================
+const studyPlannerService = {
+  async createEvent(userId, eventData) {
+    const doc = await db.studyPlanner.insert({
+      userId,
+      ...eventData,
+      completed: false,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+    return { id: doc._id, ...doc };
+  },
+
+  async getEvents(userId, fromDate, toDate) {
+    const query = { userId };
+    if (fromDate || toDate) {
+      query.date = {};
+      if (fromDate) query.date.$gte = new Date(fromDate);
+      if (toDate) query.date.$lte = new Date(toDate);
+    }
+    const docs = await db.studyPlanner.find(query).sort({ date: 1 });
+    return docs.map(doc => ({ id: doc._id, ...doc }));
+  },
+
+  async updateEvent(userId, eventId, data) {
+    await db.studyPlanner.update({ _id: eventId, userId }, { $set: { ...data, updatedAt: new Date() } });
+    const doc = await db.studyPlanner.findOne({ _id: eventId, userId });
+    return doc ? { id: doc._id, ...doc } : null;
+  },
+
+  async deleteEvent(userId, eventId) {
+    const deletedCount = await db.studyPlanner.remove({ _id: eventId, userId });
+    return { deleted: deletedCount > 0 };
+  }
+};
+
+// ==================== FLASHCARD (SRS) SERVICE ====================
+const flashcardService = {
+  async createCard(userId, cardData) {
+    const now = new Date();
+    const doc = await db.flashcards.insert({
+      userId,
+      deck: cardData.deck || 'general',
+      front: cardData.front,
+      back: cardData.back,
+      tags: cardData.tags || [],
+      interval: 1,
+      repetitions: 0,
+      easeFactor: 2.5,
+      dueDate: now,
+      lastReviewedAt: null,
+      createdAt: now,
+      updatedAt: now
+    });
+    return { id: doc._id, ...doc };
+  },
+
+  async getByUserId(userId, deck) {
+    const query = { userId };
+    if (deck) query.deck = deck;
+    const docs = await db.flashcards.find(query).sort({ dueDate: 1 });
+    return docs.map(doc => ({ id: doc._id, ...doc }));
+  },
+
+  async getDueCards(userId, limit = 20) {
+    const docs = await db.flashcards
+      .find({ userId, dueDate: { $lte: new Date() } })
+      .sort({ dueDate: 1 })
+      .limit(limit);
+    return docs.map(doc => ({ id: doc._id, ...doc }));
+  },
+
+  calculateNextReview(card, quality) {
+    const clampedQuality = Math.max(0, Math.min(5, quality));
+    let repetitions = card.repetitions || 0;
+    let interval = card.interval || 1;
+    let easeFactor = card.easeFactor || 2.5;
+
+    if (clampedQuality < 3) {
+      repetitions = 0;
+      interval = 1;
+    } else {
+      repetitions += 1;
+      if (repetitions === 1) interval = 1;
+      else if (repetitions === 2) interval = 3;
+      else interval = Math.round(interval * easeFactor);
+    }
+
+    easeFactor = Math.max(1.3, easeFactor + (0.1 - (5 - clampedQuality) * (0.08 + (5 - clampedQuality) * 0.02)));
+
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + interval);
+
+    return { repetitions, interval, easeFactor, dueDate };
+  },
+
+  async reviewCard(userId, cardId, quality) {
+    const card = await db.flashcards.findOne({ _id: cardId, userId });
+    if (!card) return null;
+
+    const next = this.calculateNextReview(card, quality);
+    await db.flashcards.update(
+      { _id: cardId, userId },
+      { $set: { ...next, lastReviewedAt: new Date(), updatedAt: new Date() } }
+    );
+
+    const updated = await db.flashcards.findOne({ _id: cardId, userId });
+    return updated ? { id: updated._id, ...updated } : null;
+  },
+
+  async deleteCard(userId, cardId) {
+    const deletedCount = await db.flashcards.remove({ _id: cardId, userId });
+    return { deleted: deletedCount > 0 };
+  }
+};
+
+// ==================== FOCUS SESSION (POMODORO) SERVICE ====================
+const focusSessionService = {
+  async start(userId, data = {}) {
+    const doc = await db.focusSessions.insert({
+      userId,
+      mode: data.mode || 'pomodoro',
+      subject: data.subject || 'general',
+      plannedMinutes: data.plannedMinutes || 25,
+      breakMinutes: data.breakMinutes || 5,
+      distractions: 0,
+      status: 'running',
+      startedAt: new Date(),
+      endedAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+    return { id: doc._id, ...doc };
+  },
+
+  async addDistraction(userId, sessionId) {
+    const session = await db.focusSessions.findOne({ _id: sessionId, userId });
+    if (!session) return null;
+    const distractions = (session.distractions || 0) + 1;
+    await db.focusSessions.update({ _id: sessionId, userId }, { $set: { distractions, updatedAt: new Date() } });
+    const updated = await db.focusSessions.findOne({ _id: sessionId, userId });
+    return updated ? { id: updated._id, ...updated } : null;
+  },
+
+  async end(userId, sessionId) {
+    const session = await db.focusSessions.findOne({ _id: sessionId, userId });
+    if (!session) return null;
+    const endedAt = new Date();
+    const durationMinutes = Math.max(1, Math.round((endedAt - new Date(session.startedAt)) / 60000));
+
+    await db.focusSessions.update(
+      { _id: sessionId, userId },
+      { $set: { status: 'completed', endedAt, durationMinutes, updatedAt: new Date() } }
+    );
+
+    const updated = await db.focusSessions.findOne({ _id: sessionId, userId });
+    return updated ? { id: updated._id, ...updated } : null;
+  },
+
+  async getByUserId(userId, limit = 50) {
+    const docs = await db.focusSessions.find({ userId }).sort({ createdAt: -1 }).limit(limit);
+    return docs.map(doc => ({ id: doc._id, ...doc }));
+  }
+};
+
+// ==================== EXAM SIMULATION SERVICE ====================
+const examSimulationService = {
+  async createAttempt(userId, payload) {
+    const doc = await db.examSimulations.insert({
+      userId,
+      examType: payload.examType || 'thptqg',
+      subject: payload.subject || 'general',
+      durationMinutes: payload.durationMinutes || 50,
+      totalQuestions: payload.totalQuestions || 40,
+      score: payload.score || 0,
+      answers: payload.answers || [],
+      analysis: payload.analysis || null,
+      startedAt: payload.startedAt || new Date(),
+      submittedAt: payload.submittedAt || new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+    return { id: doc._id, ...doc };
+  },
+
+  async getHistory(userId, limit = 20) {
+    const docs = await db.examSimulations.find({ userId }).sort({ createdAt: -1 }).limit(limit);
+    return docs.map(doc => ({ id: doc._id, ...doc }));
+  }
+};
+
+// ==================== PARENT REPORT SERVICE ====================
+const parentReportService = {
+  async generateWeekly(userId) {
+    const [stats, sessions, streak] = await Promise.all([
+      learningStatsService.getByUserId(userId),
+      studySessionService.getWeeklyStats(userId),
+      streakService.getByUserId(userId)
+    ]);
+
+    const report = {
+      type: 'weekly',
+      generatedAt: new Date(),
+      summary: {
+        completionRate: stats.totalLessons > 0 ? Math.round((stats.completedLessons / stats.totalLessons) * 100) : 0,
+        averageScore: stats.averageScore || 0,
+        totalStudyMinutes: sessions.totalMinutes || 0,
+        currentStreak: streak.currentStreak || 0,
+        weakTopics: stats.weakTopics || []
+      }
+    };
+
+    const existing = await db.parentReports.findOne({ userId });
+    if (existing) {
+      await db.parentReports.update({ _id: existing._id }, { $set: { ...report, updatedAt: new Date() } });
+      const updated = await db.parentReports.findOne({ _id: existing._id });
+      return updated ? { id: updated._id, ...updated } : null;
+    }
+
+    const shareToken = `pr_${Math.random().toString(36).slice(2, 12)}`;
+    const doc = await db.parentReports.insert({ userId, shareToken, ...report, createdAt: new Date(), updatedAt: new Date() });
+    return { id: doc._id, ...doc };
+  },
+
+  async getByToken(shareToken) {
+    const doc = await db.parentReports.findOne({ shareToken });
+    return doc ? { id: doc._id, ...doc } : null;
+  }
+};
+
+// ==================== STUDY GROUP SERVICE ====================
+const studyGroupService = {
+  async create(ownerId, data) {
+    const doc = await db.studyGroups.insert({
+      ownerId,
+      name: data.name,
+      subject: data.subject || 'general',
+      description: data.description || '',
+      members: [ownerId],
+      memberCount: 1,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+    return { id: doc._id, ...doc };
+  },
+
+  async join(groupId, userId) {
+    const group = await db.studyGroups.findOne({ _id: groupId });
+    if (!group) return null;
+    const members = Array.from(new Set([...(group.members || []), userId]));
+    await db.studyGroups.update(
+      { _id: groupId },
+      { $set: { members, memberCount: members.length, updatedAt: new Date() } }
+    );
+    const updated = await db.studyGroups.findOne({ _id: groupId });
+    return updated ? { id: updated._id, ...updated } : null;
+  },
+
+  async getAll(subject) {
+    const query = {};
+    if (subject) query.subject = subject;
+    const docs = await db.studyGroups.find(query).sort({ createdAt: -1 });
+    return docs.map(doc => ({ id: doc._id, ...doc }));
+  }
+};
+
 module.exports = {
   db,
   userService,
@@ -861,5 +1199,8 @@ module.exports = {
   studySessionService,
   audioHistoryService,
   activityLogService,
-  streakService
+  streakService,
+  examSimulationService,
+  parentReportService,
+  studyGroupService
 };

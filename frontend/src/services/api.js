@@ -30,6 +30,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // Enable credentials for CORS
   maxContentLength: Infinity,
   maxBodyLength: Infinity,
 });
@@ -211,6 +212,22 @@ export const studyPlanAPI = {
   delete: () => api.delete('/study-plan'),
 };
 
+export const examSimulationAPI = {
+  submit: (data) => api.post('/exam-simulations', data),
+  getHistory: (limit = 20) => api.get('/exam-simulations', { params: { limit } }),
+};
+
+export const parentReportAPI = {
+  generate: () => api.post('/parent-report/generate'),
+  getByToken: (shareToken) => api.get(`/parent-report/${shareToken}`),
+};
+
+export const studyGroupAPI = {
+  getAll: (subject) => api.get('/study-groups', { params: { subject } }),
+  create: (data) => api.post('/study-groups', data),
+  join: (groupId) => api.post(`/study-groups/${groupId}/join`),
+};
+
 // Career - Hướng nghiệp
 export const careerAPI = {
   // Lấy danh sách khối thi
@@ -293,6 +310,13 @@ export const adminAPI = {
   updateUser: (userId, data) => api.put(`/admin/users/${userId}`, data),
   deleteUser: (userId) => api.delete(`/admin/users/${userId}`),
   
+  // Advanced User Management
+  blockUser: (userId, isBlocked) => api.post(`/admin/users/${userId}/block`, { isBlocked }),
+  resetUserPassword: (userId, newPassword) => api.post(`/admin/users/${userId}/reset-password`, { newPassword }),
+  deleteAllUserData: (userId) => api.delete(`/admin/users/${userId}/data`),
+  getUserActivityLog: (userId, limit = 50) => api.get(`/admin/users/${userId}/activity?limit=${limit}`),
+  changeUserRole: (userId, role) => api.put(`/admin/users/${userId}/role`, { role }),
+  
   // Lessons
   getLessons: (params) => api.get('/admin/lessons', { params }),
   deleteLesson: (lessonId) => api.delete(`/admin/lessons/${lessonId}`),
@@ -301,8 +325,22 @@ export const adminAPI = {
   getQuizzes: (params) => api.get('/admin/quizzes', { params }),
   deleteQuiz: (quizId) => api.delete(`/admin/quizzes/${quizId}`),
   
+  // Chats
+  getChats: (params) => api.get('/admin/chats', { params }),
+  deleteChat: (chatId) => api.delete(`/admin/chats/${chatId}`),
+  deleteUserChats: (userId) => api.delete(`/admin/chats/user/${userId}`),
+  
+  // Roadmaps
+  getRoadmaps: (params) => api.get('/admin/roadmaps', { params }),
+  deleteRoadmap: (roadmapId) => api.delete(`/admin/roadmaps/${roadmapId}`),
+  
+  // Database
+  getDatabaseStats: () => api.get('/admin/database/stats'),
+  cleanDatabase: (days) => api.post('/admin/database/clean', { days }),
+  
   // Settings & Logs
   getSettings: () => api.get('/admin/settings'),
+  updateSettings: (settings) => api.put('/admin/settings', settings),
   getLogs: (params) => api.get('/admin/logs', { params }),
   getSubjects: () => api.get('/admin/subjects'),
 };

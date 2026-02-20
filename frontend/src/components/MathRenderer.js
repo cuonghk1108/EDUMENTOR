@@ -7,6 +7,7 @@ import 'katex/dist/katex.min.css';
 /**
  * MathRenderer - Render Markdown with beautiful LaTeX formulas
  * Supports both inline ($...$) and block ($$...$$) math
+ * Auto-fixes common LaTeX formula errors
  */
 const MathRenderer = ({ content, className = '' }) => {
   if (!content) return null;
@@ -137,27 +138,47 @@ function preprocessMath(content) {
   
   let processed = content;
   
-  // Fix escaped backslashes in LaTeX (common from JSON)
-  processed = processed.replace(/\\\\([a-zA-Z]+)/g, '\\$1');
+  // Step 1: Fix common escaped patterns from JSON stringification
+  // \\ -> \ for common LaTeX commands
+  processed = processed.replace(/\\\\(frac|sqrt|sum|int|lim|sin|cos|tan|log|ln|alpha|beta|gamma|delta|theta|pi|omega|leq|geq|neq|times|div|pm|mp|cdot|vec|hat|bar|dot|ddot|tilde|left|right|begin|end|text|mathrm|mathbf|partial|nabla|infty|exist|forall)\b/g, '\\$1');
   
-  // Ensure proper spacing around math blocks
-  processed = processed.replace(/\$\$([^$]+)\$\$/g, '\n\n$$$$\n$1\n$$$$\n\n');
+  // Step 2: Handle triple+ escaped backslashes
+  while (processed.includes('\\\\\\\\')){
+    processed = processed.replace(/\\\\\\\\/g, '\\\\');
+  }
   
-  // Fix common LaTeX commands that might be escaped
-  const latexCommands = [
-    'frac', 'sqrt', 'sum', 'int', 'lim', 'infty', 'alpha', 'beta', 'gamma', 
-    'delta', 'theta', 'pi', 'omega', 'sin', 'cos', 'tan', 'log', 'ln',
-    'leq', 'geq', 'neq', 'times', 'div', 'pm', 'mp', 'cdot', 'vec',
-    'overline', 'underline', 'hat', 'bar', 'dot', 'ddot', 'tilde',
-    'left', 'right', 'begin', 'end', 'text', 'mathrm', 'mathbf'
-  ];
+  // Step 3: Fix spaces within LaTeX environments - remove trailing spaces before closing delimiters
+  processed = processed.replace(/\{([^}]*?)\s+\}/g, '{$1}');
+  processed = processed.replace(/\(\s+/g, '(');
+  processed = processed.replace(/\s+\)/g, ')');
   
-  latexCommands.forEach(cmd => {
-    const regex = new RegExp(`\\\\\\\\${cmd}`, 'g');
-    processed = processed.replace(regex, `\\${cmd}`);
-  });
+  // Step 4: Fix common patterns that cause rendering issues
+  // Ensure proper spacing around $$ blocks
+  processed = processed.replace(/([^\s])\$\$([^\s])/g, '$1 $$ $2');
+  
+  // Step 5: Fix inline math spacing - no spaces immediately after opening $ or before closing $
+  processed = processed.replace(/\$\s+/g, '$');
+  processed = processed.replace(/\s+\$/g, '$');
+  
+  // Step 6: Ensure math blocks are on their own lines
+  processed = processed.replace(/([^\\n])\$\$\n/g, '$1\n$$\n');
+  processed = processed.replace(/\$\$\n([^\\n])/g, '$$\n\n$1');
+  
+  // Step 7: Fix broken LaTeX: remove spaces before commas/periods in fractions
+  processed = processed.replace(/\\frac\{\s*([^}]+?)\s*\}\s*\{\s*([^}]+?)\s*\}/g, '\\frac{$1}{$2}');
+  
+  // Step 8: Fix common escaping issues in array/environment content
+  // E.g., "col 1 & col 2" might become "col 1 \\& col 2" -> fix it
+  processed = processed.replace(/\\&/g, '&');
+  
+  // Step 9: Fix double dollar signs that might be escaped
+  processed = processed.replace(/\$\$\$/g, '$$');
+  
+  // Step 10: Remove duplicate backslashes before dollar signs (common in JSON)
+  processed = processed.replace(/\\\\\$/g, '$');
   
   return processed;
 }
 
 export default MathRenderer;
+

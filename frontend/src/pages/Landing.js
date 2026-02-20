@@ -666,6 +666,8 @@ const Landing = () => {
               <span>© 2026 Edumentor</span>
               <span>•</span>
               <span>Made with ❤️ & AI for Vietnamese Students</span>
+              <span>•</span>
+              <span>Code by <span className="text-primary-400 font-medium">Cuongdev1108</span></span>
             </div>
           </div>
         </div>
