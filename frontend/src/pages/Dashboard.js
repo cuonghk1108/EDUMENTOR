@@ -164,21 +164,29 @@ const Dashboard = () => {
       streakDays: 0
     },
     performance: { accuracy: 0 },
+    engagement: {
+      totalMessages: 0,
+      perfectScores: 0,
+      earlyMorningStudies: 0,
+      lateNightStudies: 0
+    },
     weaknesses: [],
     strengths: [],
     recentActivity: { lessons: [], quizzes: [] }
   };
 
-  const { overview, performance, weaknesses, strengths, recentActivity } = dashboard;
+  const { overview, performance, engagement, weaknesses, strengths, recentActivity } = dashboard;
 
   // Prepare user stats for engagement components
   const userStats = {
     completedLessons: overview.completedLessons,
     completedQuizzes: overview.totalQuizzes,
     streakDays: overview.streakDays,
-    totalMessages: 0, // TODO: track from chat history
+    totalMessages: engagement?.totalMessages || 0,
     averageScore: overview.averageScore,
-    perfectScores: 0, // TODO: track perfect quiz scores
+    perfectScores: engagement?.perfectScores || 0,
+    earlyMorningStudies: engagement?.earlyMorningStudies || 0,
+    lateNightStudies: engagement?.lateNightStudies || 0,
     lastActivity: new Date().toISOString().split('T')[0] // Today's date
   };
 

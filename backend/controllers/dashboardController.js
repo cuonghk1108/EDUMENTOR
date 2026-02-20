@@ -1,4 +1,4 @@
-const { learningStatsService, lessonService, quizService, streakService } = require('../services/firebaseService');
+const { learningStatsService, lessonService, quizService, streakService, chatService } = require('../services/firebaseService');
 
 /**
  * Get dashboard data for user
@@ -16,8 +16,30 @@ exports.getDashboard = async (req, res) => {
     // Get recent lessons
     const recentLessons = await lessonService.getByUserId(userId, 5);
 
-    // Get recent quizzes
+    // Get recent quizzes with results
     const recentQuizzes = await quizService.getByUserId(userId, 5);
+    
+    // Get all quizzes for counting perfect scores
+    const allQuizzes = await quizService.getByUserId(userId, 1000);
+    
+    // Count perfect scores (100%)
+    const perfectScores = allQuizzes.filter(quiz => {
+      if (!quiz.result) return false;
+      const score = (quiz.result.correctAnswers / quiz.result.totalQuestions) * 100;
+      return score === 100;
+    }).length;
+    
+    // Count chat messages
+    const chatHistory = await chatService.getByUserId(userId, 10000);
+    const totalMessages = chatHistory.filter(msg => msg.role === 'user').length;
+    
+    // Track study time patterns (for early bird / night owl badges)
+    const studyTimes = allQuizzes
+      .filter(q => q.createdAt)
+      .map(q => new Date(q.createdAt).getHours());
+    
+    const earlyMorningStudies = studyTimes.filter(hour => hour >= 5 && hour < 8).length;
+    const lateNightStudies = studyTimes.filter(hour => hour >= 22 || hour < 5).length;
 
     // Calculate progress
     const completionRate = stats.totalLessons > 0
@@ -42,6 +64,13 @@ exports.getDashboard = async (req, res) => {
         accuracy: stats.totalQuestions > 0
           ? Math.round((stats.totalCorrect / stats.totalQuestions) * 100)
           : 0
+      },
+      // Engagement metrics for gamification
+      engagement: {
+        totalMessages,
+        perfectScores,
+        earlyMorningStudies,
+        lateNightStudies
       },
       weaknesses: stats.weakTopics || [],
       strengths: stats.strongTopics || [],

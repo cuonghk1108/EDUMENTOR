@@ -158,40 +158,47 @@ export const MOTIVATIONAL_TIPS = [
 
 /**
  * Check mission progress
+ * Note: Currently checking overall stats, not daily stats
+ * TODO: Implement daily tracking in backend for accurate daily missions
  */
 export const checkMissionProgress = (mission, userStats) => {
   const { type, target } = mission;
   
   switch (type) {
     case 'lessons':
+      // Check total completed lessons
       return {
-        current: userStats.todayLessons || 0,
+        current: userStats.completedLessons || 0,
         target,
-        completed: (userStats.todayLessons || 0) >= target
+        completed: (userStats.completedLessons || 0) >= target
       };
     case 'quizzes':
+      // Check total completed quizzes
       return {
-        current: userStats.todayQuizzes || 0,
+        current: userStats.completedQuizzes || 0,
         target,
-        completed: (userStats.todayQuizzes || 0) >= target
+        completed: (userStats.completedQuizzes || 0) >= target
       };
     case 'streak':
+      // Check current streak
       return {
-        current: userStats.streak || 0,
+        current: userStats.streakDays || 0,
         target,
-        completed: (userStats.streak || 0) > 0
+        completed: (userStats.streakDays || 0) >= 1
       };
     case 'chat':
+      // Check total messages
       return {
-        current: userStats.todayChats || 0,
+        current: userStats.totalMessages || 0,
         target,
-        completed: (userStats.todayChats || 0) >= target
+        completed: (userStats.totalMessages || 0) >= target
       };
     case 'score':
+      // Check average score
       return {
-        current: userStats.highestScoreToday || 0,
+        current: userStats.averageScore || 0,
         target,
-        completed: (userStats.highestScoreToday || 0) >= target
+        completed: (userStats.averageScore || 0) >= target
       };
     default:
       return { current: 0, target, completed: false };
@@ -205,27 +212,25 @@ export const checkAchievementUnlock = (achievement, userStats) => {
   const { unlockCondition } = achievement;
   
   if (unlockCondition.lessons) {
-    return (userStats.totalLessons || 0) >= unlockCondition.lessons;
+    return (userStats.completedLessons || 0) >= unlockCondition.lessons;
   }
   if (unlockCondition.streak) {
-    return (userStats.currentStreak || 0) >= unlockCondition.streak;
+    return (userStats.streakDays || 0) >= unlockCondition.streak;
   }
   if (unlockCondition.quizzes) {
-    return (userStats.totalQuizzes || 0) >= unlockCondition.quizzes;
+    return (userStats.completedQuizzes || 0) >= unlockCondition.quizzes;
   }
   if (unlockCondition.perfectScore) {
-    return userStats.hasPerfectScore || false;
+    return (userStats.perfectScores || 0) > 0;
   }
   if (unlockCondition.chats) {
-    return (userStats.totalChats || 0) >= unlockCondition.chats;
+    return (userStats.totalMessages || 0) >= unlockCondition.chats;
   }
   if (unlockCondition.earlyBird) {
-    const hour = new Date().getHours();
-    return hour >= 5 && hour < 7 && userStats.studyingNow;
+    return (userStats.earlyMorningStudies || 0) > 0;
   }
   if (unlockCondition.nightOwl) {
-    const hour = new Date().getHours();
-    return hour >= 23 && userStats.studyingNow;
+    return (userStats.lateNightStudies || 0) > 0;
   }
   
   return false;

@@ -145,7 +145,109 @@ const userStats = {
 
 ---
 
-## 🔧 5. Cấu hình và Tùy chỉnh
+## 🔧 5. Backend Integration
+
+### Đã thêm vào Dashboard API
+
+```javascript
+// backend/controllers/dashboardController.js
+const dashboard = {
+  // ... existing fields
+  engagement: {
+    totalMessages: 123,        // Số tin nhắn với AI
+    perfectScores: 5,          // Số quiz đạt 100%
+    earlyMorningStudies: 12,   // Số lần học sáng sớm (5-8h)
+    lateNightStudies: 8        // Số lần học đêm khuya (22h+)
+  }
+};
+```
+
+### Cách tính các metrics
+
+**totalMessages**: Đếm từ `chatHistory` collection
+```javascript
+const chatHistory = await chatService.getByUserId(userId, 10000);
+const totalMessages = chatHistory.filter(msg => msg.role === 'user').length;
+```
+
+**perfectScores**: Đếm quiz có điểm 100%
+```javascript
+const allQuizzes = await quizService.getByUserId(userId, 1000);
+const perfectScores = allQuizzes.filter(quiz => {
+  if (!quiz.result) return false;
+  const score = (quiz.result.correctAnswers / quiz.result.totalQuestions) * 100;
+  return score === 100;
+}).length;
+```
+
+**earlyMorningStudies**: Đếm hoạt động 5-8h sáng
+```javascript
+const studyTimes = allQuizzes
+  .filter(q => q.createdAt)
+  .map(q => new Date(q.createdAt).getHours());
+const earlyMorningStudies = studyTimes.filter(hour => hour >= 5 && hour < 8).length;
+```
+
+**lateNightStudies**: Đếm hoạt động 22h+ hoặc trước 5h
+```javascript
+const lateNightStudies = studyTimes.filter(hour => hour >= 22 || hour < 5).length;
+```
+
+### Frontend Integration
+
+**Dashboard.js** lấy dữ liệu từ API:
+```javascript
+const { overview, performance, engagement, weaknesses, strengths, recentActivity } = dashboard;
+
+const userStats = {
+  completedLessons: overview.completedLessons,
+  completedQuizzes: overview.totalQuizzes,
+  streakDays: overview.streakDays,
+  totalMessages: engagement?.totalMessages || 0,      // ✅ Đồng bộ
+  averageScore: overview.averageScore,
+  perfectScores: engagement?.perfectScores || 0,      // ✅ Đồng bộ
+  earlyMorningStudies: engagement?.earlyMorningStudies || 0,  // ✅ Đồng bộ
+  lateNightStudies: engagement?.lateNightStudies || 0,        // ✅ Đồng bộ
+  lastActivity: new Date().toISOString().split('T')[0]
+};
+```
+
+### Achievement Unlock Conditions
+
+**engagement.js** sử dụng userStats:
+```javascript
+export const checkAchievementUnlock = (achievement, userStats) => {
+  const { unlockCondition } = achievement;
+  
+  if (unlockCondition.lessons) {
+    return (userStats.completedLessons || 0) >= unlockCondition.lessons;
+  }
+  if (unlockCondition.streak) {
+    return (userStats.streakDays || 0) >= unlockCondition.streak;
+  }
+  if (unlockCondition.quizzes) {
+    return (userStats.completedQuizzes || 0) >= unlockCondition.quizzes;
+  }
+  if (unlockCondition.perfectScore) {
+    return (userStats.perfectScores || 0) > 0;  // ✅ Đồng bộ
+  }
+  if (unlockCondition.chats) {
+    return (userStats.totalMessages || 0) >= unlockCondition.chats;  // ✅ Đồng bộ
+  }
+  if (unlockCondition.earlyBird) {
+    return (userStats.earlyMorningStudies || 0) > 0;  // ✅ Đồng bộ
+  }
+  if (unlockCondition.nightOwl) {
+    return (userStats.lateNightStudies || 0) > 0;  // ✅ Đồng bộ
+  }
+  
+  return false;
+};
+```
+
+---
+
+## 🔧 6. Cấu hình và Tùy chỉnh
 
 ### Thêm nhiệm vụ mới
 
