@@ -111,15 +111,24 @@ exports.login = async (req, res) => {
       });
     }
 
+    console.log('[LOGIN] Attempting login for email:', email);
+
     // Find user
     const user = await userService.getByEmail(email);
+    console.log('[LOGIN] User from DB:', user ? `Found (ID: ${user.id})` : 'NOT FOUND');
+    
     if (!user) {
+      console.log('[LOGIN] User not found, returning 401');
       return res.status(401).json({ error: 'Email hoặc mật khẩu không đúng' });
     }
 
     // Check password
+    console.log('[LOGIN] Comparing passwords...');
     const isValidPassword = await comparePassword(password, user.password);
+    console.log('[LOGIN] Password valid:', isValidPassword);
+    
     if (!isValidPassword) {
+      console.log('[LOGIN] Password mismatch, returning 401');
       return res.status(401).json({ error: 'Email hoặc mật khẩu không đúng' });
     }
 
