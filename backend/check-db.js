@@ -18,6 +18,7 @@ const checkDatabase = async () => {
     console.log(`   Name: ${user?.name}`);
     console.log(`   ID: ${user?._id}`);
     console.log(`   Password hash: ${user?.password ? user.password.substring(0, 20) + '...' : 'N/A'}`);
+    console.log(`   Badges: ${user?.badges ? JSON.stringify(user.badges) : '[]'}`);
 
     // Find stats
     const stats = await db.learningStats.findOne({ userId: user?._id });

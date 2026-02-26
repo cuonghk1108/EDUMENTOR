@@ -307,7 +307,10 @@ const Upload = () => {
   };
 
   const handleGenerateQuiz = async () => {
-    if (!ocrText) return;
+    if (!ocrText || ocrText.trim().length < 20) {
+      toast.error('Nội dung quá ngắn để tạo quiz. Vui lòng upload file có nội dung dài hơn.');
+      return;
+    }
 
     try {
       setProcessing(true);
@@ -321,7 +324,9 @@ const Upload = () => {
       toast.success('Tạo quiz thành công!');
       navigate(`/quiz/${quizRes.data.quiz.id}`);
     } catch (error) {
-      toast.error('Lỗi tạo quiz');
+      const errorMessage = error?.response?.data?.error || error?.message || 'Lỗi tạo quiz';
+      toast.error(errorMessage);
+      console.error('Quiz creation error:', error);
     } finally {
       setProcessing(false);
     }

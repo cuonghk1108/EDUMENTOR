@@ -75,19 +75,27 @@ const LessonView = () => {
 
   // Generate quiz mutation
   const quizMutation = useMutation(
-    () => quizAPI.generate({
-      text: lesson.originalText || lesson.content,
-      count: 5,
-      topic: lesson.title,
-      lessonId: lesson.id
-    }),
+    () => {
+      const textToUse = lesson.originalText || lesson.sourceText || lesson.content;
+      if (!textToUse || textToUse.trim().length < 20) {
+        throw new Error('Nội dung bài học quá ngắn để tạo quiz. Vui lòng cung cấp nội dung dài hơn.');
+      }
+      return quizAPI.generate({
+        text: textToUse,
+        count: 5,
+        topic: lesson.title,
+        lessonId: lesson.id
+      });
+    },
     {
       onSuccess: (data) => {
         toast.success('Tạo quiz thành công!');
         navigate(`/quiz/${data.data.quiz.id}`);
       },
-      onError: () => {
-        toast.error('Lỗi tạo quiz');
+      onError: (error) => {
+        const errorMessage = error?.response?.data?.error || error?.message || 'Lỗi tạo quiz';
+        toast.error(errorMessage);
+        console.error('Quiz generation error:', error);
       }
     }
   );

@@ -292,11 +292,12 @@ exports.updateUser = async (req, res) => {
 
     await userService.update(userId, updates);
 
-    // Log activity
+    // Log activity (mark as admin-originated)
     await activityLogService.log(req.userId, {
       type: 'admin_update_user',
       targetUserId: userId,
-      changes: updates
+      changes: updates,
+      actorIsAdmin: true
     });
 
     res.json({
@@ -328,11 +329,12 @@ exports.deleteUser = async (req, res) => {
 
     await userService.delete(userId);
 
-    // Log activity
+    // Log activity (mark as admin-originated)
     await activityLogService.log(req.userId, {
       type: 'admin_delete_user',
       targetUserId: userId,
-      userName: user.name
+      userName: user.name,
+      actorIsAdmin: true
     });
 
     res.json({
@@ -369,7 +371,8 @@ exports.toggleBlockUser = async (req, res) => {
 
     await activityLogService.log(req.userId, {
       type: isBlocked ? 'admin_block_user' : 'admin_unblock_user',
-      targetUserId: userId
+      targetUserId: userId,
+      actorIsAdmin: true
     });
 
     res.json({
@@ -409,7 +412,8 @@ exports.resetUserPassword = async (req, res) => {
 
     await activityLogService.log(req.userId, {
       type: 'admin_reset_user_password',
-      targetUserId: userId
+      targetUserId: userId,
+      actorIsAdmin: true
     });
 
     res.json({
@@ -458,7 +462,8 @@ exports.deleteAllUserData = async (req, res) => {
     await activityLogService.log(req.userId, {
       type: 'admin_delete_all_user_data',
       targetUserId: userId,
-      deletedCount: totalDeleted
+      deletedCount: totalDeleted,
+      actorIsAdmin: true
     });
 
     res.json({
@@ -533,7 +538,8 @@ exports.changeUserRole = async (req, res) => {
       type: 'admin_change_user_role',
       targetUserId: userId,
       oldRole: user.role,
-      newRole: role
+      newRole: role,
+      actorIsAdmin: true
     });
 
     res.json({
@@ -620,11 +626,12 @@ exports.deleteLesson = async (req, res) => {
 
     await lessonService.delete(lessonId);
 
-    // Log activity
+    // Log activity (mark as admin-originated)
     await activityLogService.log(req.userId, {
       type: 'admin_delete_lesson',
       lessonId,
-      lessonTitle: lesson.title
+      lessonTitle: lesson.title,
+      actorIsAdmin: true
     });
 
     res.json({
@@ -706,11 +713,12 @@ exports.deleteQuiz = async (req, res) => {
 
     await quizService.delete(quizId);
 
-    // Log activity
+    // Log activity (mark as admin-originated)
     await activityLogService.log(req.userId, {
       type: 'admin_delete_quiz',
       quizId,
-      quizTopic: quiz.topic
+      quizTopic: quiz.topic,
+      actorIsAdmin: true
     });
 
     res.json({

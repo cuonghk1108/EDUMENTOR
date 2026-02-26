@@ -582,7 +582,11 @@ router.get('/audio-history', verifyToken, async (req, res) => {
 router.get('/activity', verifyToken, async (req, res) => {
   try {
     const days = parseInt(req.query.days) || 7;
-    const activity = await activityLogService.getRecentActivity(req.userId, days);
+    let activity = await activityLogService.getRecentActivity(req.userId, days);
+    // Hide admin-originated logs from a user's own activity view
+    if (Array.isArray(activity)) {
+      activity = activity.filter(a => !(a.actorIsAdmin && a.actorId === req.userId));
+    }
     res.json({ success: true, activity });
   } catch (error) {
     res.status(500).json({ error: error.message });

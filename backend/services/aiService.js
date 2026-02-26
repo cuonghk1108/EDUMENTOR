@@ -227,8 +227,10 @@ YÊU CẦU:
 - Đáp án nhiễu phải hợp lý, không quá dễ loại trừ
 - Bao gồm cả câu hỏi kiến thức và câu hỏi vận dụng
 - Mỗi câu có giải thích ngắn gọn cho đáp án đúng
+- answer field: chỉ ghi A, B, C hoặc D (không ghi toàn bộ nội dung)
+- difficulty: "easy", "medium" hoặc "hard"
 
-ĐỊNH DẠNG OUTPUT (JSON):
+ĐỊNH DẠNG OUTPUT (CHỈ TRẢ VỀ JSON, KHÔNG CÓ TEXT KHÁC):
 {
   "topic": "[Tên chủ đề]",
   "questions": [
@@ -239,14 +241,14 @@ YÊU CẦU:
       "B": "[Đáp án B]",
       "C": "[Đáp án C]",
       "D": "[Đáp án D]",
-      "answer": "[A/B/C/D]",
-      "explanation": "[Giải thích]",
-      "difficulty": "[easy/medium/hard]"
+      "answer": "A",
+      "explanation": "[Giải thích ngắn gọn cho đáp án đúng]",
+      "difficulty": "easy"
     }
   ]
 }
 
-CHỈ TRẢ VỀ JSON, KHÔNG CÓ TEXT KHÁC.
+ĐẶC BIỆT: Trả về JSON hợp lệ hoàn toàn, không đươc có text trước hoặc sau JSON.
 
 ---
 
@@ -906,6 +908,11 @@ CHỈ OUTPUT PHẦN LATEX (không cần documentclass nếu là đoạn nhỏ).`
    */
   async generateQuiz(text, count = 5, options = {}) {
     try {
+      // Validate input
+      if (!text || text.trim().length < 10) {
+        throw new Error('Nội dung quá ngắn. Vui lòng cung cấp nội dung dài hơn 10 ký tự.');
+      }
+
       const prompt = PROMPTS.quiz
         .replace('{text}', text)
         .replace('{count}', count.toString());
@@ -915,20 +922,50 @@ CHỈ OUTPUT PHẦN LATEX (không cần documentclass nếu là đoạn nhỏ).`
         messages: [
           {
             role: 'system',
-            content: 'Bạn là giáo viên tạo đề thi. Luôn trả về JSON hợp lệ.'
+            content: 'Bạn là giáo viên tạo đề thi. Luôn trả về JSON hợp lệ. CHỈ TRẢ VỀ JSON, KHÔNG CÓ TEXT KHÁC.'
           },
           {
             role: 'user',
             content: prompt
           }
         ],
-        max_tokens: options.maxTokens || 3000,
+        max_tokens: options.maxTokens || 4000,
         temperature: options.temperature || 0.7,
         response_format: { type: "json_object" }
       });
 
-      const content = response.choices[0].message.content;
-      const quiz = JSON.parse(content);
+      let content = response.choices[0].message.content;
+      
+      // Try to extract JSON if there's extra text
+      let quiz;
+      try {
+        quiz = JSON.parse(content);
+      } catch (parseError) {
+        // Try to find JSON object in the content
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          quiz = JSON.parse(jsonMatch[0]);
+        } else {
+          throw new Error(`Không thể parse JSON từ response: ${content.substring(0, 100)}...`);
+        }
+      }
+
+      // Validate quiz structure
+      if (!quiz.questions || !Array.isArray(quiz.questions)) {
+        throw new Error('Response không có mảng questions');
+      }
+
+      if (quiz.questions.length === 0) {
+        throw new Error('Không tạo được câu hỏi. Vui lòng thử lại với nội dung khác.');
+      }
+
+      // Validate each question has required fields
+      for (let i = 0; i < quiz.questions.length; i++) {
+        const q = quiz.questions[i];
+        if (!q.question || !q.answer || !q.A || !q.B || !q.C || !q.D) {
+          throw new Error(`Câu hỏi ${i + 1} không đầy đủ thông tin`);
+        }
+      }
       
       return {
         success: true,
@@ -937,6 +974,7 @@ CHỈ OUTPUT PHẦN LATEX (không cần documentclass nếu là đoạn nhỏ).`
       };
     } catch (error) {
       console.error('Generate quiz error:', error);
+      console.error('Error details:', error.response?.data || error.message);
       throw new Error(`Lỗi tạo quiz: ${error.message}`);
     }
   },

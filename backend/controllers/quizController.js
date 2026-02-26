@@ -13,11 +13,23 @@ exports.generateQuiz = async (req, res) => {
       return res.status(400).json({ error: 'Vui lòng cung cấp nội dung' });
     }
 
+    if (text.trim().length < 20) {
+      return res.status(400).json({ 
+        error: 'Nội dung quá ngắn. Vui lòng cung cấp nội dung dài hơn 20 ký tự để tạo quiz.' 
+      });
+    }
+
     // Always generate 20 questions
     const questionCount = 20;
 
     // Generate quiz using AI
     const result = await aiService.generateQuiz(text, questionCount);
+
+    if (!result.quiz || !result.quiz.questions) {
+      return res.status(500).json({ 
+        error: 'Lỗi tạo quiz: Không nhận được dữ liệu từ AI' 
+      });
+    }
 
     // Save quiz to database with regeneration tracking
     const quizData = {
@@ -40,7 +52,19 @@ exports.generateQuiz = async (req, res) => {
     });
   } catch (error) {
     console.error('Generate quiz error:', error);
-    res.status(500).json({ error: error.message });
+    
+    // Provide more specific error messages
+    let errorMessage = error.message || 'Không thể tạo quiz';
+    
+    if (error.message.includes('Lỗi tạo quiz')) {
+      errorMessage = error.message;
+    } else if (error.message.includes('401')) {
+      errorMessage = 'Lỗi xác thực API. Vui lòng kiểm tra cấu hình server.';
+    } else if (error.message.includes('429')) {
+      errorMessage = 'Quá nhiều request. Vui lòng thử lại sau vài giây.';
+    }
+    
+    res.status(500).json({ error: errorMessage });
   }
 };
 
@@ -241,6 +265,12 @@ exports.regenerateQuiz = async (req, res) => {
       return res.status(400).json({ error: 'Vui lòng cung cấp quizId và nội dung' });
     }
 
+    if (text.trim().length < 20) {
+      return res.status(400).json({ 
+        error: 'Nội dung quá ngắn. Vui lòng cung cấp nội dung dài hơn 20 ký tự.' 
+      });
+    }
+
     // Get existing quiz
     const quiz = await quizService.getById(quizId);
     if (!quiz) {
@@ -254,6 +284,12 @@ exports.regenerateQuiz = async (req, res) => {
 
     // Generate 20 new questions
     const result = await aiService.generateQuiz(text, 20);
+
+    if (!result.quiz || !result.quiz.questions) {
+      return res.status(500).json({ 
+        error: 'Lỗi tạo quiz: Không nhận được dữ liệu từ AI' 
+      });
+    }
 
     // Get regeneration history to ensure uniqueness
     const history = await quizService.getRegenerationHistory(quizId);
@@ -281,7 +317,9 @@ exports.regenerateQuiz = async (req, res) => {
         `${text}\n\n[YÊU CẦU THÊM]: Tạo câu hỏi HOÀN TOÀN KHÁC với các câu hỏi trước đó, đặc biệt về cách phát biểu và nội dung cụ thể.`,
         20
       );
-      result.quiz = retryResult.quiz;
+      if (retryResult.quiz && retryResult.quiz.questions) {
+        result.quiz = retryResult.quiz;
+      }
     }
 
     // Add new regeneration to quiz
@@ -297,7 +335,11 @@ exports.regenerateQuiz = async (req, res) => {
     });
   } catch (error) {
     console.error('Regenerate quiz error:', error);
-    res.status(500).json({ error: error.message });
+    let errorMessage = error.message || 'Không thể tạo quiz mới';
+    if (error.message.includes('Lỗi tạo quiz')) {
+      errorMessage = error.message;
+    }
+    res.status(500).json({ error: errorMessage });
   }
 };
 

@@ -699,12 +699,16 @@ const audioHistoryService = {
 // ==================== ACTIVITY LOG SERVICE ====================
 const activityLogService = {
   async log(userId, activity) {
+    // Store actorId (who performed the action), payload and admin flag
     const doc = await db.activityLog.insert({
       userId,
-      action: activity.action, // 'lesson_view', 'quiz_submit', 'bookmark_add', etc.
-      targetType: activity.targetType, // 'lesson', 'quiz', 'note', etc.
-      targetId: activity.targetId,
-      details: activity.details || {},
+      actorId: userId,
+      action: activity.action || activity.type || activity.typeName || null,
+      targetType: activity.targetType || activity.target || null,
+      targetId: activity.targetId || activity.targetId || null,
+      details: activity.details || activity.changes || activity || {},
+      payload: activity,
+      actorIsAdmin: !!activity.actorIsAdmin,
       timestamp: new Date()
     });
     return { id: doc._id, ...doc };
