@@ -1,0 +1,23 @@
+# sample Nginx configuration for the project
+# save as /etc/nginx/sites-available/myapp and symlink to sites-enabled
+
+server {
+    listen 80;
+    server_name your-domain.com 103.139.154.65;
+
+    # static files served from frontend build folder
+    location /static/ {
+        alias /path/to/deploy/frontend/build/static/;
+        expires 30d;
+        add_header Cache-Control "public";
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:3000; # backend port
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}

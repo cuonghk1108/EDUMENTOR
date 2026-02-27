@@ -17,13 +17,18 @@ if not exist "%ROOT%\frontend\build\index.html" (
   call npm run build
 )
 
+set "CLOUDFLARED_CMD=cloudflared"
+if exist "%ROOT%\cloudflare\cloudflared.exe" (
+  set "CLOUDFLARED_CMD=%ROOT%\cloudflare\cloudflared.exe"
+)
+
 start "Edumentor - Server" cmd /k "cd /d %ROOT%\backend && title [SERVER] Port 5000 && node server.js"
 timeout /t 2 /nobreak >nul
-start "Edumentor - Tunnel" cmd /k "title [TUNNEL] edumentor && cloudflared tunnel --config %ROOT%\cloudflare\config.yml run edumentor"
+start "Edumentor - Tunnel" cmd /k "title [TUNNEL] edumentor && !CLOUDFLARED_CMD! tunnel --config %ROOT%\cloudflare\config.yml run edumentor"
 timeout /t 1 /nobreak >nul
-start "Edumentor - Celery API" cmd /k "cd /d %ROOT%\celery && D:/AII/.venv/Scripts/python.exe -m uvicorn worker_api:app --host 0.0.0.0 --port 8001"
+start "Edumentor - Celery API" cmd /k "cd /d %ROOT%\celery && "%ROOT%\.venv\Scripts\python.exe" -m uvicorn worker_api:app --host 0.0.0.0 --port 8001"
 timeout /t 1 /nobreak >nul
-start "Edumentor - Celery Worker" cmd /k "cd /d %ROOT%\celery && D:/AII/.venv/Scripts/python.exe -m celery -A celery_app.celery_app worker --loglevel=info --pool=solo"
+start "Edumentor - Celery Worker" cmd /k "cd /d %ROOT%\celery && "%ROOT%\.venv\Scripts\python.exe" -m celery -A celery_app.celery_app worker --loglevel=info --pool=solo"
 
 echo [OK] Localhost: http://localhost:5000
 echo [OK] Tunnel: https://edumentor.io.vn
