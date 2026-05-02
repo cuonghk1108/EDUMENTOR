@@ -9,6 +9,39 @@ const { pdf2pic } = require('pdf2pic');
 // OCR SERVICE
 // ============================================
 
+const OCR_MATH_SYMBOLS = [
+  [/\u2264/g, '<='],
+  [/\u2265/g, '>='],
+  [/\u2260/g, '!='],
+  [/\u2248/g, '\\approx'],
+  [/\u00b1/g, '+/-'],
+  [/\u00d7/g, '\\times'],
+  [/\u00f7/g, '/'],
+  [/\u00b7/g, '\\cdot'],
+  [/\u221e/g, '\\infty'],
+  [/\u2192/g, '->'],
+  [/\u21d2/g, '=>'],
+  [/\u00b0/g, '^\\circ'],
+  [/\uf03d/g, '='],
+  [/\uf02b/g, '+'],
+  [/\uf02d/g, '-'],
+  [/\uf0d7/g, '\\times'],
+  [/\uf0b7/g, '\\cdot'],
+  [/\uf0b0/g, '^\\circ'],
+  [/\uf061/g, '\\alpha'],
+  [/\uf062/g, '\\beta'],
+  [/\uf071/g, '\\theta'],
+  [/\uf070/g, '\\pi'],
+  [/\uf0a2/g, "'"],
+  [/\uf0de/g, '=>']
+];
+
+function normalizeOcrMathSymbols(text) {
+  return OCR_MATH_SYMBOLS.reduce((value, [pattern, replacement]) => {
+    return value.replace(pattern, ` ${replacement} `);
+  }, String(text));
+}
+
 const ocrService = {
   async runTesseract(imagePath, language, config = {}) {
     return Tesseract.recognize(imagePath, language, {
@@ -248,7 +281,13 @@ const ocrService = {
             
             try {
               // Convert PDF page to image
-              const imagePath = await this.convertPdfPageToImage(pdfPath, i);
+              const imageResult = await this.convertPdfPageToImage(pdfPath, i);
+              const imagePath = typeof imageResult === 'string' ? imageResult : imageResult?.path;
+
+              if (!imagePath) {
+                throw new Error(`Khong tao duoc anh tu trang PDF ${i}`);
+              }
+
               tempFiles.push(imagePath);
               
               // Run OCR on the image
@@ -359,7 +398,7 @@ const ocrService = {
   cleanOCRText(text) {
     if (!text) return '';
 
-    return text
+    return normalizeOcrMathSymbols(text)
       // Remove excessive whitespace
       .replace(/\s+/g, ' ')
       // Fix common OCR errors for Vietnamese

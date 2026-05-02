@@ -8,6 +8,7 @@ import CustomizePromptModal from '../components/CustomizePromptModal';
 import MathRenderer from '../components/MathRenderer';
 import { celebrateLessonComplete } from '../utils/gamification';
 import { getBaseUrl } from '../utils/apiHelpers';
+import { stripLatexForPlainText } from '../utils/latex';
 import {
   BookOpenIcon,
   CheckCircleIcon,
@@ -31,7 +32,7 @@ const LessonView = () => {
   const [audioUrl, setAudioUrl] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioLoading, setAudioLoading] = useState(false);
-  const [viewMode, setViewMode] = useState('structured');
+  const [viewMode, setViewMode] = useState('markdown');
   const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false);
   const audioRef = React.useRef(null);
   const baseUrl = getBaseUrl();
@@ -106,7 +107,7 @@ const LessonView = () => {
 
     setAudioLoading(true);
     try {
-      const text = lesson.content.replace(/[#*_\[\]]/g, '').slice(0, 4000);
+      const text = stripLatexForPlainText(lesson.content).slice(0, 4000);
       
       const response = await ttsAPI.generate({ 
         text, 
@@ -343,7 +344,7 @@ const LessonView = () => {
           <StructuredLesson lesson={lesson} />
         ) : (
           <div className="markdown-content prose prose-invert max-w-none">
-            <MathRenderer content={lesson.content} />
+            <MathRenderer content={lesson.content || JSON.stringify(lesson.structuredContent, null, 2)} />
           </div>
         )}
       </motion.div>

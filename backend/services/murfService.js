@@ -60,6 +60,49 @@ const VIETNAMESE_VOICES = {
 const DEFAULT_VOICE = 'en-US-natalie';
 
 /**
+ * Calculate audio duration from WAV buffer
+ * @param {Buffer} audioBuffer - WAV audio buffer
+ * @returns {number} Duration in seconds
+ */
+function calculateAudioDuration(audioBuffer) {
+  if (!audioBuffer || audioBuffer.length < 44) {
+    return 0; // Invalid WAV file
+  }
+
+  try {
+    // WAV header structure (little-endian)
+    const sampleRate = audioBuffer.readUInt32LE(24);
+    const bitsPerSample = audioBuffer.readUInt16LE(34);
+    const dataSize = audioBuffer.readUInt32LE(40);
+    
+    if (sampleRate === 0) {
+      return 0;
+    }
+    
+    const bytesPerSample = bitsPerSample / 8;
+    const channels = audioBuffer.readUInt16LE(22);
+    const numSamples = dataSize / (bytesPerSample * channels);
+    const duration = Math.round((numSamples / sampleRate) * 10) / 10;
+    
+    console.log(`📊 Audio duration: ${duration}s`);
+    return duration;
+  } catch (error) {
+    console.error('Error calculating audio duration:', error.message);
+    return 0;
+  }
+}
+
+/**
+ * Validate voice ID
+ * @param {string} voiceId - Voice ID to validate
+ * @returns {boolean} True if voice is valid
+ */
+function isValidVoiceId(voiceId) {
+  const validIds = Object.values(VIETNAMESE_VOICES).map(v => v.id);
+  return validIds.includes(voiceId);
+}
+
+/**
  * Get list of available Vietnamese voices
  */
 async function getVietnameseVoices() {
@@ -296,7 +339,7 @@ async function generateSpeechBuffer(text, options = {}) {
       return {
         success: true,
         audioBuffer: audioBuffer,
-        format: 'wav',
+        format: cacheResult.format || 'mp3',
         duration: cacheResult.duration,
         cached: true,
         cacheKey: cacheResult.textHash
@@ -308,6 +351,13 @@ async function generateSpeechBuffer(text, options = {}) {
 
     let audioBuffer;
     let duration = 0;
+    let outputFormat = (options.format || 'MP3').toLowerCase();
+
+    // Validate voice ID before generating
+    const voiceId = options.voiceId || DEFAULT_VOICE;
+    if (!isValidVoiceId(voiceId)) {
+      throw new Error(`Invalid voice ID: ${voiceId}. Available voices: ${Object.values(VIETNAMESE_VOICES).map(v => v.id).join(', ')}`);
+    }
 
     // If cleaned text is short enough, generate directly
     if (cleanedText.length <= MAX_TEXT_LENGTH) {
@@ -318,14 +368,16 @@ async function generateSpeechBuffer(text, options = {}) {
 
       if (result.encodedAudio) {
         audioBuffer = Buffer.from(result.encodedAudio, 'base64');
-        duration = result.duration || 0;
+        outputFormat = result.format || outputFormat;
+        duration = result.duration || calculateAudioDuration(audioBuffer);
       } else if (result.audioFile) {
         const audioResponse = await axios.get(result.audioFile, {
           responseType: 'arraybuffer',
           timeout: 30000
         });
         audioBuffer = Buffer.from(audioResponse.data);
-        duration = result.duration || 0;
+        outputFormat = result.format || outputFormat;
+        duration = result.duration || calculateAudioDuration(audioBuffer);
       } else {
         throw new Error('Không nhận được dữ liệu audio');
       }
@@ -344,8 +396,10 @@ async function generateSpeechBuffer(text, options = {}) {
         });
 
         if (result.encodedAudio) {
-          audioBuffers.push(Buffer.from(result.encodedAudio, 'base64'));
-          duration += result.duration || 0;
+          const chunkBuffer = Buffer.from(result.encodedAudio, 'base64');
+          audioBuffers.push(chunkBuffer);
+          outputFormat = result.format || outputFormat;
+          duration += result.duration || calculateAudioDuration(chunkBuffer);
         }
       
         // Small delay between chunks to avoid rate limiting
@@ -356,13 +410,13 @@ async function generateSpeechBuffer(text, options = {}) {
 
       // Concatenate all audio buffers
       audioBuffer = Buffer.concat(audioBuffers);
-      console.log(`✅ Combined ${chunks.length} chunks into ${audioBuffer.length} bytes`);
+      console.log(`✅ Combined ${chunks.length} chunks into ${audioBuffer.length} bytes, total duration: ${duration}s`);
     }
 
     // ========== SAVE TO CACHE ==========
     const cacheKey = cacheResult.textHash || audioCache.createCacheKey(cleanedText, voiceConfig);
     await audioCache.saveAudioCache(cleanedText, audioBuffer, {
-      format: 'wav',
+      format: outputFormat,
       duration: duration,
       voiceConfig: voiceConfig
     });
@@ -370,7 +424,7 @@ async function generateSpeechBuffer(text, options = {}) {
     return {
       success: true,
       audioBuffer: audioBuffer,
-      format: 'wav',
+      format: outputFormat,
       duration: duration,
       cached: false,
       cacheKey: cacheKey
@@ -533,6 +587,8 @@ module.exports = {
   streamSpeech,
   checkApiStatus,
   convertLessonToSpeech,
+  calculateAudioDuration,
+  isValidVoiceId,
   VIETNAMESE_VOICES,
   DEFAULT_VOICE
 };

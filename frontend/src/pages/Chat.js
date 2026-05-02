@@ -13,7 +13,7 @@ import {
   PhotoIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
-import ReactMarkdown from 'react-markdown';
+import MathRenderer from '../components/MathRenderer';
 import toast from 'react-hot-toast';
 
 const Chat = () => {
@@ -312,7 +312,7 @@ const Chat = () => {
                         </div>
                       ) : (
                         <div className="markdown-content prose prose-sm max-w-none prose-p:text-gray-200 prose-headings:text-white prose-strong:text-white prose-code:text-cyan-400 prose-li:text-gray-200 prose-a:text-cyan-400">
-                          <ReactMarkdown>{msg.content}</ReactMarkdown>
+                          <MathRenderer content={msg.content} className="prose-sm" />
                         </div>
                       )}
                     </div>

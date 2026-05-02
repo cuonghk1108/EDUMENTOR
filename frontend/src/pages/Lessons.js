@@ -4,6 +4,7 @@ import { useQuery } from 'react-query';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { lessonAPI } from '../services/api';
+import { stripLatexForPlainText } from '../utils/latex';
 import {
   BookOpenIcon,
   CheckCircleIcon,
@@ -150,7 +151,7 @@ const Lessons = () => {
 
                   {/* Preview */}
                   <p className="text-sm text-gray-400 line-clamp-2 mb-4">
-                    {lesson.content?.replace(/[#*_\[\]]/g, '').slice(0, 100)}...
+                    {stripLatexForPlainText(lesson.content || '').slice(0, 100)}...
                   </p>
 
                   {/* Meta */}

@@ -11,6 +11,7 @@ import {
   SparklesIcon
 } from '@heroicons/react/24/outline';
 import { celebrateQuizComplete, animateValue } from '../utils/gamification';
+import MathRenderer from '../components/MathRenderer';
 
 const QuizResult = () => {
   const { quizId } = useParams();
@@ -198,9 +199,10 @@ const QuizResult = () => {
                 </div>
                 
                 <div className="flex-1">
-                  <p className="font-medium text-white mb-2">
-                    Câu {index + 1}: {item.question}
-                  </p>
+                  <div className="font-medium text-white mb-2">
+                    <span>Câu {index + 1}: </span>
+                    <MathRenderer content={item.question} className="prose-sm" />
+                  </div>
                   
                   <div className="flex flex-wrap gap-4 text-sm">
                     <div>
@@ -220,10 +222,10 @@ const QuizResult = () => {
 
                   {item.explanation && (
                     <div className="mt-3 p-3 bg-white/5 rounded-lg">
-                      <p className="text-sm text-gray-300">
+                      <div className="text-sm text-gray-300">
                         <span className="font-medium text-white">Giải thích: </span>
-                        {item.explanation}
-                      </p>
+                        <MathRenderer content={item.explanation} className="prose-sm" />
+                      </div>
                     </div>
                   )}
                 </div>

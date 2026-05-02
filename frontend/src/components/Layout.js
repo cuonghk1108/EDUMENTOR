@@ -33,6 +33,7 @@ const Layout = () => {
   const location = useLocation();
   const shouldReduceMotion = useReducedMotion();
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
+  const isChatPage = location.pathname === '/chat';
 
   const handleLogout = async () => {
     await logout();
@@ -79,11 +80,17 @@ const Layout = () => {
   };
 
   return (
-    <div className="relative min-h-screen bg-gray-950 overflow-hidden">
+    <div className="app-shell">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-primary-500 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white"
+      >
+        Bỏ qua điều hướng
+      </a>
       <div className="app-ambient-bg" />
 
       {/* Mobile Header - Dark Theme */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-gray-900/95 backdrop-blur-xl border-b border-white/5 safe-area-top">
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-40 glass-panel border-x-0 border-t-0 safe-area-top">
         <div className="flex items-center justify-between px-4 py-3">
           {/* Left: Logo */}
           <div className="flex items-center gap-3">
@@ -152,7 +159,7 @@ const Layout = () => {
               initial={{ opacity: 0, y: -10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
-              className="lg:hidden fixed top-16 right-2 z-50 w-72 bg-gray-900 border border-white/10 rounded-2xl shadow-xl overflow-hidden"
+              className="lg:hidden fixed top-16 right-2 z-50 w-72 glass-panel rounded-2xl shadow-xl overflow-hidden"
             >
               {/* User Info */}
               <div className="p-4 border-b border-white/5 bg-gradient-to-r from-primary-500/10 to-secondary-500/10">
@@ -234,7 +241,7 @@ const Layout = () => {
       </AnimatePresence>
 
       {/* Desktop Sidebar - Dark Theme */}
-      <aside className="hidden lg:block fixed inset-y-0 left-0 w-72 bg-gray-900/95 border-r border-white/5 z-30 backdrop-blur-xl">
+      <aside className="hidden lg:block fixed inset-y-0 left-0 w-72 glass-panel border-y-0 border-l-0 z-30">
         {/* Logo */}
         <div className="flex items-center gap-3 px-6 py-6 border-b border-white/5">
           <div className="relative">
@@ -252,7 +259,7 @@ const Layout = () => {
         </div>
 
         {/* Navigation */}
-        <nav className="p-4 space-y-1 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 220px)' }}>
+        <nav className="p-4 space-y-1 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 220px)' }} aria-label="Điều hướng chính">
           {navigation.map((item, index) => (
             <NavLink
               key={item.name}
@@ -260,8 +267,8 @@ const Layout = () => {
               className={({ isActive }) =>
                 `group flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                   isActive
-                    ? 'bg-gradient-to-r from-primary-500/20 to-secondary-500/20 text-white border border-primary-500/20'
-                    : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                    ? 'bg-gradient-to-r from-primary-500/18 to-cyan-500/14 text-white border border-primary-400/20 shadow-lg shadow-primary-950/20'
+                    : 'text-gray-400 hover:bg-white/[0.07] hover:text-white'
                 }`
               }
             >
@@ -283,7 +290,7 @@ const Layout = () => {
         </nav>
 
         {/* User Section */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/5 bg-gray-900">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/5 bg-slate-950/70 backdrop-blur-xl">
           <NavLink
             to="/profile"
             className={({ isActive }) =>
@@ -334,7 +341,7 @@ const Layout = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="relative z-10 lg:pl-72 pt-14 pb-20 lg:pt-0 lg:pb-0">
+      <main id="main-content" className="relative z-10 lg:pl-72 pt-14 pb-20 lg:pt-0 lg:pb-0">
         <div className="min-h-screen flex flex-col">
           <div className="flex-1">
             <motion.div
@@ -347,7 +354,9 @@ const Layout = () => {
                   : { type: 'spring', damping: 26, stiffness: 240, mass: 0.55 }
               }
             >
-              <Outlet />
+              <div className={isChatPage ? 'app-content-shell app-content-shell--wide' : 'app-content-shell'}>
+                <Outlet />
+              </div>
             </motion.div>
           </div>
           
@@ -366,7 +375,7 @@ const Layout = () => {
       </main>
 
       {/* Mobile Bottom Navigation - Dark */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-gray-900/95 backdrop-blur-xl border-t border-white/5 safe-area-bottom">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 glass-panel border-x-0 border-b-0 safe-area-bottom" aria-label="Điều hướng nhanh">
         <div className="flex items-center justify-around px-2 py-1">
           {bottomNavigation.map((item) => {
             const isActive = isActiveRoute(item.href);

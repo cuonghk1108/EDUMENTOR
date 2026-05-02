@@ -11,6 +11,7 @@ import {
   LightBulbIcon,
   SparklesIcon
 } from '@heroicons/react/24/outline';
+import MathRenderer from '../components/MathRenderer';
 
 const QuizReview = () => {
   const { quizId } = useParams();
@@ -217,7 +218,9 @@ const QuizReview = () => {
                 </div>
 
                 {/* Question Text */}
-                <p className="text-white font-medium mb-5 text-lg">{question.question}</p>
+                <div className="text-white font-medium mb-5 text-lg">
+                  <MathRenderer content={question.question} />
+                </div>
 
                 {/* Options */}
                 <div className="space-y-3 mb-5">
@@ -244,7 +247,9 @@ const QuizReview = () => {
                         <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold ${badgeClass}`}>
                           {option}
                         </span>
-                        <span className="flex-1">{question[option]}</span>
+                        <div className="flex-1">
+                          <MathRenderer content={question[option]} className="prose-sm" />
+                        </div>
                         {isCorrectAnswer && (
                           <CheckCircleIcon className="w-6 h-6 text-green-400 flex-shrink-0" />
                         )}
@@ -263,7 +268,9 @@ const QuizReview = () => {
                       <SparklesIcon className="w-5 h-5" />
                       Giải thích:
                     </p>
-                    <p className="text-gray-300 text-sm leading-relaxed">{question.explanation}</p>
+                    <div className="text-gray-300 text-sm leading-relaxed">
+                      <MathRenderer content={question.explanation} className="prose-sm" />
+                    </div>
                   </div>
                 )}
               </motion.div>

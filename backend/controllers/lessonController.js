@@ -35,6 +35,19 @@ const generateLessonForUser = async ({ userId, text, title, subject, chapter }) 
   };
 };
 
+const normalizeCompleteLessonResult = (result) => {
+  const structuredContent = result.structuredContent || result.json || null;
+  const content = result.content || result.markdown || result.latex || result.latexContent || '';
+  const latexContent = result.latexContent || result.latex || null;
+
+  return {
+    content,
+    structuredContent,
+    latexContent,
+    usage: result.usage
+  };
+};
+
 /**
  * Generate lesson from text content
  */
@@ -299,6 +312,9 @@ exports.generateLessonComplete = async (req, res) => {
 
     // Generate both formats
     const result = await aiService.generateLessonComplete(text);
+    const normalized = normalizeCompleteLessonResult(result);
+    result.json = normalized.structuredContent || {};
+    result.latex = normalized.latexContent || normalized.content;
 
     // Save lesson to database with both formats
     const lessonData = {
@@ -307,9 +323,9 @@ exports.generateLessonComplete = async (req, res) => {
       subject: result.json.subject || subject || 'Toán',
       chapter: result.json.chapter || chapter || '',
       originalText: text,
-      content: result.latex,
-      structuredContent: result.json,
-      latexContent: result.latex,
+      content: normalized.content,
+      structuredContent: normalized.structuredContent,
+      latexContent: normalized.latexContent,
       format: 'complete',
       completed: false,
       createdAt: new Date()
@@ -323,9 +339,10 @@ exports.generateLessonComplete = async (req, res) => {
     res.json({
       success: true,
       lesson: savedLesson,
-      latex: result.latex,
-      json: result.json,
-      usage: result.usage
+      content: normalized.content,
+      latex: normalized.latexContent,
+      json: normalized.structuredContent,
+      usage: normalized.usage
     });
   } catch (error) {
     console.error('Generate complete lesson error:', error);
@@ -363,12 +380,15 @@ exports.customizeLesson = async (req, res) => {
 
     // Generate new lesson with custom prompt
     const result = await aiService.generateLessonComplete(customPromptFull);
+    const normalized = normalizeCompleteLessonResult(result);
 
     // Update lesson with new content
     const updatedLesson = await lessonService.update(lessonId, {
-      content: result.latex,
-      structuredContent: result.json,
-      latexContent: result.latex,
+      content: normalized.content,
+      structuredContent: normalized.structuredContent,
+      latexContent: normalized.latexContent,
+      audioGenerated: false,
+      hasAudio: false,
       customPrompt: customPrompt,
       lastCustomizedAt: new Date()
     });

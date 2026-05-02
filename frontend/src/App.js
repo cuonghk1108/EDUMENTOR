@@ -34,11 +34,14 @@ const ProtectedRoute = ({ children }) => {
   
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="loading-dots text-primary-600">
-          <span></span>
-          <span></span>
-          <span></span>
+      <div className="app-shell flex items-center justify-center px-4">
+        <div className="glass-panel rounded-2xl px-8 py-7 text-center">
+          <div className="loading-dots text-primary-400 justify-center">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <p className="mt-4 text-sm text-gray-400">Đang tải không gian học tập...</p>
         </div>
       </div>
     );
@@ -65,11 +68,14 @@ const PublicRoute = ({ children }) => {
   
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="loading-dots text-primary-600">
-          <span></span>
-          <span></span>
-          <span></span>
+      <div className="app-shell flex items-center justify-center px-4">
+        <div className="glass-panel rounded-2xl px-8 py-7 text-center">
+          <div className="loading-dots text-primary-400 justify-center">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <p className="mt-4 text-sm text-gray-400">Đang chuẩn bị...</p>
         </div>
       </div>
     );
@@ -156,9 +162,9 @@ function App() {
       {/* 404 */}
       <Route path="*" element={
         <PageTransition>
-          <div className="min-h-screen flex items-center justify-center">
-            <div className="text-center">
-              <h1 className="text-6xl font-bold text-gray-300">404</h1>
+          <div className="app-shell flex min-h-screen items-center justify-center px-4">
+            <div className="glass-panel max-w-md rounded-2xl p-8 text-center">
+              <h1 className="text-6xl font-bold text-white">404</h1>
               <p className="text-gray-500 mt-4">Trang không tồn tại</p>
               <a href="/" className="btn-primary mt-6 inline-block">
                 Về trang chủ

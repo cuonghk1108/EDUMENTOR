@@ -222,13 +222,16 @@ exports.generateStudyPlan = async (req, res) => {
     // Tính số ngày còn lại
     const exam = examDate ? new Date(examDate) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
     const daysRemaining = Math.ceil((exam - new Date()) / (24 * 60 * 60 * 1000));
+    const normalizedDaysRemaining = Math.max(daysRemaining, 7);
+    const generatedPlanDays = Math.min(normalizedDaysRemaining, 21);
 
     const studentInfo = {
       name: name || 'Học sinh',
       grade: grade || '12',
       subjects: subjects || ['Toán', 'Ngữ văn', 'Tiếng Anh'],
       examDate: exam.toLocaleDateString('vi-VN'),
-      daysRemaining: Math.max(daysRemaining, 7),
+      daysRemaining: generatedPlanDays,
+      actualDaysRemaining: normalizedDaysRemaining,
       studyHoursPerDay: studyHoursPerDay || 4,
       studyTimeSlots: studyTimeSlots || '7:00-11:00, 14:00-17:00, 19:00-21:00',
       targetScores: targetScores || {}

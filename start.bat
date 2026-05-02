@@ -22,9 +22,14 @@ if exist "%ROOT%\cloudflare\cloudflared.exe" (
   set "CLOUDFLARED_CMD=%ROOT%\cloudflare\cloudflared.exe"
 )
 
+if exist "%ROOT%\redis\redis-server.exe" (
+  start "Edumentor - Redis" cmd /k "cd /d %ROOT%\redis && title [REDIS] Port 6379 && redis-server.exe"
+  timeout /t 1 /nobreak >nul
+)
+
 start "Edumentor - Server" cmd /k "cd /d %ROOT%\backend && title [SERVER] Port 5000 && node server.js"
 timeout /t 2 /nobreak >nul
-start "Edumentor - Tunnel" cmd /k "title [TUNNEL] edumentor && !CLOUDFLARED_CMD! tunnel --config %ROOT%\cloudflare\config.yml run edumentor"
+start "Edumentor - Tunnel" cmd /k "title [TUNNEL] edumentor && !CLOUDFLARED_CMD! tunnel --config %ROOT%\cloudflare\config-production.yml run edumentor"
 timeout /t 1 /nobreak >nul
 start "Edumentor - Celery API" cmd /k "cd /d %ROOT%\celery && "%ROOT%\.venv\Scripts\python.exe" -m uvicorn worker_api:app --host 0.0.0.0 --port 8001"
 timeout /t 1 /nobreak >nul

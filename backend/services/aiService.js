@@ -10,6 +10,151 @@ const MODEL = process.env.XAI_MODEL || 'grok-3';
 const TTS_MODEL = process.env.OPENAI_TTS_MODEL || 'tts-1';
 const TTS_VOICE = process.env.OPENAI_TTS_VOICE || 'nova';
 
+const LATEX_OUTPUT_RULES = `
+QUY TAC LATEX BAT BUOC:
+- Cong thuc inline dung $...$; cong thuc rieng dong dung $$...$$.
+- Khong dung ky hieu Unicode trong cong thuc: dung \\leq, \\geq, \\neq, \\pm, \\times, \\div, \\to, \\infty.
+- Dung lenh LaTeX day du: \\frac{}{}, \\sqrt{}, \\sum, \\int, \\lim, \\sin, \\cos, \\tan, \\log, \\ln.
+- He phuong trinh dung \\begin{cases}...\\end{cases}; ma tran dung \\begin{bmatrix}...\\end{bmatrix}.
+- Khong bo thieu dau ngoac {}, khong chen text thuong vao giua cong thuc neu co the dung \\text{}.
+- Voi bai toan van toc lien he, khong dung x'', y'', theta'' cho van toc neu khong phai dao ham bac hai; uu tien x', y', theta' hoac \\frac{dx}{dt}.
+- Neu cong thuc OCR mo hoac khong chac, hay viet lai quan he goc/toa do va dao ham an ro rang thay vi tu suy dien cong thuc la.
+- Neu output la JSON, moi backslash trong cong thuc phai duoc escape thanh \\\\ de JSON hop le.
+`;
+
+const withLatexRules = (prompt) => `${prompt}\n\n${LATEX_OUTPUT_RULES}`;
+
+function parseJsonResponse(content, label = 'AI response') {
+  try {
+    return JSON.parse(content);
+  } catch (error) {
+    const jsonMatch = String(content || '').match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        return JSON.parse(jsonMatch[0]);
+      } catch {}
+    }
+    throw new Error(`${label} không phải JSON hợp lệ: ${error.message}`);
+  }
+}
+
+function buildFallbackStudyPlan(studentInfo = {}, weaknessAnalysis = {}) {
+  const subjects = Array.isArray(studentInfo.subjects) && studentInfo.subjects.length
+    ? studentInfo.subjects
+    : ['Toán', 'Ngữ văn', 'Tiếng Anh'];
+  const days = Math.min(Math.max(Number(studentInfo.daysRemaining) || 7, 7), 21);
+  const hoursPerDay = Number(studentInfo.studyHoursPerDay) || 4;
+  const priorities = weaknessAnalysis.improvementPriority || weaknessAnalysis.weaknessAnalysis || [];
+
+  const dailyPlan = Array.from({ length: days }, (_, index) => {
+    const day = index + 1;
+    const subject = subjects[index % subjects.length];
+    const priority = priorities[index % Math.max(priorities.length, 1)] || {};
+    const topic = priority.topic || priority.subject || `Ôn tập trọng tâm ${subject}`;
+
+    return {
+      day,
+      date: `Ngày ${day}`,
+      phase: day <= Math.ceil(days * 0.4) ? 1 : day <= Math.ceil(days * 0.75) ? 2 : 3,
+      theme: `${subject}: ${topic}`,
+      sessions: [
+        {
+          time: '07:00-09:00',
+          subject,
+          topic,
+          activity: 'Lý thuyết',
+          content: `Ôn lại kiến thức nền tảng và ghi chú công thức, khái niệm quan trọng của chủ đề ${topic}.`,
+          materials: ['SGK', 'Ghi chú cá nhân'],
+          targetGoal: 'Nắm chắc ý chính và các dạng câu hỏi thường gặp',
+          difficulty: 'medium'
+        },
+        {
+          time: '19:00-20:30',
+          subject,
+          topic,
+          activity: 'Bài tập',
+          content: `Làm bài tập vận dụng, rà lỗi sai và tổng kết cách giải cho ${topic}.`,
+          materials: ['Bộ câu hỏi luyện tập'],
+          targetGoal: 'Hoàn thành tối thiểu 10 câu và sửa lỗi sai',
+          difficulty: day % 3 === 0 ? 'hard' : 'medium'
+        }
+      ],
+      breakTime: 'Nghỉ 10-15 phút giữa các phiên học',
+      eveningReview: {
+        time: '20:30-21:00',
+        content: 'Tóm tắt kiến thức đã học và lập danh sách điểm chưa chắc.'
+      },
+      dailyGoal: `Hoàn thành phần ${topic} và tự đánh giá mức độ hiểu bài.`,
+      miniTest: {
+        hasTest: day % 2 === 0,
+        testType: day % 2 === 0 ? 'Quiz nhanh' : 'Self-check',
+        questions: day % 2 === 0 ? 10 : 5,
+        timeLimit: day % 2 === 0 ? '15 phút' : '10 phút'
+      },
+      motivationalQuote: 'Học đều mỗi ngày quan trọng hơn học dồn.',
+      notes: 'Điều chỉnh khối lượng nếu điểm yếu thay đổi sau mỗi bài kiểm tra.'
+    };
+  });
+
+  return {
+    planInfo: {
+      title: `Lộ trình ôn thi TN THPT - ${studentInfo.name || 'Học sinh'}`,
+      createdAt: new Date().toLocaleDateString('vi-VN'),
+      examDate: studentInfo.examDate || 'Chưa xác định',
+      totalDays: days,
+      actualDaysRemaining: studentInfo.actualDaysRemaining || days,
+      totalStudyHours: days * hoursPerDay,
+      targetScore: JSON.stringify(studentInfo.targetScores || {})
+    },
+    phases: [
+      {
+        phaseNumber: 1,
+        phaseName: 'Giai đoạn 1: Củng cố nền tảng',
+        startDay: 1,
+        endDay: Math.ceil(days * 0.4),
+        focus: subjects,
+        expectedOutcome: 'Nắm lại kiến thức nền và xác định lỗi sai thường gặp.'
+      },
+      {
+        phaseNumber: 2,
+        phaseName: 'Giai đoạn 2: Luyện dạng bài',
+        startDay: Math.ceil(days * 0.4) + 1,
+        endDay: Math.ceil(days * 0.75),
+        focus: ['Bài tập vận dụng', 'Sửa lỗi sai'],
+        expectedOutcome: 'Tăng tốc độ làm bài và giảm lỗi mất điểm.'
+      },
+      {
+        phaseNumber: 3,
+        phaseName: 'Giai đoạn 3: Ôn tổng hợp',
+        startDay: Math.ceil(days * 0.75) + 1,
+        endDay: days,
+        focus: ['Đề tổng hợp', 'Chiến thuật phòng thi'],
+        expectedOutcome: 'Ổn định điểm số và hoàn thiện chiến thuật làm bài.'
+      }
+    ],
+    dailyPlan,
+    weeklyMilestones: [
+      {
+        week: 1,
+        startDay: 1,
+        endDay: Math.min(7, days),
+        milestones: ['Hoàn thành rà soát kiến thức nền', 'Làm bài kiểm tra ngắn cuối tuần'],
+        assessmentTest: { hasTest: true, questions: 20, timeLimit: '30 phút' }
+      }
+    ],
+    tips: {
+      general: ['Học theo phiên 45-60 phút và nghỉ ngắn.', 'Luôn ghi lại lỗi sai sau mỗi bài luyện.'],
+      examDay: ['Chuẩn bị dụng cụ từ tối hôm trước.', 'Làm câu chắc điểm trước.'],
+      stressManagement: ['Ngủ đủ giấc.', 'Không học dồn quá khuya sát ngày thi.']
+    },
+    revisionStrategy: {
+      spaced: 'Ôn lại chủ đề sau 1 ngày, 3 ngày và 7 ngày.',
+      lastWeek: 'Ưu tiên đề tổng hợp, công thức trọng tâm và lỗi sai cá nhân.'
+    },
+    generatedByFallback: true
+  };
+}
+
 // ============================================
 // PROMPT TEMPLATES
 // ============================================
@@ -714,8 +859,8 @@ const aiService = {
    */
   async generateLesson(text, options = {}) {
     try {
-      const prompt = PROMPTS.lesson.replace('{text}', text);
-      
+      const prompt = withLatexRules(PROMPTS.lesson.replace('{text}', text));
+
       const response = await openai.chat.completions.create({
         model: MODEL,
         messages: [
@@ -749,7 +894,7 @@ const aiService = {
    */
   async generateLessonLatex(text, options = {}) {
     try {
-      const prompt = PROMPTS.lessonLatex.replace('{text}', text);
+      const prompt = withLatexRules(PROMPTS.lessonLatex.replace('{text}', text));
       
       const response = await openai.chat.completions.create({
         model: MODEL,
@@ -840,7 +985,7 @@ CHỈ OUTPUT PHẦN LATEX (không cần documentclass nếu là đoạn nhỏ).`
    */
   async generateLessonStructured(text, options = {}) {
     try {
-      const prompt = PROMPTS.lessonStructured.replace('{text}', text);
+      const prompt = withLatexRules(PROMPTS.lessonStructured.replace('{text}', text));
       
       const response = await openai.chat.completions.create({
         model: MODEL,
@@ -913,9 +1058,9 @@ CHỈ OUTPUT PHẦN LATEX (không cần documentclass nếu là đoạn nhỏ).`
         throw new Error('Nội dung quá ngắn. Vui lòng cung cấp nội dung dài hơn 10 ký tự.');
       }
 
-      const prompt = PROMPTS.quiz
+      const prompt = withLatexRules(PROMPTS.quiz
         .replace('{text}', text)
-        .replace('{count}', count.toString());
+        .replace('{count}', count.toString()));
       
       const response = await openai.chat.completions.create({
         model: MODEL,
@@ -990,10 +1135,10 @@ CHỈ OUTPUT PHẦN LATEX (không cần documentclass nếu là đoạn nhỏ).`
         .map(m => `${m.role === 'user' ? 'Học sinh' : 'Gia sư'}: ${m.content}`)
         .join('\n');
 
-      const prompt = PROMPTS.chat
+      const prompt = withLatexRules(PROMPTS.chat
         .replace('{context}', context || 'Không có nội dung cụ thể.')
         .replace('{history}', historyText || 'Chưa có lịch sử hội thoại.')
-        .replace('{question}', question);
+        .replace('{question}', question));
       
       const response = await openai.chat.completions.create({
         model: MODEL,
@@ -1216,7 +1361,16 @@ CHỈ OUTPUT PHẦN LATEX (không cần documentclass nếu là đoạn nhỏ).`
         .replace('{studyHoursPerDay}', studentInfo.studyHoursPerDay?.toString() || '4')
         .replace('{studyTimeSlots}', studentInfo.studyTimeSlots || '7:00-11:00, 14:00-17:00, 19:00-21:00')
         .replace('{weaknessAnalysis}', JSON.stringify(weaknessAnalysis, null, 2))
-        .replace('{targetScores}', JSON.stringify(studentInfo.targetScores || {}, null, 2));
+        .replace('{targetScores}', JSON.stringify(studentInfo.targetScores || {}, null, 2))
+        + `
+
+RÀNG BUỘC QUAN TRỌNG ĐỂ TRÁNH JSON QUÁ DÀI:
+- Chỉ tạo dailyPlan đúng ${studentInfo.daysRemaining || 14} ngày.
+- Mỗi ngày chỉ có tối đa 2 sessions.
+- Mỗi chuỗi mô tả tối đa 140 ký tự.
+- Không xuống dòng bên trong giá trị string.
+- Nếu còn nhiều ngày hơn, ghi số ngày thật trong planInfo.actualDaysRemaining.
+- Trả về JSON hoàn chỉnh, đóng đủ mọi ngoặc.`;
 
       const response = await openai.chat.completions.create({
         model: MODEL,
@@ -1230,13 +1384,19 @@ CHỈ OUTPUT PHẦN LATEX (không cần documentclass nếu là đoạn nhỏ).`
             content: prompt
           }
         ],
-        max_tokens: options.maxTokens || 8000,
-        temperature: 0.7,
+        max_tokens: options.maxTokens || 6000,
+        temperature: 0.4,
         response_format: { type: "json_object" }
       });
 
       const content = response.choices[0].message.content;
-      const studyPlan = JSON.parse(content);
+      let studyPlan;
+      try {
+        studyPlan = parseJsonResponse(content, 'Study plan');
+      } catch (parseError) {
+        console.warn('Study plan JSON parse failed, using fallback plan:', parseError.message);
+        studyPlan = buildFallbackStudyPlan(studentInfo, weaknessAnalysis);
+      }
 
       return {
         success: true,
@@ -1360,6 +1520,8 @@ CHỈ OUTPUT PHẦN LATEX (không cần documentclass nếu là đoạn nhỏ).`
         default:
           systemPrompt = 'Bạn là một AI giáo dục thông minh, giúp đỡ học sinh THPT Việt Nam.';
       }
+
+      systemPrompt = withLatexRules(systemPrompt);
 
       const response = await openai.chat.completions.create({
         model: MODEL,

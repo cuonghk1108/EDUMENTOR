@@ -9,7 +9,6 @@ const audioCache = require('../services/audioCacheService');
 const { audioHistoryService, lessonService } = require('../services/firebaseService');
 const fs = require('fs').promises;
 const path = require('path');
-const { v4: uuidv4 } = require('uuid');
 
 // Audio directory - sử dụng chung với cache
 const audioDir = audioCache.AUDIO_DIR || path.join(__dirname, '../uploads/audio');
@@ -53,6 +52,14 @@ exports.generateAudio = async (req, res) => {
       });
     }
 
+    // Validate voice ID if provided
+    if (voiceId && !murfService.isValidVoiceId(voiceId)) {
+      const validVoices = await murfService.getVietnameseVoices();
+      return res.status(400).json({ 
+        error: `Invalid voice ID: ${voiceId}. Available voices: ${validVoices.map(v => v.id).join(', ')}` 
+      });
+    }
+
     console.log(`🎤 Generating TTS for user ${userId}, text length: ${text.length}`);
 
     // Generate audio using Murf API (with caching)
@@ -67,7 +74,8 @@ exports.generateAudio = async (req, res) => {
 
     // Save audio file (nếu chưa được cache)
     let audioId = result.cacheKey;
-    let filename = `${audioId}.wav`;
+    const audioFormat = (result.format || 'mp3').toLowerCase();
+    let filename = `${audioId}.${audioFormat}`;
     let filePath = path.join(audioDir, filename);
 
     // Kiểm tra file đã tồn tại chưa
@@ -133,7 +141,7 @@ exports.generateAudio = async (req, res) => {
         id: audioId,
         url: `/api/tts/${audioId}`,
         cacheUrl: `/api/tts/cache/${audioId}`,
-        format: 'wav',
+        format: audioFormat,
         duration: result.duration,
         size: result.audioBuffer.length,
         cached: result.cached || false
@@ -382,9 +390,9 @@ exports.readAloud = async (req, res) => {
 
     // Return audio directly
     res.set({
-      'Content-Type': 'audio/wav',
+      'Content-Type': 'audio/mpeg',
       'Content-Length': result.audioBuffer.length,
-      'Content-Disposition': 'inline; filename="speech.wav"',
+      'Content-Disposition': 'inline; filename="speech.mp3"',
       'X-Audio-Id': result.cacheKey,
       'X-Cached': result.cached ? 'true' : 'false'
     });

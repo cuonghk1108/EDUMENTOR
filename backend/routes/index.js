@@ -19,6 +19,7 @@ const redisController = require('../controllers/redisController');
 
 // Import middleware
 const upload = require('../middleware/upload');
+const { uploadWithTotalSizeLimit } = require('../middleware/upload');
 const { verifyToken } = require('../middleware/auth');
 const { verifyAdmin } = require('../middleware/adminAuth');
 const { verifyInternalToken } = require('../middleware/internalAuth');
@@ -49,15 +50,15 @@ router.post('/internal/lesson/generate', verifyInternalToken, lessonController.g
 // ============================================
 
 // File Upload
-router.post('/upload', verifyToken, upload.single('file'), uploadController.uploadFile);
-router.post('/upload/multiple', verifyToken, upload.array('files', 10), uploadController.uploadMultiple);
+router.post('/upload', verifyToken, uploadWithTotalSizeLimit('file', 1), uploadController.uploadFile);
+router.post('/upload/multiple', verifyToken, uploadWithTotalSizeLimit('files', 5), uploadController.uploadMultiple);
 
 // OCR
 router.post('/ocr', verifyToken, ocrController.processOCR);
-router.post('/ocr/image', verifyToken, upload.single('image'), ocrController.processImageOCR);
+router.post('/ocr/image', verifyToken, uploadWithTotalSizeLimit('image', 1), ocrController.processImageOCR);
 
 // Process SGK - Upload + OCR + Generate Lesson in one step
-router.post('/process-sgk', verifyToken, upload.single('file'), async (req, res) => {
+router.post('/process-sgk', verifyToken, uploadWithTotalSizeLimit('file', 1), async (req, res) => {
   try {
     const ocrService = require('../services/ocrService');
     const aiService = require('../services/aiService');
@@ -206,7 +207,6 @@ router.post('/tts', verifyToken, ttsController.generateAudio);
 router.post('/tts/stream', verifyToken, ttsController.streamAudio);
 router.post('/tts/read-aloud', verifyToken, ttsController.readAloud);
 router.post('/tts/lesson', verifyToken, ttsController.convertLessonToSpeech);
-router.get('/tts/:audioId', ttsController.getAudio); // Public access for audio files
 
 // Audio Cache - Quản lý cache audio
 router.get('/tts/cache/stats', verifyToken, async (req, res) => {
@@ -243,6 +243,8 @@ router.get('/tts/cache/:hash', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+router.get('/tts/:audioId', ttsController.getAudio); // Public access for audio files
 
 // Redis API for authenticated users (scoped by userId)
 router.get('/redis/health', verifyToken, redisController.health);

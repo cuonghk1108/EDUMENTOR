@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import 'katex/dist/katex.min.css';
-import { InlineMath, BlockMath } from 'react-katex';
 import { getBaseUrl } from '../utils/apiHelpers';
+import { normalizeLatexContent, normalizeLatexExpression, stripLatexForPlainText } from '../utils/latex';
 import {
   SpeakerWaveIcon,
   PauseIcon,
@@ -26,148 +26,117 @@ import toast from 'react-hot-toast';
 /**
  * Render text with LaTeX formulas
  */
+const normalizeStructuredText = (value) => {
+  if (value === null || value === undefined) return '';
+  return String(value)
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/&nbsp;/g, ' ');
+};
+
+const canDisplayAsSingleFormula = (text) => {
+  if (!text) return false;
+  if (/[A-Za-zÀ-ỹ]+(?:\s+[A-Za-zÀ-ỹ]+)+/.test(text)) return false;
+  return /(\\[a-zA-Z]+|[=^_]|[+\-*/]|[≤≥≠≈±×÷∞→⇒∫∑√πΠαβθΔ]|\uf02b|\uf02d|\uf03d|\uf061|\uf071)/u.test(text);
+};
+
+const SUPER = { 0: '⁰', 1: '¹', 2: '²', 3: '³', 4: '⁴', 5: '⁵', 6: '⁶', 7: '⁷', 8: '⁸', 9: '⁹', '+': '⁺', '-': '⁻', n: 'ⁿ' };
+const SUB = { 0: '₀', 1: '₁', 2: '₂', 3: '₃', 4: '₄', 5: '₅', 6: '₆', 7: '₇', 8: '₈', 9: '₉', a: 'ₐ', e: 'ₑ', h: 'ₕ', i: 'ᵢ', j: 'ⱼ', k: 'ₖ', l: 'ₗ', m: 'ₘ', n: 'ₙ', o: 'ₒ', p: 'ₚ', r: 'ᵣ', s: 'ₛ', t: 'ₜ', u: 'ᵤ', v: 'ᵥ', x: 'ₓ' };
+
+const toScript = (value, map, prefix) => {
+  const converted = String(value).split('').map((char) => map[char] || '').join('');
+  return converted || `${prefix}${value}`;
+};
+
+const latexExpressionToText = (expr) => {
+  let text = normalizeLatexExpression(expr);
+  let previous;
+
+  do {
+    previous = text;
+    text = text
+      .replace(/\\frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}/g, '($1)/($2)')
+      .replace(/\\sqrt\s*\{([^{}]+)\}/g, '√($1)');
+  } while (text !== previous);
+
+  return text
+    .replace(/\\left|\\right/g, '')
+    .replace(/\\text\s*\{([^{}]*)\}/g, '$1')
+    .replace(/\\mathrm\s*\{([^{}]*)\}/g, '$1')
+    .replace(/\\cdot/g, '·')
+    .replace(/\\times/g, '×')
+    .replace(/\\div/g, '÷')
+    .replace(/\\pm/g, '±')
+    .replace(/\\leq?/g, '≤')
+    .replace(/\\geq?/g, '≥')
+    .replace(/\\neq/g, '≠')
+    .replace(/\\approx/g, '≈')
+    .replace(/\\Rightarrow/g, '⇒')
+    .replace(/\\Leftrightarrow/g, '⇔')
+    .replace(/\\to|\\rightarrow/g, '→')
+    .replace(/\\infty/g, '∞')
+    .replace(/\\pi/g, 'π')
+    .replace(/\\alpha/g, 'α')
+    .replace(/\\beta/g, 'β')
+    .replace(/\\theta/g, 'θ')
+    .replace(/\\Delta/g, 'Δ')
+    .replace(/\\int/g, '∫')
+    .replace(/\\sum/g, '∑')
+    .replace(/\\prod/g, '∏')
+    .replace(/\\sin/g, 'sin')
+    .replace(/\\cos/g, 'cos')
+    .replace(/\\tan/g, 'tan')
+    .replace(/\\log/g, 'log')
+    .replace(/\\ln/g, 'ln')
+    .replace(/\\,/g, ' ')
+    .replace(/\\[;:!]/g, ' ')
+    .replace(/\^\{([^{}]+)\}/g, (_, value) => toScript(value, SUPER, '^'))
+    .replace(/_\{([^{}]+)\}/g, (_, value) => toScript(value, SUB, '_'))
+    .replace(/\^([A-Za-z0-9+-])/g, (_, value) => toScript(value, SUPER, '^'))
+    .replace(/_([A-Za-z0-9])/g, (_, value) => toScript(value, SUB, '_'))
+    .replace(/[{}]/g, '')
+    .replace(/\\([A-Za-z]+)/g, '$1')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+};
+
+const latexContentToText = (value) => {
+  const normalized = normalizeLatexContent(normalizeStructuredText(value));
+  return normalized
+    .replace(/\$\$([\s\S]*?)\$\$/g, (_, expr) => `\n${latexExpressionToText(expr)}\n`)
+    .replace(/\$([^$]+?)\$/g, (_, expr) => latexExpressionToText(expr))
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+};
+
 const MathText = ({ text }) => {
   if (!text) return null;
 
-  // Pre-process text to fix common LaTeX issues
-  const processedText = fixLatexFormulas(text);
-
-  const parts = [];
-  let remaining = processedText;
-  let key = 0;
-
-  while (remaining.includes('$$')) {
-    const startIdx = remaining.indexOf('$$');
-    const endIdx = remaining.indexOf('$$', startIdx + 2);
-    
-    if (endIdx === -1) break;
-
-    if (startIdx > 0) {
-      parts.push({ type: 'text', content: remaining.slice(0, startIdx), key: key++ });
-    }
-
-    const mathContent = remaining.slice(startIdx + 2, endIdx);
-    parts.push({ type: 'block', content: mathContent.trim(), key: key++ });
-
-    remaining = remaining.slice(endIdx + 2);
-  }
-
-  const processInline = (str) => {
-    const inlineParts = [];
-    let rest = str;
-    let inlineKey = 0;
-
-    while (rest.includes('$')) {
-      const start = rest.indexOf('$');
-      const end = rest.indexOf('$', start + 1);
-
-      if (end === -1) break;
-
-      if (start > 0) {
-        inlineParts.push({ type: 'text', content: rest.slice(0, start), key: `i${inlineKey++}` });
-      }
-
-      const math = rest.slice(start + 1, end).trim();
-      inlineParts.push({ type: 'inline', content: math, key: `i${inlineKey++}` });
-
-      rest = rest.slice(end + 1);
-    }
-
-    if (rest) {
-      inlineParts.push({ type: 'text', content: rest, key: `i${inlineKey++}` });
-    }
-
-    return inlineParts;
-  };
-
-  if (remaining) {
-    const inlineParts = processInline(remaining);
-    parts.push(...inlineParts.map(p => ({ ...p, key: key++ })));
-  }
-
-  if (parts.length === 0) {
-    const inlineParts = processInline(processedText);
-    return (
-      <span>
-        {inlineParts.map((part) => {
-          if (part.type === 'inline') {
-            try {
-              return <InlineMath key={part.key} math={part.content} />;
-            } catch (e) {
-              console.warn('Failed to render inline math:', part.content, e.message);
-              return <code key={part.key} className="text-red-400 bg-red-500/10 px-1 rounded">{part.content}</code>;
-            }
-          }
-          return <span key={part.key}>{part.content}</span>;
-        })}
-      </span>
-    );
-  }
+  const readable = latexContentToText(text);
 
   return (
-    <span>
-      {parts.map((part) => {
-        if (part.type === 'block') {
-          try {
-            return (
-              <div key={part.key} className="my-4 overflow-x-auto">
-                <BlockMath math={part.content} />
-              </div>
-            );
-          } catch (e) {
-            console.warn('Failed to render block math:', part.content, e.message);
-            return <pre key={part.key} className="text-red-400 bg-red-500/10 p-2 rounded text-sm">{part.content}</pre>;
-          }
-        }
-        if (part.type === 'inline') {
-          try {
-            return <InlineMath key={part.key} math={part.content} />;
-          } catch (e) {
-            console.warn('Failed to render inline math:', part.content, e.message);
-            return <code key={part.key} className="text-red-400 bg-red-500/10 px-1 rounded">{part.content}</code>;
-          }
-        }
-        return <span key={part.key}>{part.content}</span>;
-      })}
+    <span className="structured-math-text whitespace-pre-wrap leading-relaxed">
+      {readable}
     </span>
   );
 };
 
-/**
- * Fix common LaTeX formula issues
- */
-function fixLatexFormulas(text) {
-  if (!text) return '';
-  
-  let fixed = text;
-  
-  // Fix double-escaped LaTeX commands \\frac -> \frac
-  fixed = fixed.replace(/\\\\(frac|sqrt|sum|int|lim|sin|cos|tan|log|ln|alpha|beta|gamma|delta|theta|pi|omega|leq|geq|neq|times|div|pm|mp|cdot|vec|hat|bar|dot|ddot|tilde|left|right|begin|end|text|mathrm|mathbf|partial|nabla|infty|exists|forall|amp)\b/g, '\\$1');
-  
-  // Fix triple+ escaped backslashes
-  while (fixed.includes('\\\\\\\\')) {
-    fixed = fixed.replace(/\\\\\\\\/g, '\\\\');
+const asDisplayFormula = (value) => {
+  if (!value) return '';
+  const text = normalizeStructuredText(value).trim();
+  if (/(\$\$[\s\S]*?\$\$|\$[^$\n]+?\$|\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\))/.test(text)) {
+    return text;
   }
-  
-  // Remove spaces after opening $ and before closing $
-  fixed = fixed.replace(/\$\s+/g, '$');
-  fixed = fixed.replace(/\s+\$/g, '$');
-  
-  // Fix spaces in {content} patterns that might have extra spaces
-  fixed = fixed.replace(/\{\s+/g, '{');
-  fixed = fixed.replace(/\s+\}/g, '}');
-  
-  // Fix escaped ampersands (common in tables)
-  fixed = fixed.replace(/\\&/g, '&');
-  
-  // Fix double dollar signs that might be escaped
-  fixed = fixed.replace(/\$\$\$/g, '$$');
-  
-  // Fix spaces around \\ (line breaks in environments)
-  fixed = fixed.replace(/\s+\\\\\s+/g, '\\\\');
-  
-  return fixed;
-}
+  if (canDisplayAsSingleFormula(text)) {
+    return latexExpressionToText(text);
+  }
+  if (!/^[A-Za-z0-9\\{}[\]\s+\-*/=^_.,'()|:≤≥≠≈±×÷∞→⇒\uf02b\uf02d\uf03d\uf061\uf071]+$/.test(text)) {
+    return text;
+  }
+  if (/(\\[a-zA-Z]+|[=^_]|≤|≥|≠|±|×|÷|∞|→)/.test(text)) {
+    return latexExpressionToText(text);
+  }
+  return text;
+};
 
 /**
  * Key Point Box - Highlight important points with animation
@@ -376,12 +345,7 @@ const SectionAudio = ({ text, sectionName, existingAudioUrl, sectionId, lessonId
 
     setIsLoading(true);
     try {
-      const cleanText = text
-        .replace(/\$\$[\s\S]*?\$\$/g, '')
-        .replace(/\$[^$]+\$/g, '')
-        .replace(/\\[a-zA-Z]+\{[^}]*\}/g, '')
-        .replace(/\s+/g, ' ')
-        .trim();
+      const cleanText = stripLatexForPlainText(text);
 
       const response = await ttsAPI.generate({ 
         text: cleanText.slice(0, 3000),
@@ -537,7 +501,7 @@ const FormulaCard = ({ formula }) => (
       
       <div className="bg-gray-900/80 backdrop-blur-sm p-4 rounded-xl shadow-lg mb-3 overflow-x-auto border border-white/10">
         <div className="text-center text-white">
-          <MathText text={formula.formula} />
+          <MathText text={asDisplayFormula(formula.formula)} />
         </div>
       </div>
       
@@ -547,7 +511,7 @@ const FormulaCard = ({ formula }) => (
             <span className="text-blue-400 mt-0.5">📝</span>
             <div>
               <span className="font-medium text-gray-300">Ý nghĩa: </span>
-              <span className="text-gray-400">{formula.description}</span>
+              <span className="text-gray-400"><MathText text={formula.description} /></span>
             </div>
           </div>
         )}
@@ -556,7 +520,7 @@ const FormulaCard = ({ formula }) => (
             <span className="text-orange-400 mt-0.5">⚠️</span>
             <div>
               <span className="font-medium text-orange-300">Điều kiện: </span>
-              <span className="text-gray-400">{formula.conditions}</span>
+              <span className="text-gray-400"><MathText text={formula.conditions} /></span>
             </div>
           </div>
         )}
@@ -650,7 +614,7 @@ const ExampleCard = ({ example, index }) => {
                   <div className="mt-3 p-3 bg-blue-500/10 rounded-xl border border-blue-500/20">
                     <p className="text-sm text-blue-300 flex items-start gap-2">
                       <span className="text-lg">💡</span>
-                      <span><strong>Mẹo:</strong> <span className="text-gray-300">{example.tips}</span></span>
+                      <span><strong>Mẹo:</strong> <span className="text-gray-300"><MathText text={example.tips} /></span></span>
                     </p>
                   </div>
                 )}
@@ -724,7 +688,7 @@ const ExerciseCard = ({ exercise, index }) => {
               {exercise.hints.map((hint, i) => (
                 <li key={i} className="flex items-start gap-2">
                   <span className="text-yellow-400">•</span>
-                  {hint}
+                  <span><MathText text={hint} /></span>
                 </li>
               ))}
             </ul>

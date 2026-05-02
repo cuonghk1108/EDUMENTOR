@@ -73,18 +73,17 @@ const QuickActionButton = ({ to, icon: Icon, label, gradient, delay }) => {
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay, type: "spring", stiffness: 200 }}
-      whileHover={{ scale: 1.05, y: -3 }}
+      whileHover={{ scale: 1.03, y: -3 }}
       whileTap={{ scale: 0.95 }}
     >
       <Link
         to={to}
-        className={`flex flex-col items-center gap-3 p-5 rounded-2xl bg-gradient-to-br ${gradient} 
-          text-white shadow-lg hover:shadow-xl transition-all duration-300 btn-shine hover-glow-card`}
+        className="group flex min-h-[132px] flex-col items-center justify-center gap-3 rounded-2xl border border-white/10 bg-slate-950/70 p-5 text-white shadow-lg shadow-black/20 backdrop-blur-xl transition-all duration-300 hover:border-cyan-300/30 hover:bg-white/[0.06] hover:shadow-cyan-950/30"
       >
-        <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
+        <div className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${gradient} shadow-lg shadow-black/20 transition-transform duration-300 group-hover:scale-105`}>
           <Icon className="w-6 h-6" />
         </div>
-        <span className="font-medium text-sm">{label}</span>
+        <span className="text-center text-sm font-semibold text-gray-100">{label}</span>
       </Link>
     </motion.div>
   );
@@ -220,20 +219,22 @@ const Dashboard = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative z-10 overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 via-purple-900/50 to-gray-900 p-8 border border-white/10 hover-glow-card"
+        className="glass-panel relative z-10 overflow-hidden rounded-3xl border-cyan-300/15 p-8 shadow-2xl shadow-cyan-950/20"
       >
         {/* Animated grid */}
-        <div className="absolute inset-0 opacity-10">
+        <div className="absolute inset-0 opacity-20">
           <div className="absolute inset-0" style={{
-            backgroundImage: `linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), 
-                             linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)`,
-            backgroundSize: '50px 50px'
+            backgroundImage: `linear-gradient(rgba(34,211,238,.16) 1px, transparent 1px), 
+                             linear-gradient(90deg, rgba(99,102,241,.12) 1px, transparent 1px)`,
+            backgroundSize: '44px 44px',
+            maskImage: 'linear-gradient(to bottom, black, transparent 92%)'
           }} />
         </div>
-        
-        {/* Glow orbs */}
-        <div className="absolute top-0 right-1/4 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-1/4 w-64 h-64 bg-pink-500/20 rounded-full blur-3xl" />
+        <motion.div
+          className="absolute left-0 right-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300/50 to-transparent"
+          animate={{ y: [0, 220, 0], opacity: [0.15, 0.7, 0.15] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        />
 
         <div className="relative z-10">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
@@ -242,24 +243,24 @@ const Dashboard = () => {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2 }}
-                className="flex items-center gap-2 text-purple-400 text-sm font-medium mb-2"
+                className="mb-2 flex items-center gap-2 text-sm font-medium text-cyan-300"
               >
                 <SparklesIcon className="w-4 h-4" />
                 <span>{currentTime.toLocaleDateString('vi-VN', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
               </motion.div>
               
               <h1 className="text-3xl md:text-4xl font-display font-bold text-white mb-2">
-                {getGreeting()}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">{user?.name?.split(' ').pop()}</span>! 
+                {getGreeting()}, <span className="bg-gradient-to-r from-cyan-300 to-emerald-300 bg-clip-text text-transparent">{user?.name?.split(' ').pop()}</span>! 
                 <motion.span
                   animate={{ rotate: [0, 20, 0] }}
                   transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
-                  className="inline-block ml-2"
+                  className="ml-2 inline-block text-cyan-200"
                 >
                   👋
                 </motion.span>
               </h1>
               
-              <p className="text-gray-400 text-sm md:text-base italic">{quote}</p>
+              <p className="max-w-2xl text-sm text-gray-400 md:text-base">{quote}</p>
             </div>
 
             <motion.div
@@ -269,9 +270,7 @@ const Dashboard = () => {
             >
               <Link
                 to="/upload"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 
-                  rounded-xl text-white font-medium hover:shadow-lg hover:shadow-purple-500/25 
-                  transition-all duration-300 group"
+                className="group inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 px-6 py-3 font-semibold text-slate-950 shadow-lg shadow-cyan-950/30 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-cyan-500/20"
               >
                 <RocketLaunchIcon className="w-5 h-5 group-hover:animate-bounce" />
                 <span>Bắt đầu học ngay</span>
@@ -292,7 +291,7 @@ const Dashboard = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 + index * 0.1 }}
-                className="flex items-center gap-3 bg-white/5 backdrop-blur-sm rounded-xl p-3 border border-white/10"
+                className="flex items-center gap-3 rounded-xl border border-white/10 bg-slate-950/60 p-3 backdrop-blur-sm transition-colors hover:border-cyan-300/25"
               >
                 <stat.icon className={`w-5 h-5 ${stat.color} ${stat.pulse ? 'xp-pulse' : ''}`} />
                 <div>

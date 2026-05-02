@@ -1,9 +1,10 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { uploadAPI, lessonAPI, quizAPI, streakAPI } from '../services/api';
 import CustomizePromptModal from '../components/CustomizePromptModal';
+import MathRenderer from '../components/MathRenderer';
 import {
   CloudArrowUpIcon,
   DocumentIcon,
@@ -33,9 +34,12 @@ const Upload = () => {
   const [ocrText, setOcrText] = useState('');
   const [lessons, setLessons] = useState([]);
   const [uploadProgress, setUploadProgress] = useState({});
+  const [processingPercent, setProcessingPercent] = useState(0);
+  const [processingStage, setProcessingStage] = useState('Đang chuẩn bị...');
   const [currentFileIndex, setCurrentFileIndex] = useState(0);
   const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false);
   const [isRefiningLessons, setIsRefiningLessons] = useState(false);
+  const progressTimerRef = useRef(null);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -162,6 +166,56 @@ const Upload = () => {
     return files.reduce((sum, f) => sum + f.size, 0);
   };
 
+  const stopProgressTimer = useCallback(() => {
+    if (progressTimerRef.current) {
+      clearInterval(progressTimerRef.current);
+      progressTimerRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => stopProgressTimer();
+  }, [stopProgressTimer]);
+
+  const updateFileProgress = useCallback((fileId, nextProgress, fileIndex = currentFileIndex, totalFiles = files.length) => {
+    const clampedProgress = Math.max(0, Math.min(100, nextProgress));
+    setUploadProgress(prev => ({
+      ...prev,
+      [fileId]: Math.max(prev[fileId] || 0, clampedProgress)
+    }));
+    if (totalFiles > 0) {
+      setProcessingPercent(Math.min(100, ((fileIndex + clampedProgress / 100) / totalFiles) * 100));
+    }
+  }, [currentFileIndex, files.length]);
+
+  const startProcessingProgress = useCallback((fileId, fileIndex, totalFiles) => {
+    stopProgressTimer();
+    let simulatedProgress = 12;
+    updateFileProgress(fileId, simulatedProgress, fileIndex, totalFiles);
+    setProcessingStage('Đang đọc nội dung bằng OCR...');
+
+    progressTimerRef.current = setInterval(() => {
+      simulatedProgress = Math.min(
+        95,
+        simulatedProgress + Math.max(0.4, (95 - simulatedProgress) * 0.045)
+      );
+
+      if (simulatedProgress >= 78) {
+        setProcessingStage('Đang lưu bài giảng...');
+      } else if (simulatedProgress >= 48) {
+        setProcessingStage('Đang tạo bài giảng bằng AI...');
+      } else if (simulatedProgress >= 25) {
+        setProcessingStage('Đang phân tích công thức và nội dung...');
+      }
+
+      updateFileProgress(fileId, simulatedProgress, fileIndex, totalFiles);
+    }, 700);
+  }, [stopProgressTimer, updateFileProgress]);
+
+  const getProcessingPercent = () => {
+    return processingPercent;
+  };
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -185,9 +239,12 @@ const Upload = () => {
     setStep(2);
     setLessons([]);
     setOcrText('');
+    setProcessingStage('Đang chuẩn bị...');
+    setProcessingPercent(0);
 
     const results = [];
     let allOcrText = '';
+    const failedFiles = [];
 
     try {
       for (let i = 0; i < files.length; i++) {
@@ -198,6 +255,8 @@ const Upload = () => {
           idx === i ? { ...f, status: 'uploading' } : f
         ));
         setUploadProgress(prev => ({ ...prev, [fileObj.id]: 0 }));
+        setProcessingPercent((i / files.length) * 100);
+        setProcessingStage('Đang tải file lên...');
 
         toast.loading(
           `Đang xử lý file ${i + 1}/${files.length}: ${fileObj.name}...`, 
@@ -218,19 +277,32 @@ const Upload = () => {
             sgkFormData.append('customPrompt', formData.customPrompt);
           }
 
-          // Upload 1 lần
-          const result = await uploadAPI.processSGK(sgkFormData);
+          startProcessingProgress(fileObj.id, i, files.length);
+
+          const result = await uploadAPI.processSGK(sgkFormData, {
+            onUploadProgress: (progressEvent) => {
+              const total = progressEvent.total || progressEvent.loaded || 1;
+              const uploadPercent = Math.round((progressEvent.loaded * 100) / total);
+              const mappedProgress = Math.min(18, uploadPercent * 0.18);
+              setProcessingStage(uploadPercent >= 100 ? 'Đang chuyển sang OCR...' : 'Đang tải file lên...');
+              updateFileProgress(fileObj.id, mappedProgress, i, files.length);
+            }
+          });
           
           results.push(result.data.lesson);
           allOcrText += result.data.ocrText + '\n\n';
+          stopProgressTimer();
+          setProcessingStage('Hoàn tất file hiện tại');
+          updateFileProgress(fileObj.id, 100, i, files.length);
 
           setFiles(prev => prev.map((f, idx) => 
             idx === i ? { ...f, status: 'done' } : f
           ));
-          setUploadProgress(prev => ({ ...prev, [fileObj.id]: 100 }));
 
         } catch (fileError) {
           console.error(`Error processing file ${fileObj.name}:`, fileError);
+          stopProgressTimer();
+          setProcessingStage('Xử lý file bị lỗi');
           setFiles(prev => prev.map((f, idx) => 
             idx === i ? { ...f, status: 'error' } : f
           ));
@@ -239,12 +311,18 @@ const Upload = () => {
           let errorMsg = `Lỗi xử lý ${fileObj.name}`;
           if (fileError.response?.data?.error) {
             errorMsg = fileError.response.data.error;
+          } else if (fileError.response?.status === 404) {
+            const requestUrl = fileError.config?.baseURL
+              ? `${fileError.config.baseURL}${fileError.config.url || ''}`
+              : fileError.config?.url;
+            errorMsg = `Không tìm thấy API xử lý file (404): ${requestUrl || '/api/process-sgk'}`;
           } else if (fileError.code === 'ECONNABORTED') {
             errorMsg = `File ${fileObj.name} quá lớn hoặc kết nối chậm. Vui lòng thử file nhỏ hơn (<50MB).`;
           } else if (fileError.message?.includes('Network Error')) {
             errorMsg = `Lỗi mạng khi upload ${fileObj.name}. File lớn (>50MB) có thể không upload được qua mạng. Thử chia nhỏ file.`;
           }
           toast.error(errorMsg);
+          failedFiles.push(`${fileObj.name}: ${errorMsg}`);
         }
       }
 
@@ -260,7 +338,8 @@ const Upload = () => {
           console.log('Streak record failed:', err);
         });
       } else {
-        toast.error('Không xử lý được file nào');
+        const firstError = failedFiles[0] || 'Không xử lý được file nào';
+        toast.error(firstError, { duration: 8000 });
         setStep(1);
       }
     } catch (error) {
@@ -269,6 +348,7 @@ const Upload = () => {
       toast.error(error.response?.data?.error || 'Đã xảy ra lỗi');
       setStep(1);
     } finally {
+      stopProgressTimer();
       setUploading(false);
       setProcessing(false);
     }
@@ -631,18 +711,26 @@ const Upload = () => {
           <p className="text-gray-400 mb-6">
             {files[currentFileIndex]?.name}
           </p>
+          <p className="text-sm text-orange-300 mb-4">
+            {processingStage}
+          </p>
           
           {/* Progress Bar */}
           <div className="max-w-md mx-auto px-8">
             <div className="flex justify-between text-sm text-gray-500 mb-2">
               <span>Tiến độ</span>
-              <span>{Math.round((currentFileIndex / files.length) * 100)}%</span>
+              <span>{Math.round(getProcessingPercent())}%</span>
             </div>
-            <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-              <motion.div 
-                className="h-full bg-gradient-to-r from-orange-500 to-red-500"
-                initial={{ width: 0 }}
-                animate={{ width: `${(currentFileIndex / files.length) * 100}%` }}
+            <div className="relative h-2 bg-white/10 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-orange-500 to-red-500 transition-[width] duration-500 ease-out"
+                style={{ width: `${Math.max(3, getProcessingPercent())}%` }}
+              />
+              <motion.div
+                className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-white/40 to-transparent"
+                initial={{ x: '-120%' }}
+                animate={{ x: '360%' }}
+                transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }}
               />
             </div>
           </div>
@@ -722,7 +810,7 @@ const Upload = () => {
               </button>
             </div>
             <div className="markdown-content max-h-48 overflow-y-auto prose prose-invert prose-sm">
-              {lessons[0]?.content?.slice(0, 500)}...
+              <MathRenderer content={`${lessons[0]?.content?.slice(0, 500) || ''}...`} className="prose-sm" />
             </div>
           </div>
 

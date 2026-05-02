@@ -9,6 +9,7 @@ import {
   ChatBubbleLeftRightIcon,
   ChartBarIcon,
   CloudArrowUpIcon,
+  QuestionMarkCircleIcon,
   LightBulbIcon,
   SpeakerWaveIcon,
   SparklesIcon,
@@ -62,15 +63,18 @@ const TechGrid = () => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none">
     <div className="absolute inset-0" style={{
       backgroundImage: `
-        linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px)
+        linear-gradient(rgba(34, 211, 238, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99, 102, 241, 0.08) 1px, transparent 1px)
       `,
-      backgroundSize: '60px 60px'
+      backgroundSize: '56px 56px',
+      maskImage: 'linear-gradient(to bottom, transparent, black 12%, black 78%, transparent)'
     }} />
-    {/* Glowing orbs */}
-    <div className="absolute top-20 left-10 w-72 h-72 bg-primary-500/10 rounded-full blur-3xl animate-pulse" />
-    <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary-500/10 rounded-full blur-3xl animate-pulse animation-delay-1000" />
-    <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-accent-500/5 rounded-full blur-3xl animate-pulse animation-delay-500" />
+    <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(14,165,233,0.12),transparent_24%,rgba(16,185,129,0.08)_48%,transparent_72%)]" />
+    <motion.div
+      className="absolute left-0 right-0 top-1/4 h-px bg-gradient-to-r from-transparent via-cyan-300/40 to-transparent"
+      animate={{ y: [0, 260, 0], opacity: [0.15, 0.65, 0.15] }}
+      transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+    />
   </div>
 );
 
@@ -105,6 +109,110 @@ const FloatingIcons = () => {
           <Icon className="w-8 h-8 text-primary-300/30" />
         </motion.div>
       ))}
+    </div>
+  );
+};
+
+const LearningCockpit = () => {
+  const pipeline = [
+    { icon: CloudArrowUpIcon, label: 'Upload SGK', detail: 'PDF, ảnh, tài liệu' },
+    { icon: SparklesIcon, label: 'AI tóm tắt', detail: 'Ý chính và ví dụ' },
+    { icon: QuestionMarkCircleIcon, label: 'Quiz thích ứng', detail: 'Luyện đúng điểm yếu' },
+  ];
+
+  return (
+    <div className="relative">
+      <div className="absolute -inset-px rounded-3xl bg-gradient-to-br from-cyan-400/30 via-primary-500/20 to-emerald-400/20" />
+      <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-950/85 shadow-2xl shadow-cyan-950/40 backdrop-blur-xl">
+        <div className="absolute inset-0 opacity-20" style={{
+          backgroundImage: `linear-gradient(rgba(255,255,255,.08) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,.08) 1px, transparent 1px)`,
+          backgroundSize: '38px 38px'
+        }} />
+        <div className="relative border-b border-white/10 px-5 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-300">AI Learning Cockpit</p>
+              <h2 className="mt-1 text-xl font-bold text-white">Học đúng trọng tâm ngay từ trang đầu</h2>
+            </div>
+            <div className="flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-xs font-medium text-emerald-200">
+              <span className="h-2 w-2 rounded-full bg-emerald-300" />
+              Online
+            </div>
+          </div>
+        </div>
+
+        <div className="relative grid gap-4 p-5">
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: 'Tiến độ', value: '72%', tone: 'text-cyan-300' },
+              { label: 'Mục tiêu hôm nay', value: '25 phút', tone: 'text-emerald-300' },
+              { label: 'Sẵn sàng quiz', value: '8 câu', tone: 'text-amber-300' },
+            ].map((item) => (
+              <div key={item.label} className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
+                <p className="text-[11px] text-gray-400">{item.label}</p>
+                <p className={`mt-1 text-lg font-bold ${item.tone}`}>{item.value}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="rounded-2xl border border-cyan-300/20 bg-cyan-300/[0.06] p-4">
+            <div className="flex items-start gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-cyan-400/15 text-cyan-200">
+                <BookOpenIcon className="h-6 w-6" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="font-semibold text-white">Bài tiếp theo: Hàm số bậc hai</p>
+                  <span className="rounded-full bg-white/10 px-2 py-1 text-[11px] text-gray-300">12 phút</span>
+                </div>
+                <p className="mt-1 text-sm text-gray-400">AI chia bài thành từng ý nhỏ, có ví dụ và câu hỏi kiểm tra nhanh.</p>
+                <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/10">
+                  <motion.div
+                    className="h-full rounded-full bg-gradient-to-r from-cyan-300 to-emerald-300"
+                    initial={{ width: '12%' }}
+                    animate={{ width: '72%' }}
+                    transition={{ duration: 1.2, delay: 0.5 }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-3">
+            {pipeline.map((step, index) => (
+              <motion.div
+                key={step.label}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.45 + index * 0.12 }}
+                className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.035] p-3"
+              >
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-cyan-200">
+                  <step.icon className="h-5 w-5" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-white">{step.label}</p>
+                  <p className="text-xs text-gray-400">{step.detail}</p>
+                </div>
+                <CheckCircleIcon className="h-5 w-5 text-emerald-300" />
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-slate-900/80 p-4">
+            <div className="flex items-start gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-400/15 text-primary-200">
+                <LightBulbIcon className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-white">Gợi ý từ AI Tutor</p>
+                <p className="mt-1 text-sm text-gray-400">Bạn đang yếu phần đồ thị. Hãy học 1 ví dụ trực quan rồi làm 5 câu kiểm tra.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -200,9 +308,9 @@ const Landing = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white overflow-hidden">
+    <div className="app-shell text-white overflow-hidden">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 bg-gray-950/80 backdrop-blur-xl z-50 border-b border-white/5">
+      <header className="fixed left-0 right-0 top-0 z-50 border-b border-white/10 bg-slate-950/75 backdrop-blur-2xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
@@ -259,10 +367,10 @@ const Landing = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 min-h-screen flex items-center">
+      <section className="relative flex min-h-screen items-center pb-20 pt-28">
         <TechGrid />
         <FloatingIcons />
-        <div className="twinkle-stars opacity-70" />
+        <div className="twinkle-stars opacity-40" />
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -331,15 +439,15 @@ const Landing = () => {
               </div>
             </motion.div>
 
-            {/* Right side - Code visualization */}
+            {/* Right side - Learning cockpit */}
             <motion.div
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.3 }}
               className="relative hidden lg:block"
             >
-              {/* Terminal-like card */}
-              <div className="relative">
+              <LearningCockpit />
+              <div className="hidden">
                 <div className="absolute inset-0 bg-gradient-to-r from-primary-500/20 to-secondary-500/20 rounded-2xl blur-2xl" />
                 <div className="relative bg-gray-900/80 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-xl hover-glow-card">
                   {/* Terminal header */}

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { adminAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
+import { stripLatexForPlainText } from '../utils/latex';
 import toast from 'react-hot-toast';
 import {
   ChartBarIcon,
@@ -841,7 +842,7 @@ const LessonsTab = () => {
             </div>
             <h4 className="font-semibold text-white mb-2 line-clamp-2">{lesson.title}</h4>
             <p className="text-sm text-gray-500 line-clamp-2 mb-4">
-              {lesson.content?.substring(0, 100)}...
+              {stripLatexForPlainText(lesson.content || '').substring(0, 100)}...
             </p>
             <div className="flex items-center justify-between text-xs text-gray-500">
               <span>{lesson.creator?.name || 'Ẩn danh'}</span>

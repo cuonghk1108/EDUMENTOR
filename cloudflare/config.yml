@@ -4,8 +4,8 @@
 # Sử dụng 1 domain duy nhất với path routing
 # Upload limit: 5 files, mỗi file tối đa 100MB
 
-tunnel: 4f14b42d-2572-4678-91e9-f370e686f49e
-credentials-file: C:\Users\XC\.cloudflared\4f14b42d-2572-4678-91e9-f370e686f49e.json
+tunnel: 720711cc-b3e9-41f4-bb39-865c353ea504
+credentials-file: C:\Users\XC\.cloudflared\720711cc-b3e9-41f4-bb39-865c353ea504.json
 
 # Cấu hình chung cho origin
 originRequest:

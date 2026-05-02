@@ -30,6 +30,39 @@ async function ensureAudioDir() {
 }
 
 /**
+ * Calculate audio duration from WAV buffer
+ */
+function calculateAudioDuration(audioBuffer) {
+  if (!audioBuffer || audioBuffer.length < 44) {
+    return 0; // Invalid WAV file
+  }
+
+  try {
+    // WAV header structure (little-endian)
+    const sampleRate = audioBuffer.readUInt32LE(24);
+    const bitsPerSample = audioBuffer.readUInt16LE(34);
+    const dataSize = audioBuffer.readUInt32LE(40);
+    const channels = audioBuffer.readUInt16LE(22);
+    
+    console.log(`📊 WAV Debug - SR:${sampleRate} BPS:${bitsPerSample} DS:${dataSize} CH:${channels}`);
+    
+    if (sampleRate === 0) {
+      return 0;
+    }
+    
+    const bytesPerSample = bitsPerSample / 8;
+    const numSamples = dataSize / (bytesPerSample * channels);
+    const duration = Math.round((numSamples / sampleRate) * 10) / 10;
+    
+    console.log(`📊 Calculated duration: ${duration}s from ${numSamples} samples`);
+    return duration;
+  } catch (error) {
+    console.error('Error calculating audio duration:', error.message);
+    return 0;
+  }
+}
+
+/**
  * Tạo hash từ text và voice config để làm key cache
  */
 function createCacheKey(text, voiceConfig = {}) {
@@ -58,17 +91,42 @@ async function getCachedAudio(text, voiceConfig = {}) {
           await fs.access(cached.filePath);
           console.log('🎵 Audio cache HIT:', textHash.substring(0, 8));
           
-          // Cập nhật lastUsed
-          await audioDb.update(
-            { _id: cached._id },
-            { $set: { lastUsed: new Date(), useCount: (cached.useCount || 0) + 1 } }
-          );
+          let duration = cached.duration;
+          
+          // If duration is missing, calculate it from file
+          if (!duration) {
+            try {
+              const audioBuffer = await fs.readFile(cached.filePath);
+              duration = calculateAudioDuration(audioBuffer);
+              console.log(`📊 Calculated duration from cache: ${duration}s (buffer size: ${audioBuffer.length})`);
+              // Update cache with duration
+              await audioDb.update(
+                { _id: cached._id },
+                { $set: { duration, lastUsed: new Date(), useCount: (cached.useCount || 0) + 1 } }
+              );
+            } catch (err) {
+              console.warn('Could not calculate duration:', err.message);
+              // Cập nhật lastUsed even if duration calculation fails
+              await audioDb.update(
+                { _id: cached._id },
+                { $set: { lastUsed: new Date(), useCount: (cached.useCount || 0) + 1 } }
+              );
+            }
+          } else {
+            console.log(`📊 Duration from cache: ${duration}s`);
+            // Cập nhật lastUsed
+            await audioDb.update(
+              { _id: cached._id },
+              { $set: { lastUsed: new Date(), useCount: (cached.useCount || 0) + 1 } }
+            );
+          }
           
           return {
             hit: true,
             filePath: cached.filePath,
             audioUrl: cached.audioUrl,
-            duration: cached.duration,
+            duration: duration,
+            format: cached.format,
             textHash
           };
         } catch {

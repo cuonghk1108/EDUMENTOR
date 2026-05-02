@@ -3,14 +3,25 @@
  * Smart base URL detection for production/development
  */
 
+const stripTrailingSlashes = (url) => url.replace(/\/+$/, '');
+
+const getConfiguredApiUrl = () => {
+  const configuredUrl = process.env.REACT_APP_API_URL;
+  if (!configuredUrl) return null;
+
+  const normalizedUrl = stripTrailingSlashes(configuredUrl);
+  return normalizedUrl.endsWith('/api') ? normalizedUrl : `${normalizedUrl}/api`;
+};
+
 /**
  * Get base URL for API/static resources
  * Supports HTTPS production and localhost development
  */
 export const getBaseUrl = () => {
   // If explicitly set via env, use that
-  if (process.env.REACT_APP_API_URL) {
-    return process.env.REACT_APP_API_URL.replace('/api', '');
+  const configuredApiUrl = getConfiguredApiUrl();
+  if (configuredApiUrl) {
+    return configuredApiUrl.replace(/\/api$/, '');
   }
   
   // In browser context
@@ -41,8 +52,9 @@ export const getBaseUrl = () => {
  */
 export const getApiBaseUrl = () => {
   // If explicitly set via env, use that
-  if (process.env.REACT_APP_API_URL) {
-    return process.env.REACT_APP_API_URL;
+  const configuredApiUrl = getConfiguredApiUrl();
+  if (configuredApiUrl) {
+    return configuredApiUrl;
   }
   
   // In browser context

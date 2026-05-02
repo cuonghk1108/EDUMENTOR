@@ -11,6 +11,7 @@ import {
   QuestionMarkCircleIcon,
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
+import MathRenderer from '../components/MathRenderer';
 import toast from 'react-hot-toast';
 
 const QuizTake = () => {
@@ -189,9 +190,9 @@ const QuizTake = () => {
               </span>
             </div>
             
-            <h2 className="text-xl font-medium text-white">
-              {question.question}
-            </h2>
+            <div className="text-xl font-medium text-white">
+              <MathRenderer content={question.question} className="prose-xl" />
+            </div>
           </div>
 
           {/* Options */}
@@ -214,7 +215,9 @@ const QuizTake = () => {
                   }`}>
                     {option}
                   </span>
-                  <span className="pt-1">{question[option]}</span>
+                  <div className="pt-1 flex-1">
+                    <MathRenderer content={question[option]} className="prose-sm" />
+                  </div>
                 </div>
               </button>
             ))}

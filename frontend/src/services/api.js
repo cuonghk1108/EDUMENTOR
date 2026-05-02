@@ -24,6 +24,12 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+      delete config.headers['content-type'];
+    }
+
     return config;
   },
   (error) => {
@@ -61,22 +67,22 @@ export const authAPI = {
 // Upload
 export const uploadAPI = {
   uploadFile: (formData) => api.post('/upload', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
     timeout: 300000, // 5 minutes for large files
   }),
   uploadMultiple: (formData) => api.post('/upload/multiple', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
     timeout: 300000, // 5 minutes for large files
   }),
   // Process SGK - Upload + OCR + Generate Lesson
-  processSGK: (formData) => api.post('/process-sgk', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
+  processSGK: (formData, config = {}) => api.post('/process-sgk', formData, {
     timeout: 900000, // 15 phút cho file lớn + OCR + AI processing
     maxContentLength: Infinity,
     maxBodyLength: Infinity,
+    ...config,
     onUploadProgress: (progressEvent) => {
-      const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+      const total = progressEvent.total || progressEvent.loaded || 1;
+      const percentCompleted = Math.round((progressEvent.loaded * 100) / total);
       console.log('Upload progress:', percentCompleted + '%');
+      config.onUploadProgress?.(progressEvent);
     },
   }),
 };
@@ -85,7 +91,6 @@ export const uploadAPI = {
 export const ocrAPI = {
   processFile: (filePath) => api.post('/ocr', { filePath }),
   processImage: (formData) => api.post('/ocr/image', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
   }),
 };
 
@@ -121,7 +126,6 @@ export const quizAPI = {
 export const chatAPI = {
   sendMessage: (data) => api.post('/chat', data),
   sendMessageWithImage: (formData) => api.post('/chat/image', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
     timeout: 120000,
   }),
   getHistory: (userId) => api.get(`/chat-history/${userId}`),

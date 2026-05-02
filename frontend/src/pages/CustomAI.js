@@ -7,6 +7,7 @@ import {
   CheckCircleIcon,
   DocumentPlusIcon
 } from '@heroicons/react/24/outline';
+import MathRenderer from '../components/MathRenderer';
 import toast from 'react-hot-toast';
 
 const CustomAI = () => {
@@ -353,7 +354,7 @@ const CustomAI = () => {
 
             {result.format === 'markdown' ? (
               <div className="markdown-content max-h-96 overflow-y-auto prose prose-sm">
-                {result.content}
+                <MathRenderer content={result.content} className="prose-sm" />
               </div>
             ) : (
               <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm font-mono whitespace-pre-wrap max-h-96 overflow-y-auto">
